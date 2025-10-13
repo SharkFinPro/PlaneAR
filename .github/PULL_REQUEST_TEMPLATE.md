@@ -9,9 +9,3 @@ Closes #<issue-number> (if applicable)
 
 ## How to test
 - steps to reproduce
-
-## Checklist
-- [ ] Code builds
-- [ ] Tests added/updated
-- [ ] At least 1 reviewer requested
-- [ ] Linked issue
