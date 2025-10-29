@@ -3,10 +3,13 @@
 
 namespace ge {
 
-class GraphicsEngine
-{
+  class GraphicsEngine
+  {
+  public:
+    GraphicsEngine();
 
-};
+    ~GraphicsEngine();
+  };
 
 } // ge
 

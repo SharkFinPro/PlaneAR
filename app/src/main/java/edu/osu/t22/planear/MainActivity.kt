@@ -4,6 +4,8 @@ import android.view.View
 import com.google.androidgamesdk.GameActivity
 
 class MainActivity : GameActivity() {
+    private var graphicsEngine: GraphicsEngineWrapper? = null
+
     companion object {
         init {
             System.loadLibrary("GraphicsEngine")
@@ -25,5 +27,16 @@ class MainActivity : GameActivity() {
                 or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_FULLSCREEN)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        graphicsEngine = GraphicsEngineWrapper()
+    }
+
+    override fun onPause() {
+        graphicsEngine?.destroy()
+        graphicsEngine = null
+        super.onPause()
     }
 }
