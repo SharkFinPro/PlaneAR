@@ -7,10 +7,13 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
 
 find_package(game-activity REQUIRED CONFIG)
 
+find_library(VULKAN_LIBRARY vulkan)
+
 set(CMAKE_SHARED_LINKER_FLAGS
   "${CMAKE_SHARED_LINKER_FLAGS} -u Java_com_google_androidgamesdk_GameActivity_initializeNativeCode")
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
+  ${VULKAN_LIBRARY}
   game-activity::game-activity_static
   android
   log)
