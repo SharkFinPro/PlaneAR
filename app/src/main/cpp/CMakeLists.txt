@@ -12,5 +12,5 @@ set(CMAKE_SHARED_LINKER_FLAGS
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
   game-activity::game-activity_static
-    android
-    log)
+  android
+  log)
