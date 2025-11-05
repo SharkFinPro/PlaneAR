@@ -5,9 +5,9 @@
 #include "Logger.h"
 #include "GraphicsEngine.h"
 
-void android_main(struct android_app *pApp)
+void android_main(struct android_app* pApp)
 {
-  ge::GraphicsEngine engine;
+  ge::GraphicsEngine engine(pApp);
 
   int events;
   struct android_poll_source* source;

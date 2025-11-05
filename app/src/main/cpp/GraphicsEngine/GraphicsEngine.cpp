@@ -7,7 +7,8 @@
 
 namespace ge {
 
-  GraphicsEngine::GraphicsEngine()
+  GraphicsEngine::GraphicsEngine(android_app* pApp)
+    : m_app(pApp)
   {
     LOGI("Creating Graphics Engine!");
 

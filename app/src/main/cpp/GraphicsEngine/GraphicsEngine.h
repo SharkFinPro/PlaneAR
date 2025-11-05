@@ -3,6 +3,8 @@
 
 #include <memory>
 
+struct android_app;
+
 namespace ge {
 
   class Instance;
@@ -10,11 +12,13 @@ namespace ge {
   class GraphicsEngine
   {
   public:
-    GraphicsEngine();
+    explicit GraphicsEngine(android_app* pApp);
 
     ~GraphicsEngine();
 
   private:
+    android_app* m_app;
+
     std::shared_ptr<Instance> m_instance;
   };
 
