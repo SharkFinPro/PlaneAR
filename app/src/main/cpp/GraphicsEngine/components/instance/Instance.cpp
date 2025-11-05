@@ -2,7 +2,6 @@
 #include "../../Logger.h"
 #include "DebugMessenger.h"
 #include <stdexcept>
-#include <vector>
 #include <vulkan/vulkan_android.h>
 
 namespace ge {
@@ -179,5 +178,21 @@ namespace ge {
     vkDestroySurfaceKHR(m_instance, surface, nullptr);
 
     surface = VK_NULL_HANDLE;
+  }
+
+  std::vector<VkPhysicalDevice> Instance::getPhysicalDevices() const
+  {
+    uint32_t deviceCount = 0;
+    vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
+
+    if (deviceCount == 0)
+    {
+      throw std::runtime_error("failed to find GPUs with Vulkan support!");
+    }
+
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices.data());
+
+    return devices;
   }
 } // ge

@@ -6,6 +6,7 @@ add_library(${PROJECT_NAME} SHARED
   components/instance/DebugMessenger.cpp
   components/instance/Instance.cpp
   components/surface/Surface.cpp
+  components/physicalDevice/PhysicalDevice.cpp
 )
 
 find_package(game-activity REQUIRED CONFIG)

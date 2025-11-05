@@ -3,6 +3,7 @@
 
 #include <vulkan/vulkan.h>
 #include <array>
+#include <vector>
 
 struct ANativeWindow;
 
@@ -27,6 +28,8 @@ namespace ge {
     [[nodiscard]] VkSurfaceKHR createSurface(ANativeWindow* window) const;
 
     void destroySurface(VkSurfaceKHR& surface) const;
+
+    [[nodiscard]] std::vector<VkPhysicalDevice> getPhysicalDevices() const;
 
   private:
     VkInstance m_instance = VK_NULL_HANDLE;

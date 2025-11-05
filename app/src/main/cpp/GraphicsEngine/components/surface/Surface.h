@@ -16,6 +16,8 @@ namespace ge {
     Surface(std::shared_ptr<Instance> instance, android_app* pApp);
     ~Surface();
 
+    [[nodiscard]] VkSurfaceKHR getSurface() const;
+
   private:
     std::shared_ptr<Instance> m_instance;
 

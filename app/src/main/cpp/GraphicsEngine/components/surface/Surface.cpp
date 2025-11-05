@@ -14,4 +14,9 @@ namespace ge {
   {
     m_instance->destroySurface(m_surface);
   }
+
+  VkSurfaceKHR Surface::getSurface() const
+  {
+    return m_surface;
+  }
 } // ge

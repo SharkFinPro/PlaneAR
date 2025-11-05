@@ -8,6 +8,7 @@ struct android_app;
 namespace ge {
 
   class Instance;
+  class PhysicalDevice;
   class Surface;
 
   class GraphicsEngine
@@ -22,6 +23,7 @@ namespace ge {
 
     std::shared_ptr<Instance> m_instance;
     std::shared_ptr<Surface> m_surface;
+    std::shared_ptr<PhysicalDevice> m_physicalDevice;
   };
 
 } // ge
