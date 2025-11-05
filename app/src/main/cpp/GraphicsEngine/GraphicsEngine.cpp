@@ -1,11 +1,8 @@
 #include "GraphicsEngine.h"
+#include "Logger.h"
 #include "components/instance/Instance.h"
 #include "components/physicalDevice/PhysicalDevice.h"
 #include "components/surface/Surface.h"
-#include <android/log.h>
-
-#define LOG_TAG "HelloWorld"
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 
 namespace ge {
 
