@@ -140,7 +140,10 @@ namespace ge {
 
   std::vector<const char*> Instance::getRequiredExtensions()
   {
-    std::vector<const char*> extensions;
+    std::vector<const char*> extensions = {
+        VK_KHR_SURFACE_EXTENSION_NAME,
+        VK_KHR_ANDROID_SURFACE_EXTENSION_NAME
+    };
 
     if (validationLayersEnabled())
     {

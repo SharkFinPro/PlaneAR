@@ -44,13 +44,10 @@ namespace ge {
       swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
 
-    // TODO: Fix the following lines from causing the program to hang
-//    VkPhysicalDeviceFeatures supportedFeatures;
-//    vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+    VkPhysicalDeviceFeatures supportedFeatures;
+    vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
 
-//    return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
-
-    return true;
+    return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
   }
 
   QueueFamilyIndices PhysicalDevice::findQueueFamilies(VkPhysicalDevice device,
