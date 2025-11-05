@@ -43,7 +43,7 @@ namespace ge {
   private:
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 
-    VkSampleCountFlagBits m_msaaSamples;
+    VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
     void pickPhysicalDevice(const std::shared_ptr<Instance>& instance,
                             const std::shared_ptr<Surface>& surface);
