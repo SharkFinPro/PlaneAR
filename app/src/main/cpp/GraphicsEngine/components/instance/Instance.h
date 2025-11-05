@@ -4,6 +4,8 @@
 #include <vulkan/vulkan.h>
 #include <array>
 
+struct ANativeWindow;
+
 namespace ge {
 
   constexpr std::array<const char*, 1> validationLayers {
@@ -21,6 +23,10 @@ namespace ge {
     void destroyDebugUtilsMessenger();
 
     static bool validationLayersEnabled();
+
+    [[nodiscard]] VkSurfaceKHR createSurface(ANativeWindow* window) const;
+
+    void destroySurface(VkSurfaceKHR& surface) const;
 
   private:
     VkInstance m_instance = VK_NULL_HANDLE;

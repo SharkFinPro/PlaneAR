@@ -3,6 +3,7 @@
 #include "DebugMessenger.h"
 #include <stdexcept>
 #include <vector>
+#include <vulkan/vulkan_android.h>
 
 namespace ge {
   Instance::Instance()
@@ -148,5 +149,35 @@ namespace ge {
     }
 
     return extensions;
+  }
+
+  VkSurfaceKHR Instance::createSurface(ANativeWindow* window) const
+  {
+    VkAndroidSurfaceCreateInfoKHR androidSurfaceCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
+      .pNext = nullptr,
+      .flags = 0,
+      .window = window
+    };
+
+    VkSurfaceKHR surface;
+    if (vkCreateAndroidSurfaceKHR(m_instance, &androidSurfaceCreateInfo, nullptr, &surface) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create window surface!");
+    }
+
+    return surface;
+  }
+
+  void Instance::destroySurface(VkSurfaceKHR& surface) const
+  {
+    if (surface == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    vkDestroySurfaceKHR(m_instance, surface, nullptr);
+
+    surface = VK_NULL_HANDLE;
   }
 } // ge

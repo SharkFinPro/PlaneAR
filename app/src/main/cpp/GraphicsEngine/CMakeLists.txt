@@ -5,6 +5,7 @@ add_library(${PROJECT_NAME} SHARED
   GraphicsEngine.cpp
   components/instance/DebugMessenger.cpp
   components/instance/Instance.cpp
+  components/surface/Surface.cpp
 )
 
 find_package(game-activity REQUIRED CONFIG)

@@ -1,5 +1,6 @@
 #include "GraphicsEngine.h"
 #include "components/instance/Instance.h"
+#include "components/surface/Surface.h"
 #include <android/log.h>
 
 #define LOG_TAG "HelloWorld"
@@ -13,6 +14,8 @@ namespace ge {
     LOGI("Creating Graphics Engine!");
 
     m_instance = std::make_shared<Instance>();
+
+    m_surface = std::make_shared<Surface>(m_instance, m_app);
   }
 
   GraphicsEngine::~GraphicsEngine()
