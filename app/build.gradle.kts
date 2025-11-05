@@ -1,3 +1,7 @@
+import java.net.URL
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -60,4 +64,31 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+}
+
+val vulkanVersion = "1.4.328.1"
+val vulkanUrl = "https://github.com/KhronosGroup/Vulkan-ValidationLayers/releases/download/vulkan-sdk-$vulkanVersion/android-binaries-$vulkanVersion.zip"
+val downloadDir = layout.buildDirectory.dir("vulkan-layers")
+val zipFile = downloadDir.map { it.file("android-binaries.zip") }
+val extractDir = layout.projectDirectory.dir("src/main/jniLibs")
+
+tasks.register("downloadVulkanLayers") {
+    doLast {
+        val zipPath = zipFile.get().asFile
+        zipPath.parentFile.mkdirs()
+        println("Downloading Vulkan Validation Layers...")
+        URL(vulkanUrl).openStream().use { input ->
+            Files.copy(input, zipPath.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        }
+    }
+}
+
+tasks.register<Copy>("extractVulkanLayers") {
+    dependsOn("downloadVulkanLayers")
+    from(zipTree(zipFile))
+    into(extractDir)
+}
+
+tasks.named("preBuild") {
+    dependsOn("extractVulkanLayers")
 }

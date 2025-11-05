@@ -1,10 +1,17 @@
 #include "Instance.h"
 #include "../../Logger.h"
+#include "DebugMessenger.h"
 #include <stdexcept>
+#include <vector>
 
 namespace ge {
   Instance::Instance()
   {
+    if (validationLayersEnabled() && !checkValidationLayerSupport())
+    {
+      throw std::runtime_error("validation layers requested, but not available!");
+    }
+
     constexpr VkApplicationInfo appInfo {
       .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
       .pApplicationName = "PlaneAR",
@@ -14,31 +21,132 @@ namespace ge {
       .apiVersion = VK_API_VERSION_1_1
     };
 
+    const auto extensions = getRequiredExtensions();
+
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+    if (validationLayersEnabled())
+    {
+      DebugMessenger::populateCreateInfo(debugCreateInfo);
+    }
+
     const VkInstanceCreateInfo createInfo {
       .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-      .pNext = nullptr,
+      .pNext = validationLayersEnabled() ? &debugCreateInfo : nullptr,
       .flags = 0,
       .pApplicationInfo = &appInfo,
-      .enabledLayerCount = 0,
-      .ppEnabledLayerNames = nullptr,
-      .enabledExtensionCount = 0,
-      .ppEnabledExtensionNames = nullptr
+      .enabledLayerCount = validationLayersEnabled() ? static_cast<uint32_t>(validationLayers.size()) : 0,
+      .ppEnabledLayerNames = validationLayersEnabled() ? validationLayers.data() : nullptr,
+      .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
+      .ppEnabledExtensionNames = extensions.data()
     };
 
     if (vkCreateInstance(&createInfo, nullptr, &m_instance) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to create instance!");
     }
-    else
+
+    if (validationLayersEnabled())
     {
-      LOGI("VK INSTANCE CREATED!");
+      createDebugUtilsMessenger();
     }
   }
 
   Instance::~Instance()
   {
+    destroyDebugUtilsMessenger();
+
     vkDestroyInstance(m_instance, nullptr);
 
     m_instance = VK_NULL_HANDLE;
+  }
+
+  void Instance::createDebugUtilsMessenger()
+  {
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+    DebugMessenger::populateCreateInfo(debugCreateInfo);
+
+    VkResult result;
+
+    const auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_instance, "vkCreateDebugUtilsMessengerEXT"));
+    if (func != nullptr)
+    {
+      result = func(m_instance, &debugCreateInfo, nullptr, &m_debugMessenger);
+    }
+    else
+    {
+      result = VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+
+    if (result != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to set up debug messenger!");
+    }
+  }
+
+  void Instance::destroyDebugUtilsMessenger()
+  {
+    if (m_debugMessenger == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    const auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT"));
+    if (func != nullptr)
+    {
+      func(m_instance, m_debugMessenger, nullptr);
+    }
+
+    m_debugMessenger = VK_NULL_HANDLE;
+  }
+
+  bool Instance::validationLayersEnabled()
+  {
+    #ifdef NDEBUG
+      return false;
+    #else
+      return true;
+    #endif
+  }
+
+  bool Instance::checkValidationLayerSupport()
+  {
+    uint32_t layerCount;
+    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+    std::vector<VkLayerProperties> availableLayers(layerCount);
+    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+    for (const char* layerName : validationLayers)
+    {
+      bool layerFound = false;
+
+      for (const auto& layerProperties : availableLayers)
+      {
+        if (strcmp(layerName, layerProperties.layerName) == 0)
+        {
+          layerFound = true;
+          break;
+        }
+      }
+
+      if (!layerFound)
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  std::vector<const char*> Instance::getRequiredExtensions()
+  {
+    std::vector<const char*> extensions;
+
+    if (validationLayersEnabled())
+    {
+      extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    }
+
+    return extensions;
   }
 } // ge
