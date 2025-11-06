@@ -12,6 +12,16 @@ namespace ge {
   {
     LOGI("Creating Graphics Engine!");
 
+    initializeVulkan();
+  }
+
+  GraphicsEngine::~GraphicsEngine()
+  {
+    LOGI("Destroying Graphics Engine!");
+  }
+
+  void GraphicsEngine::initializeVulkan()
+  {
     m_instance = std::make_shared<Instance>();
 
     m_surface = std::make_shared<Surface>(m_instance, m_app);
@@ -19,11 +29,6 @@ namespace ge {
     m_physicalDevice = std::make_shared<PhysicalDevice>(m_instance, m_surface);
 
     m_logicalDevice = std::make_shared<LogicalDevice>(m_physicalDevice);
-  }
-
-  GraphicsEngine::~GraphicsEngine()
-  {
-    LOGI("Destroying Graphics Engine!");
   }
 
 } // ge

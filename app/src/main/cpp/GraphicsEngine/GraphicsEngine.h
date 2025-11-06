@@ -26,6 +26,8 @@ namespace ge {
     std::shared_ptr<Surface> m_surface;
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
     std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    void initializeVulkan();
   };
 
 } // ge
