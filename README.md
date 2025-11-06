@@ -7,10 +7,9 @@
 
   <h1>PlaneAR</h1>
 
-[![Android CI](https://github.com/SharkFinPro/PlaneAR/actions/workflows/android-ci.yml/badge.svg)](https://github.com/SharkFinPro/PlaneAR/actions/workflows/android-ci.yml)
-
   <p>Real-time aircraft tracking and identification through Augmented Reality on Android devices.</p>
 
+  [![Android CI](https://github.com/SharkFinPro/PlaneAR/actions/workflows/android-ci.yml/badge.svg)](https://github.com/SharkFinPro/PlaneAR/actions/workflows/android-ci.yml)
 </div>
 
 ---
