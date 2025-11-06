@@ -1,6 +1,7 @@
 #include "GraphicsEngine.h"
 #include "Logger.h"
 #include "components/instance/Instance.h"
+#include "components/logicalDevice/LogicalDevice.h"
 #include "components/physicalDevice/PhysicalDevice.h"
 #include "components/surface/Surface.h"
 
@@ -16,6 +17,8 @@ namespace ge {
     m_surface = std::make_shared<Surface>(m_instance, m_app);
 
     m_physicalDevice = std::make_shared<PhysicalDevice>(m_instance, m_surface);
+
+    m_logicalDevice = std::make_shared<LogicalDevice>(m_physicalDevice);
   }
 
   GraphicsEngine::~GraphicsEngine()

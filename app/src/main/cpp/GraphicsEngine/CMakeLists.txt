@@ -5,6 +5,7 @@ add_library(${PROJECT_NAME} SHARED
   GraphicsEngine.cpp
   components/instance/DebugMessenger.cpp
   components/instance/Instance.cpp
+  components/logicalDevice/LogicalDevice.cpp
   components/surface/Surface.cpp
   components/physicalDevice/PhysicalDevice.cpp
 )
