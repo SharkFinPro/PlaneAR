@@ -40,23 +40,48 @@ namespace ge {
   public:
     PhysicalDevice(const std::shared_ptr<Instance>& instance, const std::shared_ptr<Surface>& surface);
 
+    [[nodiscard]] QueueFamilyIndices getQueueFamilies() const;
+
+    [[nodiscard]] SwapChainSupportDetails getSwapChainSupport() const;
+
+    [[nodiscard]] VkSampleCountFlagBits getMsaaSamples() const;
+
+    [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, const VkMemoryPropertyFlags& properties) const;
+
+    void updateSwapChainSupportDetails();
+
+    [[nodiscard]] VkFormatProperties getFormatProperties(VkFormat format) const;
+
+    [[nodiscard]] VkPhysicalDeviceProperties getDeviceProperties() const;
+
+    [[nodiscard]] VkDevice createLogicalDevice(const VkDeviceCreateInfo& deviceCreateInfo) const;
+
+    [[nodiscard]] VkFormat findDepthFormat() const;
+
+    [[nodiscard]] VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
+                                               VkImageTiling tiling,
+                                               VkFormatFeatureFlags features) const;
+
   private:
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 
+    std::shared_ptr<Surface> m_surface;
+
     VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
-    void pickPhysicalDevice(const std::shared_ptr<Instance>& instance,
-                            const std::shared_ptr<Surface>& surface);
+    QueueFamilyIndices m_queueFamilyIndices;
 
-    static bool isDeviceSuitable(VkPhysicalDevice device, const std::shared_ptr<Surface>& surface) ;
+    SwapChainSupportDetails m_swapChainSupportDetails;
 
-    static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device,
-                                         const std::shared_ptr<Surface>& surface) ;
+    void pickPhysicalDevice(const std::shared_ptr<Instance>& instance);
+
+    bool isDeviceSuitable(VkPhysicalDevice device);
+
+    [[nodiscard]] QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
     static bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 
-    static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device,
-                                                         const std::shared_ptr<Surface>& surface);
+    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
     [[nodiscard]] VkSampleCountFlagBits getMaxUsableSampleCount() const;
   };

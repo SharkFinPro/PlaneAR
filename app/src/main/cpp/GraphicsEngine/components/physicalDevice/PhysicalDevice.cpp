@@ -7,16 +7,112 @@
 namespace ge {
   PhysicalDevice::PhysicalDevice(const std::shared_ptr<Instance>& instance,
                                  const std::shared_ptr<Surface>& surface)
+    : m_surface(surface)
   {
-    pickPhysicalDevice(instance, surface);
+    pickPhysicalDevice(instance);
+
+    m_queueFamilyIndices = findQueueFamilies(m_physicalDevice);
+
+    updateSwapChainSupportDetails();
   }
 
-  void PhysicalDevice::pickPhysicalDevice(const std::shared_ptr<Instance>& instance,
-                                          const std::shared_ptr<Surface>& surface)
+  QueueFamilyIndices PhysicalDevice::getQueueFamilies() const
+  {
+    return m_queueFamilyIndices;
+  }
+
+  SwapChainSupportDetails PhysicalDevice::getSwapChainSupport() const
+  {
+    return m_swapChainSupportDetails;
+  }
+
+  VkSampleCountFlagBits PhysicalDevice::getMsaaSamples() const
+  {
+    return m_msaaSamples;
+  }
+
+  uint32_t PhysicalDevice::findMemoryType(uint32_t typeFilter,
+                                          const VkMemoryPropertyFlags& properties) const
+  {
+    VkPhysicalDeviceMemoryProperties memoryProperties;
+    vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memoryProperties);
+
+    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++)
+    {
+      if (typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+      {
+        return i;
+      }
+    }
+
+    throw std::runtime_error("failed to find suitable memory type!");
+  }
+
+  void PhysicalDevice::updateSwapChainSupportDetails()
+  {
+    m_swapChainSupportDetails = querySwapChainSupport(m_physicalDevice);
+  }
+
+  VkFormatProperties PhysicalDevice::getFormatProperties(VkFormat format) const
+  {
+    VkFormatProperties formatProperties{};
+    vkGetPhysicalDeviceFormatProperties(m_physicalDevice, format, &formatProperties);
+
+    return formatProperties;
+  }
+
+  VkPhysicalDeviceProperties PhysicalDevice::getDeviceProperties() const
+  {
+    VkPhysicalDeviceProperties deviceProperties{};
+    vkGetPhysicalDeviceProperties(m_physicalDevice, &deviceProperties);
+
+    return deviceProperties;
+  }
+
+  VkDevice PhysicalDevice::createLogicalDevice(const VkDeviceCreateInfo& deviceCreateInfo) const
+  {
+    VkDevice logicalDevice;
+
+    if (vkCreateDevice(m_physicalDevice, &deviceCreateInfo, nullptr, &logicalDevice) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create logical device!");
+    }
+
+    return logicalDevice;
+  }
+
+  VkFormat PhysicalDevice::findDepthFormat() const
+  {
+    return findSupportedFormat(
+      {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+      VK_IMAGE_TILING_OPTIMAL,
+      VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+    );
+  }
+
+  VkFormat PhysicalDevice::findSupportedFormat(const std::vector<VkFormat>& candidates,
+                                               VkImageTiling tiling,
+                                               VkFormatFeatureFlags features) const
+  {
+    for (const auto& format : candidates)
+    {
+      const VkFormatProperties formatProperties = getFormatProperties(format);
+
+      if ((tiling == VK_IMAGE_TILING_LINEAR && (formatProperties.linearTilingFeatures & features) == features) ||
+          (tiling == VK_IMAGE_TILING_OPTIMAL && (formatProperties.optimalTilingFeatures & features) == features))
+      {
+        return format;
+      }
+    }
+
+    throw std::runtime_error("failed to find supported format!");
+  }
+
+  void PhysicalDevice::pickPhysicalDevice(const std::shared_ptr<Instance>& instance)
   {
     for (const auto& device : instance->getPhysicalDevices())
     {
-      if (isDeviceSuitable(device, surface))
+      if (isDeviceSuitable(device))
       {
         m_physicalDevice = device;
         m_msaaSamples = getMaxUsableSampleCount();
@@ -30,17 +126,16 @@ namespace ge {
     }
   }
 
-  bool PhysicalDevice::isDeviceSuitable(VkPhysicalDevice device,
-                                        const std::shared_ptr<Surface>& surface)
+  bool PhysicalDevice::isDeviceSuitable(VkPhysicalDevice device)
   {
-    QueueFamilyIndices indices = findQueueFamilies(device, surface);
+    QueueFamilyIndices indices = findQueueFamilies(device);
 
     bool extensionsSupported = checkDeviceExtensionSupport(device);
 
     bool swapChainAdequate = false;
     if (extensionsSupported)
     {
-      SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device, surface);
+      SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
       swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
 
@@ -50,8 +145,7 @@ namespace ge {
     return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
   }
 
-  QueueFamilyIndices PhysicalDevice::findQueueFamilies(VkPhysicalDevice device,
-                                                       const std::shared_ptr<Surface>& surface)
+  QueueFamilyIndices PhysicalDevice::findQueueFamilies(VkPhysicalDevice device)
   {
     QueueFamilyIndices indices;
 
@@ -75,7 +169,7 @@ namespace ge {
       }
 
       VkBool32 presentSupport = false;
-      vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface->getSurface(), &presentSupport);
+      vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface->getSurface(), &presentSupport);
 
       if (presentSupport)
       {
@@ -111,31 +205,30 @@ namespace ge {
     return requiredExtensions.empty();
   }
 
-  SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(VkPhysicalDevice device,
-                                                                const std::shared_ptr<Surface>& surface)
+  SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(VkPhysicalDevice device)
   {
     SwapChainSupportDetails details;
 
-    const auto vkSurface = surface->getSurface();
+    const auto sufaceHandle = m_surface->getSurface();
 
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, vkSurface, &details.capabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, sufaceHandle, &details.capabilities);
 
     uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, vkSurface, &formatCount, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, sufaceHandle, &formatCount, nullptr);
 
     if (formatCount != 0)
     {
       details.formats.resize(formatCount);
-      vkGetPhysicalDeviceSurfaceFormatsKHR(device, vkSurface, &formatCount, details.formats.data());
+      vkGetPhysicalDeviceSurfaceFormatsKHR(device, sufaceHandle, &formatCount, details.formats.data());
     }
 
     uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, vkSurface, &presentModeCount, nullptr);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, sufaceHandle, &presentModeCount, nullptr);
 
     if (presentModeCount != 0)
     {
       details.presentModes.resize(presentModeCount);
-      vkGetPhysicalDeviceSurfacePresentModesKHR(device, vkSurface, &presentModeCount, details.presentModes.data());
+      vkGetPhysicalDeviceSurfacePresentModesKHR(device, sufaceHandle, &presentModeCount, details.presentModes.data());
     }
 
     return details;
