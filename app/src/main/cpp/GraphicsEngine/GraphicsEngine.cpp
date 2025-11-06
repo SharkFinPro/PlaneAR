@@ -13,11 +13,19 @@ namespace ge {
     LOGI("Creating Graphics Engine!");
 
     initializeVulkan();
+
+    createPools();
   }
 
   GraphicsEngine::~GraphicsEngine()
   {
     LOGI("Destroying Graphics Engine!");
+
+    m_logicalDevice->waitIdle();
+
+    m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
+
+    m_logicalDevice->destroyCommandPool(m_commandPool);
   }
 
   void GraphicsEngine::initializeVulkan()
@@ -29,6 +37,44 @@ namespace ge {
     m_physicalDevice = std::make_shared<PhysicalDevice>(m_instance, m_surface);
 
     m_logicalDevice = std::make_shared<LogicalDevice>(m_physicalDevice);
+  }
+
+  void GraphicsEngine::createPools()
+  {
+    createCommandPool();
+
+    createDescriptorPool();
+  }
+
+  void GraphicsEngine::createCommandPool()
+  {
+    const auto queueFamilyIndices = m_physicalDevice->getQueueFamilies();
+
+    const VkCommandPoolCreateInfo poolInfo {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+      .queueFamilyIndex = queueFamilyIndices.graphicsFamily.value()
+    };
+
+    m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
+  }
+
+  void GraphicsEngine::createDescriptorPool()
+  {
+    const std::array<VkDescriptorPoolSize, 3> poolSizes {{
+       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
+       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 50},
+       {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 10}
+     }};
+
+    const VkDescriptorPoolCreateInfo poolCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 30,
+      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+      .pPoolSizes = poolSizes.data()
+    };
+
+    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
   }
 
 } // ge

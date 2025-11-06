@@ -1,6 +1,7 @@
 #ifndef PLANEAR_GRAPHICSENGINE_H
 #define PLANEAR_GRAPHICSENGINE_H
 
+#include <vulkan/vulkan.h>
 #include <memory>
 
 struct android_app;
@@ -27,7 +28,17 @@ namespace ge {
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
+    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+
+    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+
     void initializeVulkan();
+
+    void createPools();
+
+    void createCommandPool();
+
+    void createDescriptorPool();
   };
 
 } // ge

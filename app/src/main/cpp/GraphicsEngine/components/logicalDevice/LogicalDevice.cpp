@@ -80,4 +80,42 @@ namespace ge {
     vkGetDeviceQueue(m_device, queueFamilyIndices.graphicsFamily.value(), 0, &m_graphicsQueue);
     vkGetDeviceQueue(m_device, queueFamilyIndices.presentFamily.value(), 0, &m_presentQueue);
   }
+
+  VkCommandPool LogicalDevice::createCommandPool(const VkCommandPoolCreateInfo& commandPoolCreateInfo) const
+  {
+    VkCommandPool commandPool = VK_NULL_HANDLE;
+
+    if (vkCreateCommandPool(m_device, &commandPoolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create command pool!");
+    }
+
+    return commandPool;
+  }
+
+  void LogicalDevice::destroyCommandPool(VkCommandPool& commandPool) const
+  {
+    vkDestroyCommandPool(m_device, commandPool, nullptr);
+
+    commandPool = VK_NULL_HANDLE;
+  }
+
+  VkDescriptorPool LogicalDevice::createDescriptorPool(const VkDescriptorPoolCreateInfo& descriptorPoolCreateInfo) const
+  {
+    VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+
+    if (vkCreateDescriptorPool(m_device, &descriptorPoolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create descriptor pool!");
+    }
+
+    return descriptorPool;
+  }
+
+  void LogicalDevice::destroyDescriptorPool(VkDescriptorPool& descriptorPool) const
+  {
+    vkDestroyDescriptorPool(m_device, descriptorPool, nullptr);
+
+    descriptorPool = VK_NULL_HANDLE;
+  }
 } // ge

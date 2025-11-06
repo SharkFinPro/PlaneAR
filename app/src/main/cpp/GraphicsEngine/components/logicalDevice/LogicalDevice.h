@@ -22,6 +22,14 @@ namespace ge {
 
     [[nodiscard]] uint32_t getMaxFramesInFlight() const;
 
+    [[nodiscard]] VkCommandPool createCommandPool(const VkCommandPoolCreateInfo& commandPoolCreateInfo) const;
+
+    void destroyCommandPool(VkCommandPool& commandPool) const;
+
+    [[nodiscard]] VkDescriptorPool createDescriptorPool(const VkDescriptorPoolCreateInfo& descriptorPoolCreateInfo) const;
+
+    void destroyDescriptorPool(VkDescriptorPool& descriptorPool) const;
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 
