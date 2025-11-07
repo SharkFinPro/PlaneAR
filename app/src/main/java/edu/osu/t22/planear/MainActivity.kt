@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
+import android.util.log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.androidgamesdk.GameActivity
@@ -35,19 +36,19 @@ class MainActivity : GameActivity() {
             maybeCreateSession()
         }
     }
+    @Suppress("MissingPermission")
 
     private fun maybeCreateSession() {
         try {
             val installStatus = ArCoreApk.getInstance().requestInstall(this, true)
             if (installStatus == ArCoreApk.InstallStatus.INSTALL_REQUESTED) {
-
                 return
             }
 
             arSession = Session(this)
-            // nativeOnArSessionCreated(arSession!!.nativeHandle)
+            Log.i("PlaneAR", "ARCore session created.")
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("PlaneAR", "Failed to create a ARCore session", e)
         }
     }
 
@@ -77,6 +78,4 @@ class MainActivity : GameActivity() {
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_FULLSCREEN)
     }
-
-    private external fun nativeOnArSessionCreated(sessionHandle: Long)
 }
