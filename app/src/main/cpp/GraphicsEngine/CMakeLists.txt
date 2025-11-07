@@ -3,7 +3,12 @@ project(GraphicsEngine)
 add_library(${PROJECT_NAME} SHARED
   main.cpp
   GraphicsEngine.cpp
-  GraphicsEngineJNI.cpp)
+  components/instance/DebugMessenger.cpp
+  components/instance/Instance.cpp
+  components/logicalDevice/LogicalDevice.cpp
+  components/surface/Surface.cpp
+  components/physicalDevice/PhysicalDevice.cpp
+)
 
 find_package(game-activity REQUIRED CONFIG)
 
