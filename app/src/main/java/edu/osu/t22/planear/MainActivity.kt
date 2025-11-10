@@ -10,13 +10,9 @@ import androidx.core.content.ContextCompat
 import com.google.androidgamesdk.GameActivity
 import com.google.ar.core.ArCoreApk
 import com.google.ar.core.Session
-import android.os.Bundle
-import android.util.Log
-import android.view.View
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.androidgamesdk.GameActivity
 import edu.osu.t22.planear.adsb.AdsbModule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
