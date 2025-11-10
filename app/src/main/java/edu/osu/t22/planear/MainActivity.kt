@@ -10,6 +10,20 @@ import androidx.core.content.ContextCompat
 import com.google.androidgamesdk.GameActivity
 import com.google.ar.core.ArCoreApk
 import com.google.ar.core.Session
+import android.os.Bundle
+import android.util.Log
+import android.view.View
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.google.androidgamesdk.GameActivity
+import edu.osu.t22.planear.adsb.AdsbModule
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : GameActivity() {
     companion object {
@@ -92,5 +106,42 @@ class MainActivity : GameActivity() {
                 or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_FULLSCREEN)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // get a new instance of the Retrofit API provider
+        val api = AdsbModule.provideApi()
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (isActive) {
+                    try {
+                        // get all nearby aircraft within 50nm
+                        val nearby = async(Dispatchers.IO) {
+                            api.getNearbyAircraft(44.565722, -123.278917, 50)
+                        }
+
+                        // get closest aircraft (could also just be parsed from the nearby list
+                        val closest = async(Dispatchers.IO) {
+                            api.getClosestAircraft(44.565722, -123.278917, 250)
+                        }
+
+                        // log results
+                        val nearbyData = nearby.await()
+                        Log.d("ADSB_TEST", "Got ${nearbyData.total} aircraft")
+                        val closestData = closest.await()
+                        Log.d("ADSB_TEST", "Closest aircraft: ${closestData.ac.firstOrNull() ?: "No aircraft found"}")
+                        Log.d("ADSB_TEST", "Timing data: (now: ${nearbyData.now}, cTime: ${nearbyData.cTime}, pTime: ${nearbyData.pTime})")
+                    } catch (e: Exception) {
+                        Log.e("ADSB_TEST", "API call failed", e)
+                    }
+
+                    // repeat every 5 seconds
+                    delay(5_000L)
+                }
+            }
+        }
     }
 }
