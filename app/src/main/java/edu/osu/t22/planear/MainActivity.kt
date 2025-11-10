@@ -3,10 +3,17 @@ package edu.osu.t22.planear
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.androidgamesdk.GameActivity
 import edu.osu.t22.planear.adsb.AdsbModule
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : GameActivity() {
     companion object {
@@ -37,11 +44,23 @@ class MainActivity : GameActivity() {
 
         val api = AdsbModule.provideApi()
         lifecycleScope.launch {
-            try {
-                val aircraft = api.getClosestAircraft(51.89508, 2.79437, 250)
-                Log.d("ADSB_TEST", "Got $aircraft aircraft")
-            } catch (e: Exception) {
-                Log.e("ADSB_TEST", "API call failed", e)
+
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (isActive) {
+                    try {
+                        val nearby = async(Dispatchers.IO) {
+                            api.getNearbyAircraft(44.565722, -123.278917, 50)
+                        }
+                        val closest = async(Dispatchers.IO) {
+                            api.getClosestAircraft(44.565722, -123.278917, 250)
+                        }
+                        Log.d("ADSB_TEST", "Got ${nearby.await().ac.size} aircraft")
+                        Log.d("ADSB_TEST", "Closest aircraft: ${closest.await().ac.firstOrNull() ?: "No aircraft found"}")
+                    } catch (e: Exception) {
+                        Log.e("ADSB_TEST", "API call failed", e)
+                    }
+                    delay(5_000L)
+                }
             }
         }
     }

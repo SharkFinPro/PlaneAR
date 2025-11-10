@@ -13,7 +13,7 @@ data class AdsbAircraft(
     val flight: String, // callsign
     val r: String, // regristration
     val t: String, // type
-    val alt_baro: Int,
+    val alt_baro: String,
     val alt_geom: Int,
     val gs: Float,
     val ias: Int,
@@ -21,8 +21,8 @@ data class AdsbAircraft(
     val mach: Double,
     val track: Double,
     val track_rate: Double,
-    val lat: Long,
-    val lon: Long,
+    val lat: Double,
+    val lon: Double,
     val seen: Float,
     val seen_pos: Float,
     val squawk: String
