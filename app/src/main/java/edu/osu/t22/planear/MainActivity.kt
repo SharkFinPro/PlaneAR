@@ -38,6 +38,21 @@ class MainActivity : GameActivity() {
     }
     @Suppress("MissingPermission")
 
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == CAMERA_PERMISSION_CODE &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
+            maybeCreateSession()
+        }
+    }
+
     private fun maybeCreateSession() {
         try {
             val installStatus = ArCoreApk.getInstance().requestInstall(this, true)
