@@ -42,23 +42,34 @@ class MainActivity : GameActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // get a new instance of the Retrofit API provider
         val api = AdsbModule.provideApi()
-        lifecycleScope.launch {
 
+        lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (isActive) {
                     try {
+                        // get all nearby aircraft within 50nm
                         val nearby = async(Dispatchers.IO) {
                             api.getNearbyAircraft(44.565722, -123.278917, 50)
                         }
+
+                        // get closest aircraft (could also just be parsed from the nearby list
                         val closest = async(Dispatchers.IO) {
                             api.getClosestAircraft(44.565722, -123.278917, 250)
                         }
-                        Log.d("ADSB_TEST", "Got ${nearby.await().ac.size} aircraft")
-                        Log.d("ADSB_TEST", "Closest aircraft: ${closest.await().ac.firstOrNull() ?: "No aircraft found"}")
+
+                        // log results
+                        val nearbyData = nearby.await()
+                        Log.d("ADSB_TEST", "Got ${nearbyData.total} aircraft")
+                        val closestData = closest.await()
+                        Log.d("ADSB_TEST", "Closest aircraft: ${closestData.ac.firstOrNull() ?: "No aircraft found"}")
+                        Log.d("ADSB_TEST", "Timing data: (now: ${nearbyData.now}, cTime: ${nearbyData.cTime}, pTime: ${nearbyData.pTime})")
                     } catch (e: Exception) {
                         Log.e("ADSB_TEST", "API call failed", e)
                     }
+
+                    // repeat every 5 seconds
                     delay(5_000L)
                 }
             }

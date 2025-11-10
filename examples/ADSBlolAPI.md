@@ -3,12 +3,11 @@
 As adsb.lol does not provide much documentation here are some examples to base calls from:
 
 Example API result:
-```json
 {
     "msg": string, // Status from API (Ex: "No error")
     "now": number, // Timestamp of when file was generated
-    "ctime": number, // Cache timestamp (when data was cached)
-    "ptime": number, // Server processing time
+    "ctime": number, // Unknown
+    "ptime": number, // Unknown
     "total": number, // Amount of aircraft returned
     "ac": [ // list of aircraft data
         {
@@ -17,7 +16,7 @@ Example API result:
             "flight": string, // callsign
             "r": string, // regristration
             "t": string, // ICAO aircraft type designator
-            "alt_baro": number, // barometric altitude (feet) (MSL or reported?)
+            "alt_baro": string, // barometric altitude (feet) (MSL or reported?) ("ground" when on ground)
             "alt_geom": number, // geometric altitude (feet)
             "gs": number, // ground speed (knots)
             "track": number, // track over ground, direction of motion
@@ -51,7 +50,6 @@ Example API result:
         }
     ]
 }
-```
 
 Get all aircraft near me:
 
