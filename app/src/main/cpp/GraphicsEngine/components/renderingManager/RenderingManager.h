@@ -8,6 +8,7 @@ namespace ge {
 
   class CommandBuffer;
   class LogicalDevice;
+  class Renderer;
   class Surface;
   class Swapchain;
 
@@ -22,6 +23,8 @@ namespace ge {
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     std::shared_ptr<Surface> m_surface;
+
+    std::shared_ptr<Renderer> m_renderer;
 
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 

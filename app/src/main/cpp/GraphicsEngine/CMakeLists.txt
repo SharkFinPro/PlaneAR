@@ -11,6 +11,7 @@ add_library(${PROJECT_NAME} SHARED
   components/logicalDevice/LogicalDevice.cpp
   components/surface/Surface.cpp
   components/physicalDevice/PhysicalDevice.cpp
+  components/renderingManager/LegacyRenderer.cpp
   components/renderingManager/RenderingManager.cpp
   components/renderPass/RenderPass.cpp
   components/surface/Swapchain.cpp
