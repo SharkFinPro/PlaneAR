@@ -1,5 +1,5 @@
 #include "RenderingManager.h"
-#include "Swapchain.h"
+#include "../surface/Swapchain.h"
 
 namespace ge {
   RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
