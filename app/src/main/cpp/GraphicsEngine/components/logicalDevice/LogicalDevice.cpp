@@ -178,4 +178,23 @@ namespace ge {
   {
     vkFreeCommandBuffers(m_device, commandPool, commandBufferCount, commandBuffers);
   }
+
+  VkRenderPass LogicalDevice::createRenderPass(const VkRenderPassCreateInfo& renderPassCreateInfo) const
+  {
+    VkRenderPass renderPass = VK_NULL_HANDLE;
+
+    if (vkCreateRenderPass(m_device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create render pass!");
+    }
+
+    return renderPass;
+  }
+
+  void LogicalDevice::destroyRenderPass(VkRenderPass& renderPass) const
+  {
+    vkDestroyRenderPass(m_device, renderPass, nullptr);
+
+    renderPass = VK_NULL_HANDLE;
+  }
 } // ge

@@ -47,6 +47,10 @@ namespace ge {
                             uint32_t commandBufferCount,
                             const VkCommandBuffer* commandBuffers) const;
 
+    [[nodiscard]] VkRenderPass createRenderPass(const VkRenderPassCreateInfo& renderPassCreateInfo) const;
+
+    void destroyRenderPass(VkRenderPass& renderPass) const;
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 

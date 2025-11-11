@@ -16,6 +16,10 @@ namespace ge {
 
     void setCurrentFrame(uint32_t currentFrame);
 
+    void beginRenderPass(const VkRenderPassBeginInfo& renderPassBeginInfo) const;
+
+    void endRenderPass() const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 

@@ -27,4 +27,14 @@ namespace ge {
 
     m_logicalDevice->allocateCommandBuffers(allocInfo, m_commandBuffers.data());
   }
+
+  void CommandBuffer::beginRenderPass(const VkRenderPassBeginInfo& renderPassBeginInfo) const
+  {
+    vkCmdBeginRenderPass(m_commandBuffers[m_currentFrame], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+  }
+
+  void CommandBuffer::endRenderPass() const
+  {
+    vkCmdEndRenderPass(m_commandBuffers[m_currentFrame]);
+  }
 } // ge
