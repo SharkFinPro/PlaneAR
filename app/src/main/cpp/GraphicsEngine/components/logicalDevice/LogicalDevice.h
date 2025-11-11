@@ -40,6 +40,13 @@ namespace ge {
 
     void destroyImageView(VkImageView& imageView) const;
 
+    void allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
+                                VkCommandBuffer* commandBuffers) const;
+
+    void freeCommandBuffers(VkCommandPool commandPool,
+                            uint32_t commandBufferCount,
+                            const VkCommandBuffer* commandBuffers) const;
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 

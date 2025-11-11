@@ -6,6 +6,7 @@
 
 namespace ge {
 
+  class CommandBuffer;
   class LogicalDevice;
   class Surface;
   class Swapchain;
@@ -25,6 +26,8 @@ namespace ge {
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
     std::shared_ptr<Swapchain> m_swapchain;
+
+    std::shared_ptr<CommandBuffer> m_swapchainCommandBuffer;
   };
 
 } // ge

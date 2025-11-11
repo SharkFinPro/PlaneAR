@@ -163,4 +163,19 @@ namespace ge {
 
     imageView = VK_NULL_HANDLE;
   }
+
+  void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
+                                             VkCommandBuffer* commandBuffers) const
+  {
+    if (vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, commandBuffers) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to allocate command buffers!");
+    }
+  }
+
+  void LogicalDevice::freeCommandBuffers(VkCommandPool commandPool, uint32_t commandBufferCount,
+                                         const VkCommandBuffer* commandBuffers) const
+  {
+    vkFreeCommandBuffers(m_device, commandPool, commandBufferCount, commandBuffers);
+  }
 } // ge
