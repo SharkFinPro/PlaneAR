@@ -8,6 +8,7 @@ namespace ge {
 
   class LogicalDevice;
   class Surface;
+  class Swapchain;
 
   class RenderingManager
   {
@@ -22,6 +23,8 @@ namespace ge {
     std::shared_ptr<Surface> m_surface;
 
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
+
+    std::shared_ptr<Swapchain> m_swapchain;
   };
 
 } // ge

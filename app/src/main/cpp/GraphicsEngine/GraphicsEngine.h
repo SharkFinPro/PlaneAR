@@ -11,6 +11,7 @@ namespace ge {
   class Instance;
   class LogicalDevice;
   class PhysicalDevice;
+  class RenderingManager;
   class Surface;
 
   class GraphicsEngine
@@ -32,6 +33,8 @@ namespace ge {
 
     VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
+    std::shared_ptr<RenderingManager> m_renderingManager;
+
     void initializeVulkan();
 
     void createPools();
@@ -39,6 +42,8 @@ namespace ge {
     void createCommandPool();
 
     void createDescriptorPool();
+
+    void createComponents();
   };
 
 } // ge

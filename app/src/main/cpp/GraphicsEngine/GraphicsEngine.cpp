@@ -3,6 +3,7 @@
 #include "components/instance/Instance.h"
 #include "components/logicalDevice/LogicalDevice.h"
 #include "components/physicalDevice/PhysicalDevice.h"
+#include "components/renderingManager/RenderingManager.h"
 #include "components/surface/Surface.h"
 
 namespace ge {
@@ -75,6 +76,15 @@ namespace ge {
     };
 
     m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
+  }
+
+  void GraphicsEngine::createComponents()
+  {
+    m_renderingManager = std::make_shared<RenderingManager>(
+      m_logicalDevice,
+      m_surface,
+      m_commandPool
+    );
   }
 
 } // ge
