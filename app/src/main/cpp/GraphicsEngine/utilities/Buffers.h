@@ -5,38 +5,58 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
-namespace ge::Images {
-  inline VkImageView createImageView(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                     const VkImage image,
-                                     const VkFormat format,
-                                     const VkImageAspectFlags aspectFlags,
-                                     const uint32_t mipLevels,
-                                     const VkImageViewType viewType,
-                                     const uint32_t layerCount)
+namespace ge::Buffers {
+  inline VkCommandBuffer beginSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                 const VkCommandPool commandPool)
   {
-    const VkImageViewCreateInfo imageViewCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-      .image = image,
-      .viewType = viewType,
-      .format = format,
-
-      .components = {
-        .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-        .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-        .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-        .a = VK_COMPONENT_SWIZZLE_IDENTITY
-      },
-      .subresourceRange = {
-        .aspectMask = aspectFlags,
-        .baseMipLevel = 0,
-        .levelCount = mipLevels,
-        .baseArrayLayer = 0,
-        .layerCount = layerCount
-      }
+    const VkCommandBufferAllocateInfo allocateInfo {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+      .commandPool = commandPool,
+      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+      .commandBufferCount = 1
     };
 
-    return logicalDevice->createImageView(imageViewCreateInfo);
+    VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+    logicalDevice->allocateCommandBuffers(allocateInfo, &commandBuffer);
+
+    constexpr VkCommandBufferBeginInfo beginInfo {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+      .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+    };
+
+    if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to begin command buffer!");
+    }
+
+    return commandBuffer;
   }
-} // ge
+
+  inline void endSingleTimeCommands(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                    const VkCommandPool commandPool,
+                                    const VkQueue queue,
+                                    VkCommandBuffer commandBuffer)
+  {
+    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to end command buffer!");
+    }
+
+    const VkSubmitInfo submitInfo {
+      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+      .commandBufferCount = 1,
+      .pCommandBuffers = &commandBuffer
+    };
+
+    if (vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to submit command buffer!");
+    }
+
+    vkQueueWaitIdle(queue);
+
+    logicalDevice->freeCommandBuffers(commandPool, 1, &commandBuffer);
+  }
+}
 
 #endif //PLANEAR_BUFFERS_H

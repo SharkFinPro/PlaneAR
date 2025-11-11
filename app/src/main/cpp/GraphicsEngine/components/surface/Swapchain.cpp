@@ -2,7 +2,7 @@
 #include "Surface.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
-#include "../../utilities/Buffers.h"
+#include "../../utilities/Images.h"
 
 namespace ge {
   Swapchain::Swapchain(const std::shared_ptr<LogicalDevice>& logicalDevice,
