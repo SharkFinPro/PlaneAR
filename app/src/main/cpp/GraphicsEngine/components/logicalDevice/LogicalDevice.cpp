@@ -118,4 +118,11 @@ namespace ge {
 
     descriptorPool = VK_NULL_HANDLE;
   }
+
+  void LogicalDevice::destroySwapchainKHR(VkSwapchainKHR& swapchain) const
+  {
+    vkDestroySwapchainKHR(m_device, swapchain, nullptr);
+
+    swapchain = VK_NULL_HANDLE;
+  }
 } // ge

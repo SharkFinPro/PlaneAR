@@ -30,6 +30,8 @@ namespace ge {
 
     void destroyDescriptorPool(VkDescriptorPool& descriptorPool) const;
 
+    void destroySwapchainKHR(VkSwapchainKHR& swapchain) const;
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 

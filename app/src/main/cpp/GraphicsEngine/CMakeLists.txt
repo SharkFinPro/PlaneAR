@@ -9,6 +9,7 @@ add_library(${PROJECT_NAME} SHARED
   components/surface/Surface.cpp
   components/physicalDevice/PhysicalDevice.cpp
   components/renderingManager/RenderingManager.cpp
+  components/renderingManager/Swapchain.cpp
 )
 
 find_package(game-activity REQUIRED CONFIG)
