@@ -18,10 +18,17 @@ namespace ge {
 
     [[nodiscard]] VkSurfaceKHR getSurface() const;
 
+    [[nodiscard]] int32_t getWidth() const;
+
+    [[nodiscard]] int32_t getHeight() const;
+
   private:
     std::shared_ptr<Instance> m_instance;
 
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+
+    int32_t m_width;
+    int32_t m_height;
   };
 
 } // ge

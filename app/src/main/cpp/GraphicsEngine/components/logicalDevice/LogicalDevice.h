@@ -30,7 +30,15 @@ namespace ge {
 
     void destroyDescriptorPool(VkDescriptorPool& descriptorPool) const;
 
+    [[nodiscard]] VkSwapchainKHR createSwapchain(const VkSwapchainCreateInfoKHR& swapchainCreateInfo) const;
+
     void destroySwapchainKHR(VkSwapchainKHR& swapchain) const;
+
+    void getSwapchainImagesKHR(const VkSwapchainKHR& swapchain, uint32_t* swapchainImageCount, VkImage* swapchainImages) const;
+
+    [[nodiscard]] VkImageView createImageView(const VkImageViewCreateInfo& imageViewCreateInfo) const;
+
+    void destroyImageView(VkImageView& imageView) const;
 
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;

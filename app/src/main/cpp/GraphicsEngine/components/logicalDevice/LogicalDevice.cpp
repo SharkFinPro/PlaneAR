@@ -119,10 +119,48 @@ namespace ge {
     descriptorPool = VK_NULL_HANDLE;
   }
 
+  VkSwapchainKHR LogicalDevice::createSwapchain(const VkSwapchainCreateInfoKHR &swapchainCreateInfo) const
+  {
+    VkSwapchainKHR swapchain = VK_NULL_HANDLE;
+
+    if (vkCreateSwapchainKHR(m_device, &swapchainCreateInfo, nullptr, &swapchain) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create swapchain!");
+    }
+
+    return swapchain;
+  }
+
   void LogicalDevice::destroySwapchainKHR(VkSwapchainKHR& swapchain) const
   {
     vkDestroySwapchainKHR(m_device, swapchain, nullptr);
 
     swapchain = VK_NULL_HANDLE;
+  }
+
+  void LogicalDevice::getSwapchainImagesKHR(VkSwapchainKHR const& swapchain,
+                                            uint32_t* swapchainImageCount,
+                                            VkImage* swapchainImages) const
+  {
+    vkGetSwapchainImagesKHR(m_device, swapchain, swapchainImageCount, swapchainImages);
+  }
+
+  VkImageView LogicalDevice::createImageView(const VkImageViewCreateInfo& imageViewCreateInfo) const
+  {
+    VkImageView imageView = VK_NULL_HANDLE;
+
+    if (vkCreateImageView(m_device, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create image view!");
+    }
+
+    return imageView;
+  }
+
+  void LogicalDevice::destroyImageView(VkImageView &imageView) const
+  {
+    vkDestroyImageView(m_device, imageView, nullptr);
+
+    imageView = VK_NULL_HANDLE;
   }
 } // ge

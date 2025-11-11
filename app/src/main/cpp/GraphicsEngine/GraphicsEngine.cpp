@@ -16,6 +16,8 @@ namespace ge {
     initializeVulkan();
 
     createPools();
+
+    createComponents();
   }
 
   GraphicsEngine::~GraphicsEngine()
