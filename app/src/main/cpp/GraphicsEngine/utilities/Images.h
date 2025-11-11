@@ -63,9 +63,14 @@ namespace ge::Images {
     logicalDevice->bindImageMemory(image, imageMemory);
   }
 
-  void transitionImageLayout(const std::shared_ptr<LogicalDevice>& logicalDevice, const VkCommandPool& commandPool,
-                             const VkImage image, const VkFormat format, const VkImageLayout oldLayout,
-                             const VkImageLayout newLayout, const uint32_t mipLevels, const uint32_t layerCount)
+  inline void transitionImageLayout(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                    const VkCommandPool& commandPool,
+                                    const VkImage image,
+                                    const VkFormat format,
+                                    const VkImageLayout oldLayout,
+                                    const VkImageLayout newLayout,
+                                    const uint32_t mipLevels,
+                                    const uint32_t layerCount)
   {
     const VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(logicalDevice, commandPool);
 
