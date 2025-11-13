@@ -27,6 +27,21 @@ namespace ge {
     vkDeviceWaitIdle(m_device);
   }
 
+  VkQueue LogicalDevice::getGraphicsQueue() const
+  {
+    return m_graphicsQueue;
+  }
+
+  VkQueue LogicalDevice::getPresentQueue() const
+  {
+    return m_presentQueue;
+  }
+
+  VkQueue LogicalDevice::getComputeQueue() const
+  {
+    return m_computeQueue;
+  }
+
   uint32_t LogicalDevice::getMaxFramesInFlight() const
   {
     return m_maxFramesInFlight;
@@ -117,5 +132,159 @@ namespace ge {
     vkDestroyDescriptorPool(m_device, descriptorPool, nullptr);
 
     descriptorPool = VK_NULL_HANDLE;
+  }
+
+  VkSwapchainKHR LogicalDevice::createSwapchain(const VkSwapchainCreateInfoKHR& swapchainCreateInfo) const
+  {
+    VkSwapchainKHR swapchain = VK_NULL_HANDLE;
+
+    if (vkCreateSwapchainKHR(m_device, &swapchainCreateInfo, nullptr, &swapchain) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create swapchain!");
+    }
+
+    return swapchain;
+  }
+
+  void LogicalDevice::destroySwapchainKHR(VkSwapchainKHR& swapchain) const
+  {
+    vkDestroySwapchainKHR(m_device, swapchain, nullptr);
+
+    swapchain = VK_NULL_HANDLE;
+  }
+
+  void LogicalDevice::getSwapchainImagesKHR(const VkSwapchainKHR& swapchain,
+                                            uint32_t* swapchainImageCount,
+                                            VkImage* swapchainImages) const
+  {
+    vkGetSwapchainImagesKHR(m_device, swapchain, swapchainImageCount, swapchainImages);
+  }
+
+  VkImageView LogicalDevice::createImageView(const VkImageViewCreateInfo& imageViewCreateInfo) const
+  {
+    VkImageView imageView = VK_NULL_HANDLE;
+
+    if (vkCreateImageView(m_device, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create image view!");
+    }
+
+    return imageView;
+  }
+
+  void LogicalDevice::destroyImageView(VkImageView& imageView) const
+  {
+    vkDestroyImageView(m_device, imageView, nullptr);
+
+    imageView = VK_NULL_HANDLE;
+  }
+
+  void LogicalDevice::allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
+                                             VkCommandBuffer* commandBuffers) const
+  {
+    if (vkAllocateCommandBuffers(m_device, &commandBufferAllocateInfo, commandBuffers) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to allocate command buffers!");
+    }
+  }
+
+  void LogicalDevice::freeCommandBuffers(VkCommandPool commandPool, uint32_t commandBufferCount,
+                                         const VkCommandBuffer* commandBuffers) const
+  {
+    vkFreeCommandBuffers(m_device, commandPool, commandBufferCount, commandBuffers);
+  }
+
+  VkRenderPass LogicalDevice::createRenderPass(const VkRenderPassCreateInfo& renderPassCreateInfo) const
+  {
+    VkRenderPass renderPass = VK_NULL_HANDLE;
+
+    if (vkCreateRenderPass(m_device, &renderPassCreateInfo, nullptr,& renderPass) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create render pass!");
+    }
+
+    return renderPass;
+  }
+
+  void LogicalDevice::destroyRenderPass(VkRenderPass& renderPass) const
+  {
+    vkDestroyRenderPass(m_device, renderPass, nullptr);
+
+    renderPass = VK_NULL_HANDLE;
+  }
+
+  VkImage LogicalDevice::createImage(const VkImageCreateInfo& imageCreateInfo) const
+  {
+    VkImage image = VK_NULL_HANDLE;
+
+    if (vkCreateImage(m_device, &imageCreateInfo, nullptr, &image) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create image!");
+    }
+
+    return image;
+  }
+
+  void LogicalDevice::destroyImage(VkImage& image) const
+  {
+    vkDestroyImage(m_device, image, nullptr);
+
+    image = VK_NULL_HANDLE;
+  }
+
+  VkMemoryRequirements LogicalDevice::getImageMemoryRequirements(const VkImage& image) const
+  {
+    VkMemoryRequirements memoryRequirements{};
+
+    vkGetImageMemoryRequirements(m_device, image, &memoryRequirements);
+
+    return memoryRequirements;
+  }
+
+  void LogicalDevice::bindImageMemory(const VkImage& image,
+                                      const VkDeviceMemory& deviceMemory,
+                                      VkDeviceSize memoryOffset) const
+  {
+    vkBindImageMemory(m_device, image, deviceMemory, memoryOffset);
+  }
+
+  void LogicalDevice::allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo,
+                                     VkDeviceMemory& deviceMemory) const
+  {
+    if (vkAllocateMemory(m_device, &memoryAllocateInfo, nullptr, &deviceMemory) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to allocate memory!");
+    }
+  }
+
+  void LogicalDevice::freeMemory(VkDeviceMemory& memory) const
+  {
+    if (memory == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    vkFreeMemory(m_device, memory, nullptr);
+
+    memory = VK_NULL_HANDLE;
+  }
+
+  VkFramebuffer LogicalDevice::createFramebuffer(const VkFramebufferCreateInfo& framebufferCreateInfo) const
+  {
+    VkFramebuffer framebuffer = VK_NULL_HANDLE;
+
+    if (vkCreateFramebuffer(m_device, &framebufferCreateInfo, nullptr, &framebuffer) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create framebuffer!");
+    }
+
+    return framebuffer;
+  }
+
+  void LogicalDevice::destroyFramebuffer(VkFramebuffer& framebuffer) const
+  {
+    vkDestroyFramebuffer(m_device, framebuffer, nullptr);
+
+    framebuffer = VK_NULL_HANDLE;
   }
 } // ge

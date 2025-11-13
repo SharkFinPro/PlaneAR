@@ -20,6 +20,12 @@ namespace ge {
 
     void waitIdle() const;
 
+    [[nodiscard]] VkQueue getGraphicsQueue() const;
+
+    [[nodiscard]] VkQueue getPresentQueue() const;
+
+    [[nodiscard]] VkQueue getComputeQueue() const;
+
     [[nodiscard]] uint32_t getMaxFramesInFlight() const;
 
     [[nodiscard]] VkCommandPool createCommandPool(const VkCommandPoolCreateInfo& commandPoolCreateInfo) const;
@@ -29,6 +35,43 @@ namespace ge {
     [[nodiscard]] VkDescriptorPool createDescriptorPool(const VkDescriptorPoolCreateInfo& descriptorPoolCreateInfo) const;
 
     void destroyDescriptorPool(VkDescriptorPool& descriptorPool) const;
+
+    [[nodiscard]] VkSwapchainKHR createSwapchain(const VkSwapchainCreateInfoKHR& swapchainCreateInfo) const;
+
+    void destroySwapchainKHR(VkSwapchainKHR& swapchain) const;
+
+    void getSwapchainImagesKHR(const VkSwapchainKHR& swapchain, uint32_t* swapchainImageCount, VkImage* swapchainImages) const;
+
+    [[nodiscard]] VkImageView createImageView(const VkImageViewCreateInfo& imageViewCreateInfo) const;
+
+    void destroyImageView(VkImageView& imageView) const;
+
+    void allocateCommandBuffers(const VkCommandBufferAllocateInfo& commandBufferAllocateInfo,
+                                VkCommandBuffer* commandBuffers) const;
+
+    void freeCommandBuffers(VkCommandPool commandPool,
+                            uint32_t commandBufferCount,
+                            const VkCommandBuffer* commandBuffers) const;
+
+    [[nodiscard]] VkRenderPass createRenderPass(const VkRenderPassCreateInfo& renderPassCreateInfo) const;
+
+    void destroyRenderPass(VkRenderPass& renderPass) const;
+
+    [[nodiscard]] VkImage createImage(const VkImageCreateInfo& imageCreateInfo) const;
+
+    void destroyImage(VkImage& image) const;
+
+    [[nodiscard]] VkMemoryRequirements getImageMemoryRequirements(const VkImage& image) const;
+
+    void bindImageMemory(const VkImage& image, const VkDeviceMemory& deviceMemory, VkDeviceSize memoryOffset = 0) const;
+
+    void allocateMemory(const VkMemoryAllocateInfo& memoryAllocateInfo, VkDeviceMemory& deviceMemory) const;
+
+    void freeMemory(VkDeviceMemory& memory) const;
+
+    [[nodiscard]] VkFramebuffer createFramebuffer(const VkFramebufferCreateInfo& framebufferCreateInfo) const;
+
+    void destroyFramebuffer(VkFramebuffer& framebuffer) const;
 
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
