@@ -10,6 +10,8 @@ namespace ge {
     : m_physicalDevice(physicalDevice)
   {
     createDevice();
+
+    createSyncObjects();
   }
 
   LogicalDevice::~LogicalDevice()
@@ -286,5 +288,31 @@ namespace ge {
     vkDestroyFramebuffer(m_device, framebuffer, nullptr);
 
     framebuffer = VK_NULL_HANDLE;
+  }
+
+  void LogicalDevice::createSyncObjects()
+  {
+    m_swapchainImageAvailableSemaphores.resize(m_maxFramesInFlight);
+    m_swapchainRenderFinishedSemaphores.resize(m_maxFramesInFlight);
+    m_swapchainInFlightFences.resize(m_maxFramesInFlight);
+
+    constexpr VkSemaphoreCreateInfo semaphoreInfo {
+      .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+    };
+
+    constexpr VkFenceCreateInfo fenceInfo {
+      .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+      .flags = VK_FENCE_CREATE_SIGNALED_BIT
+    };
+
+    for (size_t i = 0; i < m_maxFramesInFlight; i++)
+    {
+      if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_swapchainImageAvailableSemaphores[i]) != VK_SUCCESS ||
+          vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_swapchainRenderFinishedSemaphores[i]) != VK_SUCCESS ||
+          vkCreateFence(m_device, &fenceInfo, nullptr, &m_swapchainInFlightFences[i]) != VK_SUCCESS)
+      {
+        throw std::runtime_error("failed to create swapchain rendering sync objects!");
+      }
+    }
   }
 } // ge

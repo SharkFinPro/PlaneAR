@@ -82,9 +82,17 @@ namespace ge {
     VkQueue m_presentQueue = VK_NULL_HANDLE;
     VkQueue m_computeQueue = VK_NULL_HANDLE;
 
+    std::vector<VkSemaphore> m_swapchainImageAvailableSemaphores;
+
+    std::vector<VkSemaphore> m_swapchainRenderFinishedSemaphores;
+
+    std::vector<VkFence> m_swapchainInFlightFences;
+
     uint8_t m_maxFramesInFlight = 2;
 
     void createDevice();
+
+    void createSyncObjects();
   };
 
 } // ge
