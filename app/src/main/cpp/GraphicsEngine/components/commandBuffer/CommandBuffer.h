@@ -16,6 +16,8 @@ namespace ge {
 
     [[nodiscard]] VkCommandBuffer* getCommandBuffer();
 
+    void resetCommandBuffer() const;
+
     void setCurrentFrame(uint32_t currentFrame);
 
     void beginRenderPass(const VkRenderPassBeginInfo& renderPassBeginInfo) const;

@@ -86,6 +86,10 @@ namespace ge {
     void submitGraphicsQueue(uint32_t currentFrame,
                              const std::shared_ptr<CommandBuffer>& commandBuffer);
 
+    VkResult queuePresent(uint32_t currentFrame,
+                          const std::shared_ptr<Swapchain>& swapchain,
+                          const uint32_t* imageIndex) const;
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 

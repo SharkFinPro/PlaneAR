@@ -14,6 +14,11 @@ namespace ge {
     return &m_commandBuffers[m_currentFrame];
   }
 
+  void CommandBuffer::resetCommandBuffer() const
+  {
+    vkResetCommandBuffer(m_commandBuffers[m_currentFrame], 0);
+  }
+
   void CommandBuffer::setCurrentFrame(uint32_t currentFrame)
   {
     m_currentFrame = currentFrame;

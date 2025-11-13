@@ -19,6 +19,8 @@ namespace ge {
                      const std::shared_ptr<Surface>& surface,
                      VkCommandPool commandPool);
 
+    void doRendering(uint32_t currentFrame);
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 

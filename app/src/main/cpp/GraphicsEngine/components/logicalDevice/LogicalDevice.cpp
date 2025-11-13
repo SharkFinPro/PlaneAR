@@ -346,6 +346,27 @@ namespace ge {
     }
   }
 
+  VkResult LogicalDevice::queuePresent(const uint32_t currentFrame,
+                                       const std::shared_ptr<Swapchain>& swapchain,
+                                       const uint32_t* imageIndex) const
+  {
+    const std::array<VkSemaphore, 1> waitSemaphores = {
+      m_swapchainRenderFinishedSemaphores[currentFrame]
+    };
+
+    const VkPresentInfoKHR presentInfo {
+      .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+      .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
+      .pWaitSemaphores = waitSemaphores.data(),
+      .swapchainCount = 1,
+      .pSwapchains = &swapchain->getSwapChain(),
+      .pImageIndices = imageIndex,
+      .pResults = nullptr
+    };
+
+    return vkQueuePresentKHR(m_presentQueue, &presentInfo);
+  }
+
   void LogicalDevice::createSyncObjects()
   {
     m_swapchainImageAvailableSemaphores.resize(m_maxFramesInFlight);
