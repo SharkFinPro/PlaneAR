@@ -1,6 +1,7 @@
 #include "LogicalDevice.h"
 #include "../instance/Instance.h"
 #include "../physicalDevice/PhysicalDevice.h"
+#include "../surface/Swapchain.h"
 #include <array>
 #include <set>
 #include <stdexcept>
@@ -16,6 +17,8 @@ namespace ge {
 
   LogicalDevice::~LogicalDevice()
   {
+    destroySyncObjects();
+
     vkDestroyDevice(m_device, nullptr);
   }
 
@@ -290,6 +293,30 @@ namespace ge {
     framebuffer = VK_NULL_HANDLE;
   }
 
+  void LogicalDevice::waitForGraphicsFences(uint32_t currentFrame) const
+  {
+    vkWaitForFences(m_device, 1, &m_swapchainInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+  }
+
+  void LogicalDevice::resetGraphicsFences(uint32_t currentFrame) const
+  {
+    vkResetFences(m_device, 1, &m_swapchainInFlightFences[currentFrame]);
+  }
+
+  VkResult LogicalDevice::acquireNextImage(const uint32_t currentFrame,
+                                           const std::shared_ptr<Swapchain>& swapchain,
+                                           uint32_t* imageIndex) const
+  {
+    return vkAcquireNextImageKHR(
+      m_device,
+      swapchain->getSwapChain(),
+      UINT64_MAX,
+      m_swapchainImageAvailableSemaphores[currentFrame],
+      VK_NULL_HANDLE,
+      imageIndex
+    );
+  }
+
   void LogicalDevice::createSyncObjects()
   {
     m_swapchainImageAvailableSemaphores.resize(m_maxFramesInFlight);
@@ -313,6 +340,17 @@ namespace ge {
       {
         throw std::runtime_error("failed to create swapchain rendering sync objects!");
       }
+    }
+  }
+
+  void LogicalDevice::destroySyncObjects()
+  {
+    for (size_t i = 0; i < m_maxFramesInFlight; i++)
+    {
+      vkDestroySemaphore(m_device, m_swapchainImageAvailableSemaphores[i], nullptr);
+      vkDestroySemaphore(m_device, m_swapchainRenderFinishedSemaphores[i], nullptr);
+
+      vkDestroyFence(m_device, m_swapchainInFlightFences[i], nullptr);
     }
   }
 } // ge

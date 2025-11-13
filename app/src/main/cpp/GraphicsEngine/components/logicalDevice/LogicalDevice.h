@@ -9,6 +9,7 @@
 namespace ge {
 
   class PhysicalDevice;
+  class Swapchain;
 
   class LogicalDevice
   {
@@ -73,6 +74,14 @@ namespace ge {
 
     void destroyFramebuffer(VkFramebuffer& framebuffer) const;
 
+    void waitForGraphicsFences(uint32_t currentFrame) const;
+
+    void resetGraphicsFences(uint32_t currentFrame) const;
+
+    VkResult acquireNextImage(uint32_t currentFrame,
+                              const std::shared_ptr<Swapchain>& swapchain,
+                              uint32_t* imageIndex) const;
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 
@@ -93,6 +102,8 @@ namespace ge {
     void createDevice();
 
     void createSyncObjects();
+
+    void destroySyncObjects();
   };
 
 } // ge
