@@ -14,6 +14,8 @@ namespace ge {
   public:
     CommandBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool);
 
+    [[nodiscard]] VkCommandBuffer* getCommandBuffer();
+
     void setCurrentFrame(uint32_t currentFrame);
 
     void beginRenderPass(const VkRenderPassBeginInfo& renderPassBeginInfo) const;

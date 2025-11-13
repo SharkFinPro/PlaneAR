@@ -8,6 +8,7 @@
 
 namespace ge {
 
+  class CommandBuffer;
   class PhysicalDevice;
   class Swapchain;
 
@@ -81,6 +82,9 @@ namespace ge {
     VkResult acquireNextImage(uint32_t currentFrame,
                               const std::shared_ptr<Swapchain>& swapchain,
                               uint32_t* imageIndex) const;
+
+    void submitGraphicsQueue(uint32_t currentFrame,
+                             const std::shared_ptr<CommandBuffer>& commandBuffer);
 
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;

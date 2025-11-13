@@ -9,6 +9,11 @@ namespace ge {
     allocateCommandBuffers(commandPool);
   }
 
+  VkCommandBuffer* CommandBuffer::getCommandBuffer()
+  {
+    return &m_commandBuffers[m_currentFrame];
+  }
+
   void CommandBuffer::setCurrentFrame(uint32_t currentFrame)
   {
     m_currentFrame = currentFrame;

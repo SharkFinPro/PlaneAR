@@ -1,4 +1,5 @@
 #include "LogicalDevice.h"
+#include "../commandBuffer/CommandBuffer.h"
 #include "../instance/Instance.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../surface/Swapchain.h"
@@ -315,6 +316,34 @@ namespace ge {
       VK_NULL_HANDLE,
       imageIndex
     );
+  }
+
+  void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame,
+                                          const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    const std::array<VkSemaphore, 1> waitSemaphores = {
+      m_swapchainImageAvailableSemaphores[currentFrame]
+    };
+    constexpr VkPipelineStageFlags waitStages[] = {
+      VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+    };
+
+    const VkSubmitInfo submitInfo {
+      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+      .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
+      .pWaitSemaphores = waitSemaphores.data(),
+      .pWaitDstStageMask = waitStages,
+      .commandBufferCount = 1,
+      .pCommandBuffers = commandBuffer->getCommandBuffer(),
+      .signalSemaphoreCount = 1,
+      .pSignalSemaphores = &m_swapchainRenderFinishedSemaphores[currentFrame]
+    };
+
+    if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_swapchainInFlightFences[currentFrame]) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to submit draw command buffer!");
+    }
   }
 
   void LogicalDevice::createSyncObjects()
