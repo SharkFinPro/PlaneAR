@@ -31,6 +31,13 @@ namespace ge {
     m_logicalDevice->destroyCommandPool(m_commandPool);
   }
 
+  void GraphicsEngine::render()
+  {
+    m_renderingManager->doRendering(m_currentFrame);
+
+    createNewFrame();
+  }
+
   void GraphicsEngine::initializeVulkan()
   {
     m_instance = std::make_shared<Instance>();
@@ -87,6 +94,11 @@ namespace ge {
       m_surface,
       m_commandPool
     );
+  }
+
+  void GraphicsEngine::createNewFrame()
+  {
+    m_currentFrame = (m_currentFrame + 1) % m_logicalDevice->getMaxFramesInFlight();
   }
 
 } // ge

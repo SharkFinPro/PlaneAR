@@ -12,8 +12,6 @@ namespace ge {
     : m_physicalDevice(physicalDevice)
   {
     createDevice();
-
-    createSyncObjects();
   }
 
   LogicalDevice::~LogicalDevice()
@@ -319,6 +317,7 @@ namespace ge {
   }
 
   void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame,
+                                          uint32_t imageIndex,
                                           const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
     const std::array<VkSemaphore, 1> waitSemaphores = {
@@ -337,7 +336,7 @@ namespace ge {
       .commandBufferCount = 1,
       .pCommandBuffers = commandBuffer->getCommandBuffer(),
       .signalSemaphoreCount = 1,
-      .pSignalSemaphores = &m_swapchainRenderFinishedSemaphores[currentFrame]
+      .pSignalSemaphores = &m_swapchainRenderFinishedSemaphores[imageIndex]
     };
 
     if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_swapchainInFlightFences[currentFrame]) != VK_SUCCESS)
@@ -346,12 +345,11 @@ namespace ge {
     }
   }
 
-  VkResult LogicalDevice::queuePresent(const uint32_t currentFrame,
-                                       const std::shared_ptr<Swapchain>& swapchain,
-                                       const uint32_t* imageIndex) const
+  VkResult LogicalDevice::queuePresent(const uint32_t imageIndex,
+                                       const std::shared_ptr<Swapchain>& swapchain) const
   {
     const std::array<VkSemaphore, 1> waitSemaphores = {
-      m_swapchainRenderFinishedSemaphores[currentFrame]
+      m_swapchainRenderFinishedSemaphores[imageIndex]
     };
 
     const VkPresentInfoKHR presentInfo {
@@ -360,17 +358,19 @@ namespace ge {
       .pWaitSemaphores = waitSemaphores.data(),
       .swapchainCount = 1,
       .pSwapchains = &swapchain->getSwapChain(),
-      .pImageIndices = imageIndex,
+      .pImageIndices = &imageIndex,
       .pResults = nullptr
     };
 
     return vkQueuePresentKHR(m_presentQueue, &presentInfo);
   }
 
-  void LogicalDevice::createSyncObjects()
+  void LogicalDevice::createSyncObjects(const std::shared_ptr<Swapchain>& swapchain)
   {
+    m_swapchainImageCount = swapchain->getImageCount();
+
     m_swapchainImageAvailableSemaphores.resize(m_maxFramesInFlight);
-    m_swapchainRenderFinishedSemaphores.resize(m_maxFramesInFlight);
+    m_swapchainRenderFinishedSemaphores.resize(m_swapchainImageCount);
     m_swapchainInFlightFences.resize(m_maxFramesInFlight);
 
     constexpr VkSemaphoreCreateInfo semaphoreInfo {
@@ -382,10 +382,17 @@ namespace ge {
       .flags = VK_FENCE_CREATE_SIGNALED_BIT
     };
 
+    for (size_t i = 0; i < m_swapchainImageCount; i++)
+    {
+      if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_swapchainRenderFinishedSemaphores[i]) != VK_SUCCESS)
+      {
+        throw std::runtime_error("failed to create swapchain rendering sync objects!");
+      }
+    }
+
     for (size_t i = 0; i < m_maxFramesInFlight; i++)
     {
       if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_swapchainImageAvailableSemaphores[i]) != VK_SUCCESS ||
-          vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_swapchainRenderFinishedSemaphores[i]) != VK_SUCCESS ||
           vkCreateFence(m_device, &fenceInfo, nullptr, &m_swapchainInFlightFences[i]) != VK_SUCCESS)
       {
         throw std::runtime_error("failed to create swapchain rendering sync objects!");
@@ -395,11 +402,14 @@ namespace ge {
 
   void LogicalDevice::destroySyncObjects()
   {
+    for (size_t i = 0; i < m_swapchainImageCount; i++)
+    {
+      vkDestroySemaphore(m_device, m_swapchainRenderFinishedSemaphores[i], nullptr);
+    }
+
     for (size_t i = 0; i < m_maxFramesInFlight; i++)
     {
       vkDestroySemaphore(m_device, m_swapchainImageAvailableSemaphores[i], nullptr);
-      vkDestroySemaphore(m_device, m_swapchainRenderFinishedSemaphores[i], nullptr);
-
       vkDestroyFence(m_device, m_swapchainInFlightFences[i], nullptr);
     }
   }

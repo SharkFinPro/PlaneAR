@@ -46,6 +46,11 @@ namespace ge {
     return m_swapChainImages;
   }
 
+  uint32_t Swapchain::getImageCount() const
+  {
+    return m_swapChainImages.size();
+  }
+
   VkSurfaceFormatKHR Swapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
   {
     for (const auto& availableFormat : availableFormats)

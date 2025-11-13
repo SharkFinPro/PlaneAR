@@ -21,6 +21,8 @@ namespace ge {
 
     ~GraphicsEngine();
 
+    void render();
+
   private:
     android_app* m_app;
 
@@ -35,6 +37,8 @@ namespace ge {
 
     std::shared_ptr<RenderingManager> m_renderingManager;
 
+    uint32_t m_currentFrame = 0;
+
     void initializeVulkan();
 
     void createPools();
@@ -44,6 +48,8 @@ namespace ge {
     void createDescriptorPool();
 
     void createComponents();
+
+    void createNewFrame();
   };
 
 } // ge

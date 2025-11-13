@@ -29,6 +29,8 @@ namespace ge {
 
     [[nodiscard]] std::vector<VkImage>& getImages();
 
+    [[nodiscard]] uint32_t getImageCount() const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
     std::shared_ptr<Surface> m_surface;

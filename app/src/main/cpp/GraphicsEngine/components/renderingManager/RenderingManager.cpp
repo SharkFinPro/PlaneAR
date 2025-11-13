@@ -4,6 +4,8 @@
 #include "../logicalDevice/LogicalDevice.h"
 #include "../surface/Swapchain.h"
 
+#include "../../Logger.h"
+
 namespace ge {
   RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                      const std::shared_ptr<Surface>& surface,
@@ -11,6 +13,7 @@ namespace ge {
     : m_logicalDevice(logicalDevice), m_surface(surface), m_commandPool(commandPool)
   {
     m_swapchain = std::make_shared<Swapchain>(m_logicalDevice, m_surface);
+    m_logicalDevice->createSyncObjects(m_swapchain);
 
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
@@ -33,16 +36,43 @@ namespace ge {
 
     m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
     m_swapchainCommandBuffer->resetCommandBuffer();
+    recordOffscreenCommandBuffer(imageIndex);
+    m_logicalDevice->submitGraphicsQueue(currentFrame, imageIndex, m_swapchainCommandBuffer);
 
-    // TODO: Record swapchain command buffer
-
-    m_logicalDevice->submitGraphicsQueue(currentFrame, m_swapchainCommandBuffer);
-
-    result = m_logicalDevice->queuePresent(currentFrame, m_swapchain, &imageIndex);
+    result = m_logicalDevice->queuePresent(imageIndex, m_swapchain);
 
     if (result != VK_SUCCESS)
     {
       throw std::runtime_error("failed to present swap chain image!");
     }
+  }
+
+  void RenderingManager::recordOffscreenCommandBuffer(uint32_t imageIndex) const
+  {
+    m_swapchainCommandBuffer->record([this, imageIndex]()
+    {
+      const auto extent = m_swapchain->getExtent();
+      const auto commandBuffer = m_swapchainCommandBuffer;
+
+      m_renderer->beginSwapchainRendering(imageIndex, extent, commandBuffer, m_swapchain);
+
+      const VkViewport viewport = {
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = static_cast<float>(extent.width),
+        .height = static_cast<float>(extent.height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f
+      };
+      commandBuffer->setViewport(viewport);
+
+      const VkRect2D scissor = {
+        .offset = {0, 0},
+        .extent = extent
+      };
+      commandBuffer->setScissor(scissor);
+
+      m_renderer->endSwapchainRendering(imageIndex, commandBuffer, m_swapchain);
+    });
   }
 } // ge

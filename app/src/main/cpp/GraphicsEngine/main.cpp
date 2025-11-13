@@ -41,5 +41,10 @@ void android_main(struct android_app* pApp)
         return;
       }
     }
+
+    if (engine)
+    {
+      engine->render();
+    }
   }
 }
