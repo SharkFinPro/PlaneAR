@@ -4,8 +4,6 @@
 #include "../logicalDevice/LogicalDevice.h"
 #include "../surface/Swapchain.h"
 
-#include "../../Logger.h"
-
 namespace ge {
   RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                      const std::shared_ptr<Surface>& surface,
