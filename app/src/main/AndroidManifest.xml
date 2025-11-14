@@ -8,10 +8,22 @@
         android:required="true"
         android:version="1" />
 
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <uses-feature
         android:name="android.hardware.vulkan.version"
         android:required="true"
         android:version="0x401000" />  <!-- Vulkan 1.1.0 -->
+
+    <uses-feature
+        android:name="android.hardware.camera.ar"
+        android:required="true" />
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -24,6 +36,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PlaneAR">
+
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="required" />
 
         <activity
             android:name=".MainActivity"

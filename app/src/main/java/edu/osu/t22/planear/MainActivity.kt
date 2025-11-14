@@ -1,12 +1,18 @@
 package edu.osu.t22.planear
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.view.View
+import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.google.androidgamesdk.GameActivity
+import com.google.ar.core.ArCoreApk
+import com.google.ar.core.Session
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.androidgamesdk.GameActivity
 import edu.osu.t22.planear.adsb.AdsbModule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -20,24 +26,11 @@ class MainActivity : GameActivity() {
         init {
             System.loadLibrary("GraphicsEngine")
         }
+
+        private const val CAMERA_PERMISSION_CODE = 0
     }
 
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) {
-            hideSystemUi()
-        }
-    }
-
-    private fun hideSystemUi() {
-        val decorView = window.decorView
-        decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_FULLSCREEN)
-    }
+    private var arSession: Session? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,5 +67,73 @@ class MainActivity : GameActivity() {
                 }
             }
         }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.CAMERA),
+                CAMERA_PERMISSION_CODE
+            )
+        } else {
+            maybeCreateSession()
+        }
+    }
+    @Suppress("MissingPermission")
+
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == CAMERA_PERMISSION_CODE &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
+            maybeCreateSession()
+        }
+    }
+
+    private fun maybeCreateSession() {
+        try {
+            val installStatus = ArCoreApk.getInstance().requestInstall(this, true)
+            if (installStatus == ArCoreApk.InstallStatus.INSTALL_REQUESTED) {
+                return
+            }
+
+            arSession = Session(this)
+            Log.i("PlaneAR", "ARCore session created.")
+        } catch (e: Exception) {
+            Log.e("PlaneAR", "Failed to create a ARCore session", e)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        arSession?.resume()
+        hideSystemUi()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        arSession?.pause()
+    }
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            hideSystemUi()
+        }
+    }
+
+    private fun hideSystemUi() {
+        val decorView = window.decorView
+        decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_FULLSCREEN)
     }
 }
