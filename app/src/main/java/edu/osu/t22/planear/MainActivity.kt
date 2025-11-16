@@ -20,6 +20,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import edu.osu.t22.planear.geo.GeoUtils
+import edu.osu.t22.planear.geo.GeoPoint
+
 
 class MainActivity : GameActivity() {
     companion object {
@@ -58,6 +61,52 @@ class MainActivity : GameActivity() {
                         val closestData = closest.await()
                         Log.d("ADSB_TEST", "Closest aircraft: ${closestData.ac.firstOrNull() ?: "No aircraft found"}")
                         Log.d("ADSB_TEST", "Timing data: (now: ${nearbyData.now}, cTime: ${nearbyData.cTime}, pTime: ${nearbyData.pTime})")
+
+
+                        //--------------------TESTING GEO CALCULATIONS--------------------
+                        val closestAircraft = closestData.ac.firstOrNull()
+                        if (closestAircraft != null) {
+
+                            // will be replaced with arcore geolocation
+                            val userLat = 44.565722
+                            val userLon = -123.278917
+                            val userAltM = 100.0
+                            val userHeadingDeg = 90.0 //facing east
+
+                            val acLat = closestAircraft.lat
+                            val acLon =  closestAircraft.lon
+                            val acAltM = closestAircraft.altitudeMeters
+
+                            val userPoint = GeoPoint(userLat, userLon, userAltM)
+                            val acPoint = GeoPoint(acLat, acLon, acAltM)
+
+                            val dir = GeoUtils.relativeDirection(
+                                user = userPoint,
+                                userHeadingDeg = userHeadingDeg,
+                                aircraft = acPoint
+                            )
+
+                            Log.d(
+                                "ADSB_DIR",
+                                "distance=${"%.0f".format(dir.distanceMeters)} m, " +
+                                        "bearing=${"%.1f".format(dir.bearingToAircraft)}°" +
+                                        "relative=${"%.1f".format(dir.relativeBearingDeg)}°, " +
+                                        "elevation=${"%.1f".format(dir.elevationDeg)}°"
+                            )
+
+                            val enh = GeoUtils.enhVector(userPoint, acPoint)
+                            Log.d(
+                                "ADSB_ENU",
+                                "east=${"%.1f".format(enh.x)} m, " +
+                                        "north=${"%.1f".format(enh.y)} m, " +
+                                        "up=${"%.1f".format(enh.z)} m"
+                            )
+                        } else {
+                            Log.d("ADSB_DIR", "No closest aircraft")
+                        }
+
+
+
                     } catch (e: Exception) {
                         Log.e("ADSB_TEST", "API call failed", e)
                     }
