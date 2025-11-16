@@ -67,7 +67,7 @@ class MainActivity : GameActivity() {
                 }
             }
         }
-
+/*
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
@@ -78,52 +78,96 @@ class MainActivity : GameActivity() {
         } else {
             maybeCreateSession()
         }
+
+ */
     }
     @Suppress("MissingPermission")
 
 
+    override fun onResume() {
+        super.onResume()
+
+        //check camera permissions
+        if (!hasCameraPermission()) {
+            requestCameraPermission()
+            return
+        }
+
+        //create arcore session if not already created
+        if (arSession == null) {
+            tryCreateSession()
+        }
+
+        //resume ar session
+        try {
+            arSession?.resume()
+        } catch (e: Exception) {
+            Log.e("PlaneAR", "Failed to resume AR session", e)
+        }
+
+        hideSystemUi()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        try {
+            arSession?.pause()
+        } catch (e: Exception) {
+            Log.e("PlaneAR", "Failed to pause AR session", e)
+        }
+    }
+
+    // premission callbacks
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
         if (requestCode == CAMERA_PERMISSION_CODE &&
             grantResults.isNotEmpty() &&
             grantResults[0] == PackageManager.PERMISSION_GRANTED
         ) {
-            maybeCreateSession()
+            tryCreateSession()
         }
     }
 
-    private fun maybeCreateSession() {
+    private fun hasCameraPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestCameraPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.CAMERA),
+            CAMERA_PERMISSION_CODE
+        )
+    }
+
+    //ARCORE 1.51 install / create session flow
+    private fun tryCreateSession(): Boolean {
         try {
-            val installStatus = ArCoreApk.getInstance().requestInstall(this, true)
-            if (installStatus == ArCoreApk.InstallStatus.INSTALL_REQUESTED) {
-                return
+            // check if device / emulator supports ar core at all
+            val availability = ArCoreApk.getInstance().checkAvailability(this)
+            if (!availability.isSupported) {
+                Log.e("PlaneAR", "ARCore not supported on this device/emulator")
+                return false
             }
 
-            arSession = Session(this)
-            Log.i("PlaneAR", "ARCore session created.")
+            // if arcore is built into the apk we can remove requestInstall() step because
+            //ARCore has the client library already packaged
+            if (arSession == null) {
+                arSession = Session(this)
+                Log.i("PlaneAR", "ARCore session created (builtin)")
+            }
+
+            return true
+
         } catch (e: Exception) {
-            Log.e("PlaneAR", "Failed to create a ARCore session", e)
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        arSession?.resume()
-        hideSystemUi()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        arSession?.pause()
-    }
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) {
-            hideSystemUi()
+            Log.e("PlaneAR", "Failed to create ARCore session", e)
+            return false
         }
     }
 
