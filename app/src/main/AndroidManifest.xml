@@ -21,11 +21,8 @@
         android:required="true"
         android:version="0x401000" />  <!-- Vulkan 1.1.0 -->
 
-    <uses-feature
-        android:name="android.hardware.camera.ar"
-        android:required="true" />
-
-    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
