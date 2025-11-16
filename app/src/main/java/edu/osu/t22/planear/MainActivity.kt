@@ -70,12 +70,13 @@ class MainActivity : GameActivity() {
                             // will be replaced with arcore geolocation
                             val userLat = 44.565722
                             val userLon = -123.278917
-                            val userAltM = 100.0
+                            val userAltM = 0.0
                             val userHeadingDeg = 90.0 //facing east
 
                             val acLat = closestAircraft.lat
                             val acLon =  closestAircraft.lon
-                            val acAltM = closestAircraft.altitudeMeters
+                            val acAltFeet = closestAircraft.alt_baro?.toDoubleOrNull() ?: 0.0
+                            val acAltM = acAltFeet * 0.3048
 
                             val userPoint = GeoPoint(userLat, userLon, userAltM)
                             val acPoint = GeoPoint(acLat, acLon, acAltM)
@@ -96,10 +97,10 @@ class MainActivity : GameActivity() {
 
                             val enh = GeoUtils.enhVector(userPoint, acPoint)
                             Log.d(
-                                "ADSB_ENU",
+                                "ADSB_ENH",
                                 "east=${"%.1f".format(enh.x)} m, " +
                                         "north=${"%.1f".format(enh.y)} m, " +
-                                        "up=${"%.1f".format(enh.z)} m"
+                                        "height=${"%.1f".format(enh.z)} m"
                             )
                         } else {
                             Log.d("ADSB_DIR", "No closest aircraft")
