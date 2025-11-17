@@ -7,7 +7,13 @@ namespace ge {
   Surface::Surface(std::shared_ptr<Instance> instance, android_app* pApp)
     : m_instance(std::move(instance))
   {
-    m_surface = m_instance->createSurface(pApp->window);
+    const auto pWindow = pApp->window;
+
+    m_surface = m_instance->createSurface(pWindow);
+
+    m_width = ANativeWindow_getWidth(pWindow);
+
+    m_height = ANativeWindow_getHeight(pWindow);
   }
 
   Surface::~Surface()
@@ -18,5 +24,15 @@ namespace ge {
   VkSurfaceKHR Surface::getSurface() const
   {
     return m_surface;
+  }
+
+  int32_t Surface::getWidth() const
+  {
+    return m_width;
+  }
+
+  int32_t Surface::getHeight() const
+  {
+    return m_height;
   }
 } // ge

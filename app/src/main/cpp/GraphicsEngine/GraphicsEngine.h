@@ -11,6 +11,7 @@ namespace ge {
   class Instance;
   class LogicalDevice;
   class PhysicalDevice;
+  class RenderingManager;
   class Surface;
 
   class GraphicsEngine
@@ -19,6 +20,8 @@ namespace ge {
     explicit GraphicsEngine(android_app* pApp);
 
     ~GraphicsEngine();
+
+    void render();
 
   private:
     android_app* m_app;
@@ -32,6 +35,10 @@ namespace ge {
 
     VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
+    std::shared_ptr<RenderingManager> m_renderingManager;
+
+    uint32_t m_currentFrame = 0;
+
     void initializeVulkan();
 
     void createPools();
@@ -39,6 +46,10 @@ namespace ge {
     void createCommandPool();
 
     void createDescriptorPool();
+
+    void createComponents();
+
+    void createNewFrame();
   };
 
 } // ge

@@ -3,6 +3,7 @@
 #include "components/instance/Instance.h"
 #include "components/logicalDevice/LogicalDevice.h"
 #include "components/physicalDevice/PhysicalDevice.h"
+#include "components/renderingManager/RenderingManager.h"
 #include "components/surface/Surface.h"
 
 namespace ge {
@@ -15,6 +16,8 @@ namespace ge {
     initializeVulkan();
 
     createPools();
+
+    createComponents();
   }
 
   GraphicsEngine::~GraphicsEngine()
@@ -26,6 +29,13 @@ namespace ge {
     m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
 
     m_logicalDevice->destroyCommandPool(m_commandPool);
+  }
+
+  void GraphicsEngine::render()
+  {
+    m_renderingManager->doRendering(m_currentFrame);
+
+    createNewFrame();
   }
 
   void GraphicsEngine::initializeVulkan()
@@ -75,6 +85,20 @@ namespace ge {
     };
 
     m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
+  }
+
+  void GraphicsEngine::createComponents()
+  {
+    m_renderingManager = std::make_shared<RenderingManager>(
+      m_logicalDevice,
+      m_surface,
+      m_commandPool
+    );
+  }
+
+  void GraphicsEngine::createNewFrame()
+  {
+    m_currentFrame = (m_currentFrame + 1) % m_logicalDevice->getMaxFramesInFlight();
   }
 
 } // ge

@@ -26,10 +26,6 @@ android {
                 cppFlags += ""
             }
         }
-
-        ndk {
-            abiFilters += listOf("arm64-v8a")
-        }
     }
 
     buildFeatures {
@@ -65,7 +61,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.games.activity)
-    implementation("com.google.ar:core:1.51.0")
+    implementation("com.google.ar:core:1.44.0")
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.kotlinx.coroutines.android)
