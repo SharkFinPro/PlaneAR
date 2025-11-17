@@ -8,7 +8,9 @@
 
 namespace ge {
 
+  class CommandBuffer;
   class PhysicalDevice;
+  class Swapchain;
 
   class LogicalDevice
   {
@@ -73,6 +75,23 @@ namespace ge {
 
     void destroyFramebuffer(VkFramebuffer& framebuffer) const;
 
+    void waitForGraphicsFences(uint32_t currentFrame) const;
+
+    void resetGraphicsFences(uint32_t currentFrame) const;
+
+    VkResult acquireNextImage(uint32_t currentFrame,
+                              const std::shared_ptr<Swapchain>& swapchain,
+                              uint32_t* imageIndex) const;
+
+    void submitGraphicsQueue(uint32_t currentFrame,
+                             uint32_t imageIndex,
+                             const std::shared_ptr<CommandBuffer>& commandBuffer);
+
+    VkResult queuePresent(uint32_t imageIndex,
+                          const std::shared_ptr<Swapchain>& swapchain) const;
+
+    void createSyncObjects(const std::shared_ptr<Swapchain>& swapchain);
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 
@@ -82,9 +101,19 @@ namespace ge {
     VkQueue m_presentQueue = VK_NULL_HANDLE;
     VkQueue m_computeQueue = VK_NULL_HANDLE;
 
+    std::vector<VkSemaphore> m_swapchainImageAvailableSemaphores;
+
+    std::vector<VkSemaphore> m_swapchainRenderFinishedSemaphores;
+
+    std::vector<VkFence> m_swapchainInFlightFences;
+
     uint8_t m_maxFramesInFlight = 2;
 
+    uint8_t m_swapchainImageCount;
+
     void createDevice();
+
+    void destroySyncObjects();
   };
 
 } // ge

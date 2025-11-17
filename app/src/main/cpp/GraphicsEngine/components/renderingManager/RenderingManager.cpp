@@ -1,6 +1,7 @@
 #include "RenderingManager.h"
 #include "LegacyRenderer.h"
 #include "../commandBuffer/CommandBuffer.h"
+#include "../logicalDevice/LogicalDevice.h"
 #include "../surface/Swapchain.h"
 
 namespace ge {
@@ -10,9 +11,66 @@ namespace ge {
     : m_logicalDevice(logicalDevice), m_surface(surface), m_commandPool(commandPool)
   {
     m_swapchain = std::make_shared<Swapchain>(m_logicalDevice, m_surface);
+    m_logicalDevice->createSyncObjects(m_swapchain);
 
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
     m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapchain, m_commandPool);
+  }
+
+  void RenderingManager::doRendering(uint32_t currentFrame)
+  {
+    m_logicalDevice->waitForGraphicsFences(currentFrame);
+
+    uint32_t imageIndex;
+    auto result = m_logicalDevice->acquireNextImage(currentFrame, m_swapchain, &imageIndex);
+
+    if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+    {
+      throw std::runtime_error("failed to acquire swap chain image!");
+    }
+
+    m_logicalDevice->resetGraphicsFences(currentFrame);
+
+    m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
+    m_swapchainCommandBuffer->resetCommandBuffer();
+    recordOffscreenCommandBuffer(imageIndex);
+    m_logicalDevice->submitGraphicsQueue(currentFrame, imageIndex, m_swapchainCommandBuffer);
+
+    result = m_logicalDevice->queuePresent(imageIndex, m_swapchain);
+
+    if (result != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to present swap chain image!");
+    }
+  }
+
+  void RenderingManager::recordOffscreenCommandBuffer(uint32_t imageIndex) const
+  {
+    m_swapchainCommandBuffer->record([this, imageIndex]()
+    {
+      const auto extent = m_swapchain->getExtent();
+      const auto commandBuffer = m_swapchainCommandBuffer;
+
+      m_renderer->beginSwapchainRendering(imageIndex, extent, commandBuffer, m_swapchain);
+
+      const VkViewport viewport = {
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = static_cast<float>(extent.width),
+        .height = static_cast<float>(extent.height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f
+      };
+      commandBuffer->setViewport(viewport);
+
+      const VkRect2D scissor = {
+        .offset = {0, 0},
+        .extent = extent
+      };
+      commandBuffer->setScissor(scissor);
+
+      m_renderer->endSwapchainRendering(imageIndex, commandBuffer, m_swapchain);
+    });
   }
 } // ge

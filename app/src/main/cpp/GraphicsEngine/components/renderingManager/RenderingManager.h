@@ -19,6 +19,8 @@ namespace ge {
                      const std::shared_ptr<Surface>& surface,
                      VkCommandPool commandPool);
 
+    void doRendering(uint32_t currentFrame);
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -31,6 +33,8 @@ namespace ge {
     std::shared_ptr<Swapchain> m_swapchain;
 
     std::shared_ptr<CommandBuffer> m_swapchainCommandBuffer;
+
+    void recordOffscreenCommandBuffer(uint32_t imageIndex) const;
   };
 
 } // ge
