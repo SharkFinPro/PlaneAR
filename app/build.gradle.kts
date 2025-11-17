@@ -57,11 +57,16 @@ android {
 }
 
 dependencies {
+    // ARCore
+    implementation("com.google.ar:core:1.44.0")
+
+    // SceneView (UI)
+    implementation("io.github.sceneview:sceneview:2.3.1")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.games.activity)
-    implementation("com.google.ar:core:1.44.0")
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.kotlinx.coroutines.android)

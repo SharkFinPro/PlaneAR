@@ -4,17 +4,36 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/statusText"
-        android:layout_width="119dp"
-        android:layout_height="93dp"
-        android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="40dp"
-        android:background="#66000000"
-        android:padding="8dp"
-        android:text="@string/initializing_ar"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp" />
+
+    <!-- AR Camera View -->
+
+    <FrameLayout
+        android:id="@+id/arFragmentContainer"
+        android:name="io.github.sceneview.ar.ARSceneFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="top"
+        android:background="@android:color/transparent">
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="100dp"
+            android:layout_height="70dp"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="40dp"
+            android:background="#66000000"
+            android:padding="8dp"
+            android:text="@string/initializing_ar"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp" />
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/actionButton"
@@ -22,7 +41,7 @@
         android:layout_height="93dp"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="32dp"
-        android:text="@string/scan" />
+        android:text="@string/button" />
 
 </FrameLayout>
 

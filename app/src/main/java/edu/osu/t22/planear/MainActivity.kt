@@ -19,8 +19,10 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import io.github.sceneview.ar.ARSceneFragment
 import kotlinx.coroutines.withContext
 import android.widget.Button
+
 
 class MainActivity : GameActivity() {
     companion object {
@@ -37,6 +39,8 @@ class MainActivity : GameActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main) // this links to activity_main.xml
+
+        attachARSceneFragment()
 
         val myButton = findViewById<Button>(R.id.actionButton)
         myButton.setOnClickListener {
@@ -134,6 +138,16 @@ class MainActivity : GameActivity() {
         if (hasFocus) {
             hideSystemUi()
         }
+    }
+
+    private fun attachARSceneFragment() {
+        // Create a new ARSceneFragment
+        val arFragment = ARSceneFragment()
+
+        // Replace the container in the layout
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.arFragmentContainer, arFragment)
+            .commit()
     }
 
     private fun hideSystemUi() {
