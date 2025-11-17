@@ -20,6 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.widget.Button
 
 class MainActivity : GameActivity() {
     companion object {
@@ -34,6 +35,14 @@ class MainActivity : GameActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setContentView(R.layout.activity_main) // this links to activity_main.xml
+
+        val myButton = findViewById<Button>(R.id.actionButton)
+        myButton.setOnClickListener {
+            // Do something
+            Log.d("PlaneAR", "Button clicked!")
+        }
 
         // get a new instance of the Retrofit API provider
         val api = AdsbModule.provideApi()

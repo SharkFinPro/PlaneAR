@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">PlaneAR</string>
+    <string name="initializing_ar">Initializing AR...</string>
+    <string name="scan">Scan</string>
 </resources>
