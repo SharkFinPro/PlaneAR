@@ -98,9 +98,9 @@ class MainActivity : GameActivity() {
                             val enh = GeoUtils.enhVector(userPoint, acPoint)
                             Log.d(
                                 "ADSB_ENH",
-                                "east=${"%.1f".format(enh.x)} m, " +
-                                        "north=${"%.1f".format(enh.y)} m, " +
-                                        "height=${"%.1f".format(enh.z)} m"
+                                "east=${"%.1f".format(enh.east)}, " +
+                                        "north=${"%.1f".format(enh.north)} m, " +
+                                        "height=${"%.1f".format(enh.height)} m"
                             )
                         } else {
                             Log.d("ADSB_DIR", "No closest aircraft")
@@ -117,19 +117,6 @@ class MainActivity : GameActivity() {
                 }
             }
         }
-/*
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.CAMERA),
-                CAMERA_PERMISSION_CODE
-            )
-        } else {
-            maybeCreateSession()
-        }
-
- */
     }
     @Suppress("MissingPermission")
 

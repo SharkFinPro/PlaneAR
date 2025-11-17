@@ -14,6 +14,10 @@
     android:version="0x401000" />  <!-- Vulkan 1.1.0 -->
 
     <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-feature
         android:name="android.hardware.camera.ar"
         android:required="false" />
 

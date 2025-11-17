@@ -2,12 +2,13 @@ package edu.osu.t22.planear.geo
 
 import edu.osu.t22.planear.adsb.AdsbAircraft
 import kotlin.math.*
+import kotlin.rem
 
 //sample 3D vector to use in renderer later
 data class Vec3(
-    val x: Double, //East meters
-    val y: Double, //North meters
-    val z: Double  //height meters
+    val east: Double, //East meters
+    val north: Double, //North meters
+    val height: Double  //height meters
 )
 
 data class GeoPoint(
@@ -57,17 +58,17 @@ object GeoUtils {
         val lat2 = degToRad(b.latDeg)
         val dLon = degToRad(b.lonDeg - a.lonDeg)
 
-        val y = sin(dLon) * cos(lat2)
-        val x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
+        val north = sin(dLon) * cos(lat2)
+        val east = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
 
-        var brng = radToDeg(atan2(y, x)) //-180 to 180
+        var brng = radToDeg(atan2(north, east)) //-180 to 180
         if (brng < 0.0) brng += 360 //normalize 0 to 360
         return brng
     }
 
     //compute local East/North/height (ENH) vector from user to aircraft
     //this is a local tangent plane approximation, seems good for ranges like 50 - 100 NM
-    //x = East, y = North, z = Height (all in meters)
+    //East,North, Height (all in meters)
     fun enhVector(user: GeoPoint, aircraft: GeoPoint): Vec3 {
         val lat0 = degToRad(user.latDeg)
         val lon0 = degToRad(user.lonDeg)
@@ -88,6 +89,14 @@ object GeoUtils {
 
     //compute distances, bearing, relative bearing (to user heading) and elevation angle
     //userHeadingDeg heading the users device is facing 0 = North, 180 = South
+    fun getRelativeBearing(bearingToAircraft: Double, userHeadingDeg: Double): Double {
+        //relative bearing -180 to 180 0 being straight ahead
+        var relBearing = bearingToAircraft - userHeadingDeg
+
+        //normalize to -180 to 180
+        relBearing = (relBearing + 540.0) % 360.0 - 180.0
+        return relBearing
+    }
     fun relativeDirection(
         user: GeoPoint,
         userHeadingDeg: Double,
@@ -96,17 +105,15 @@ object GeoUtils {
         val distance = distanceMeters(user, aircraft)
         val bearingToAircraft = bearingDeg(user, aircraft)
 
-        //relative bearing -180 to 180 0 being straight ahead
-        var relBearing = bearingToAircraft - userHeadingDeg
-        //normalize to -180 to 180
-        relBearing = (relBearing + 540.0) % 360.0 - 180.0
+
+        val relBearing = getRelativeBearing(bearingToAircraft, userHeadingDeg)
 
         //horizontal ground distance
         val enh =  enhVector(user, aircraft)
-        val horizontal = hypot(enh.x, enh.y)
+        val horizontal = hypot(enh.east, enh.north)
 
         //elevation angle positive is above horizon negative is below
-        val elevationRad = atan2(enh.z, horizontal)
+        val elevationRad = atan2(enh.height, horizontal)
         val elevationDeg = radToDeg(elevationRad)
 
         return RelativeDirection(
