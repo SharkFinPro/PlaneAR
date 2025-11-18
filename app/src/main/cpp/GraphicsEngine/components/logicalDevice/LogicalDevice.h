@@ -92,6 +92,14 @@ namespace ge {
 
     void createSyncObjects(const std::shared_ptr<Swapchain>& swapchain);
 
+    [[nodiscard]] VkPipelineLayout createPipelineLayout(const VkPipelineLayoutCreateInfo& pipelineLayoutCreateInfo) const;
+
+    void destroyPipelineLayout(VkPipelineLayout& pipelineLayout) const;
+
+    [[nodiscard]] VkPipeline createPipeline(const VkGraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) const;
+
+    void destroyPipeline(VkPipeline& pipeline) const;
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 
