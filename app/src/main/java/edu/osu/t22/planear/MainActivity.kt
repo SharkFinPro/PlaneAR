@@ -20,6 +20,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import edu.osu.t22.planear.geo.GeoUtils
+import edu.osu.t22.planear.geo.GeoPoint
+
 
 class MainActivity : GameActivity() {
     companion object {
@@ -58,6 +61,53 @@ class MainActivity : GameActivity() {
                         val closestData = closest.await()
                         Log.d("ADSB_TEST", "Closest aircraft: ${closestData.ac.firstOrNull() ?: "No aircraft found"}")
                         Log.d("ADSB_TEST", "Timing data: (now: ${nearbyData.now}, cTime: ${nearbyData.cTime}, pTime: ${nearbyData.pTime})")
+
+
+                        //--------------------TESTING GEO CALCULATIONS--------------------
+                        val closestAircraft = closestData.ac.firstOrNull()
+                        if (closestAircraft != null) {
+
+                            // will be replaced with arcore geolocation
+                            val userLat = 44.565722
+                            val userLon = -123.278917
+                            val userAltM = 0.0
+                            val userHeadingDeg = 90.0 //facing east
+
+                            val acLat = closestAircraft.lat
+                            val acLon =  closestAircraft.lon
+                            val acAltFeet = closestAircraft.alt_baro?.toDoubleOrNull() ?: 0.0
+                            val acAltM = acAltFeet * 0.3048
+
+                            val userPoint = GeoPoint(userLat, userLon, userAltM)
+                            val acPoint = GeoPoint(acLat, acLon, acAltM)
+
+                            val dir = GeoUtils.relativeDirection(
+                                user = userPoint,
+                                userHeadingDeg = userHeadingDeg,
+                                aircraft = acPoint
+                            )
+
+                            Log.d(
+                                "ADSB_DIR",
+                                "distance=${"%.0f".format(dir.distanceMeters)} m, " +
+                                        "bearing=${"%.1f".format(dir.bearingToAircraft)}°" +
+                                        "relative=${"%.1f".format(dir.relativeBearingDeg)}°, " +
+                                        "elevation=${"%.1f".format(dir.elevationDeg)}°"
+                            )
+
+                            val enh = GeoUtils.enhVector(userPoint, acPoint)
+                            Log.d(
+                                "ADSB_ENH",
+                                "east=${"%.1f".format(enh.east)}, " +
+                                        "north=${"%.1f".format(enh.north)} m, " +
+                                        "height=${"%.1f".format(enh.height)} m"
+                            )
+                        } else {
+                            Log.d("ADSB_DIR", "No closest aircraft")
+                        }
+
+
+
                     } catch (e: Exception) {
                         Log.e("ADSB_TEST", "API call failed", e)
                     }
@@ -67,63 +117,94 @@ class MainActivity : GameActivity() {
                 }
             }
         }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.CAMERA),
-                CAMERA_PERMISSION_CODE
-            )
-        } else {
-            maybeCreateSession()
-        }
     }
     @Suppress("MissingPermission")
 
 
+    override fun onResume() {
+        super.onResume()
+
+        //check camera permissions
+        if (!hasCameraPermission()) {
+            requestCameraPermission()
+            return
+        }
+
+        //create arcore session if not already created
+        if (arSession == null) {
+            tryCreateSession()
+        }
+
+        //resume ar session
+        try {
+            arSession?.resume()
+        } catch (e: Exception) {
+            Log.e("PlaneAR", "Failed to resume AR session", e)
+        }
+
+        hideSystemUi()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        try {
+            arSession?.pause()
+        } catch (e: Exception) {
+            Log.e("PlaneAR", "Failed to pause AR session", e)
+        }
+    }
+
+    // premission callbacks
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
         if (requestCode == CAMERA_PERMISSION_CODE &&
             grantResults.isNotEmpty() &&
             grantResults[0] == PackageManager.PERMISSION_GRANTED
         ) {
-            maybeCreateSession()
+            tryCreateSession()
         }
     }
 
-    private fun maybeCreateSession() {
+    private fun hasCameraPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestCameraPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.CAMERA),
+            CAMERA_PERMISSION_CODE
+        )
+    }
+
+    //ARCORE 1.51 install / create session flow
+    private fun tryCreateSession(): Boolean {
         try {
-            val installStatus = ArCoreApk.getInstance().requestInstall(this, true)
-            if (installStatus == ArCoreApk.InstallStatus.INSTALL_REQUESTED) {
-                return
+            // check if device / emulator supports ar core at all
+            val availability = ArCoreApk.getInstance().checkAvailability(this)
+            if (!availability.isSupported) {
+                Log.e("PlaneAR", "ARCore not supported on this device/emulator")
+                return false
             }
 
-            arSession = Session(this)
-            Log.i("PlaneAR", "ARCore session created.")
+            // if arcore is built into the apk we can remove requestInstall() step because
+            //ARCore has the client library already packaged
+            if (arSession == null) {
+                arSession = Session(this)
+                Log.i("PlaneAR", "ARCore session created (builtin)")
+            }
+
+            return true
+
         } catch (e: Exception) {
-            Log.e("PlaneAR", "Failed to create a ARCore session", e)
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        arSession?.resume()
-        hideSystemUi()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        arSession?.pause()
-    }
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) {
-            hideSystemUi()
+            Log.e("PlaneAR", "Failed to create ARCore session", e)
+            return false
         }
     }
 
