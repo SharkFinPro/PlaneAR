@@ -16,6 +16,7 @@ add_library(${PROJECT_NAME} SHARED
   components/renderingManager/LegacyRenderer.cpp
   components/renderingManager/RenderingManager.cpp
   components/renderPass/RenderPass.cpp
+  components/shaderModule/ShaderModule.cpp
   components/surface/Swapchain.cpp
 )
 

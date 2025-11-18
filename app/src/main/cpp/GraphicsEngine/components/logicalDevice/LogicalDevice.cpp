@@ -412,6 +412,30 @@ namespace ge {
     pipeline = VK_NULL_HANDLE;
   }
 
+  VkShaderModule LogicalDevice::createShaderModule(const VkShaderModuleCreateInfo& shaderModuleCreateInfo) const
+  {
+    VkShaderModule shaderModule = VK_NULL_HANDLE;
+
+    if (vkCreateShaderModule(m_device, &shaderModuleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create shader module!");
+    }
+
+    return shaderModule;
+  }
+
+  void LogicalDevice::destroyShaderModule(VkShaderModule& shaderModule) const
+  {
+    if (shaderModule == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    vkDestroyShaderModule(m_device, shaderModule, nullptr);
+
+    shaderModule = VK_NULL_HANDLE;
+  }
+
   void LogicalDevice::createSyncObjects(const std::shared_ptr<Swapchain>& swapchain)
   {
     m_swapchainImageCount = swapchain->getImageCount();

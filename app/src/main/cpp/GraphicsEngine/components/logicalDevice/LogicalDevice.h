@@ -100,6 +100,10 @@ namespace ge {
 
     void destroyPipeline(VkPipeline& pipeline) const;
 
+    [[nodiscard]] VkShaderModule createShaderModule(const VkShaderModuleCreateInfo& shaderModuleCreateInfo) const;
+
+    void destroyShaderModule(VkShaderModule& shaderModule) const;
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 
