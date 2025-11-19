@@ -34,7 +34,7 @@ namespace ge {
 
     std::shared_ptr<CommandBuffer> m_swapchainCommandBuffer;
 
-    void recordOffscreenCommandBuffer(uint32_t imageIndex) const;
+    void recordSwapchainCommandBuffer(uint32_t imageIndex) const;
   };
 
 } // ge
