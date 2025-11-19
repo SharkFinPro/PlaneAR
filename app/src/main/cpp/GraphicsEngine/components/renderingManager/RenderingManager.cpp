@@ -34,7 +34,7 @@ namespace ge {
 
     m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
     m_swapchainCommandBuffer->resetCommandBuffer();
-    recordOffscreenCommandBuffer(imageIndex);
+    recordSwapchainCommandBuffer(imageIndex);
     m_logicalDevice->submitGraphicsQueue(currentFrame, imageIndex, m_swapchainCommandBuffer);
 
     result = m_logicalDevice->queuePresent(imageIndex, m_swapchain);
@@ -45,7 +45,7 @@ namespace ge {
     }
   }
 
-  void RenderingManager::recordOffscreenCommandBuffer(uint32_t imageIndex) const
+  void RenderingManager::recordSwapchainCommandBuffer(uint32_t imageIndex) const
   {
     m_swapchainCommandBuffer->record([this, imageIndex]()
     {
