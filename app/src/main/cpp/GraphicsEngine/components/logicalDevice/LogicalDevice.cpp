@@ -364,6 +364,78 @@ namespace ge {
     return vkQueuePresentKHR(m_presentQueue, &presentInfo);
   }
 
+  VkPipelineLayout LogicalDevice::createPipelineLayout(const VkPipelineLayoutCreateInfo& pipelineLayoutCreateInfo) const
+  {
+    VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+
+    if (vkCreatePipelineLayout(m_device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create pipeline layout!");
+    }
+
+    return pipelineLayout;
+  }
+
+  void LogicalDevice::destroyPipelineLayout(VkPipelineLayout& pipelineLayout) const
+  {
+    if (pipelineLayout == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    vkDestroyPipelineLayout(m_device, pipelineLayout, nullptr);
+
+    pipelineLayout = VK_NULL_HANDLE;
+  }
+
+  VkPipeline LogicalDevice::createPipeline(const VkGraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) const
+  {
+    VkPipeline pipeline = VK_NULL_HANDLE;
+
+    if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create graphics pipeline!");
+    }
+
+    return pipeline;
+  }
+
+  void LogicalDevice::destroyPipeline(VkPipeline& pipeline) const
+  {
+    if (pipeline == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    vkDestroyPipeline(m_device, pipeline, nullptr);
+
+    pipeline = VK_NULL_HANDLE;
+  }
+
+  VkShaderModule LogicalDevice::createShaderModule(const VkShaderModuleCreateInfo& shaderModuleCreateInfo) const
+  {
+    VkShaderModule shaderModule = VK_NULL_HANDLE;
+
+    if (vkCreateShaderModule(m_device, &shaderModuleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create shader module!");
+    }
+
+    return shaderModule;
+  }
+
+  void LogicalDevice::destroyShaderModule(VkShaderModule& shaderModule) const
+  {
+    if (shaderModule == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    vkDestroyShaderModule(m_device, shaderModule, nullptr);
+
+    shaderModule = VK_NULL_HANDLE;
+  }
+
   void LogicalDevice::createSyncObjects(const std::shared_ptr<Swapchain>& swapchain)
   {
     m_swapchainImageCount = swapchain->getImageCount();
