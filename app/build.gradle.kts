@@ -147,3 +147,8 @@ tasks.matching { it.name.contains("LintReportModel") }
     .configureEach {
         dependsOn(compileShaders)
     }
+
+tasks.matching { it.name.startsWith("lint") }
+    .configureEach {
+        dependsOn(compileShaders)
+    }
