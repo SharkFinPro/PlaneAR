@@ -4,6 +4,8 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
+struct AAssetManager;
+
 namespace ge {
 
   class CommandBuffer;
@@ -12,12 +14,15 @@ namespace ge {
   class Surface;
   class Swapchain;
 
+  class GraphicsPipeline;
+
   class RenderingManager
   {
   public:
     RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                      const std::shared_ptr<Surface>& surface,
-                     VkCommandPool commandPool);
+                     VkCommandPool commandPool,
+                     AAssetManager* assetManager);
 
     void doRendering(uint32_t currentFrame);
 
@@ -33,6 +38,8 @@ namespace ge {
     std::shared_ptr<Swapchain> m_swapchain;
 
     std::shared_ptr<CommandBuffer> m_swapchainCommandBuffer;
+
+    std::shared_ptr<GraphicsPipeline> m_graphicsPipeline;
 
     void recordSwapchainCommandBuffer(uint32_t imageIndex) const;
   };

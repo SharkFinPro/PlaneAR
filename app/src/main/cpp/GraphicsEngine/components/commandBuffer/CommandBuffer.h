@@ -31,6 +31,10 @@ namespace ge {
 
     void setScissor(const VkRect2D& scissor) const;
 
+    void bindPipeline(VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) const;
+
+    void draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 

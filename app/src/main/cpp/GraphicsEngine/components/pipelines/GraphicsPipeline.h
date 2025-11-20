@@ -88,7 +88,7 @@ namespace ge {
   public:
     explicit GraphicsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
 
-  protected:
+//  protected:
     void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);
 
     void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions);

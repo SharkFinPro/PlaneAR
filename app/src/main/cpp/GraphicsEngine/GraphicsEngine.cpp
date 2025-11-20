@@ -6,6 +6,8 @@
 #include "components/renderingManager/RenderingManager.h"
 #include "components/surface/Surface.h"
 
+#include <game-activity/native_app_glue/android_native_app_glue.h>
+
 namespace ge {
 
   GraphicsEngine::GraphicsEngine(android_app* pApp)
@@ -92,7 +94,8 @@ namespace ge {
     m_renderingManager = std::make_shared<RenderingManager>(
       m_logicalDevice,
       m_surface,
-      m_commandPool
+      m_commandPool,
+      m_app->activity->assetManager
     );
   }
 

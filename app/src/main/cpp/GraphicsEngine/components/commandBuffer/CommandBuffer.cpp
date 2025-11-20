@@ -76,4 +76,18 @@ namespace ge {
   {
     vkCmdSetScissor(m_commandBuffers[m_currentFrame], 0, 1, &scissor);
   }
+
+  void CommandBuffer::bindPipeline(VkPipelineBindPoint pipelineBindPoint,
+                                   VkPipeline pipeline) const
+  {
+    vkCmdBindPipeline(m_commandBuffers[m_currentFrame], pipelineBindPoint, pipeline);
+  }
+
+  void CommandBuffer::draw(uint32_t vertexCount,
+                           uint32_t instanceCount,
+                           uint32_t firstVertex,
+                           uint32_t firstInstance) const
+  {
+    vkCmdDraw(m_commandBuffers[m_currentFrame], vertexCount, instanceCount, firstVertex, firstInstance);
+  }
 } // ge
