@@ -34,6 +34,3 @@ target_link_libraries(${PROJECT_NAME}
   game-activity::game-activity_static
   android
   log)
-
-# Add shader compilation dependency
-add_dependencies(${PROJECT_NAME} Shaders)
