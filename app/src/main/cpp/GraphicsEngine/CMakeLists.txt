@@ -1,7 +1,5 @@
 project(GraphicsEngine)
 
-include(cmake/CompileShaders.cmake)
-
 add_library(${PROJECT_NAME} SHARED
   main.cpp
   GraphicsEngine.cpp
