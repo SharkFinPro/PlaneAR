@@ -142,3 +142,8 @@ tasks.matching {it.name.startsWith("merge") && it.name.endsWith("Assets") }
     .configureEach {
         dependsOn(compileShaders)
     }
+
+tasks.matching { it.name.contains("LintReportModel") }
+    .configureEach {
+        dependsOn(compileShaders)
+    }
