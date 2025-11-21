@@ -90,4 +90,13 @@ namespace ge {
   {
     vkCmdDraw(m_commandBuffers[m_currentFrame], vertexCount, instanceCount, firstVertex, firstInstance);
   }
+
+  void CommandBuffer::pushConstants(VkPipelineLayout layout,
+                                    VkShaderStageFlags stageFlags,
+                                    uint32_t offset,
+                                    uint32_t size,
+                                    const void* values) const
+  {
+    vkCmdPushConstants(m_commandBuffers[m_currentFrame], layout, stageFlags, offset, size, values);
+  }
 } // ge

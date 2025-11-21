@@ -15,7 +15,8 @@ namespace ge {
   public:
     QuadPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                  std::shared_ptr<RenderPass> renderPass,
-                 AAssetManager* assetManager);
+                 AAssetManager* assetManager,
+                 std::shared_ptr<Surface> surface);
 
     void render(const std::shared_ptr<CommandBuffer>& commandBuffer);
 

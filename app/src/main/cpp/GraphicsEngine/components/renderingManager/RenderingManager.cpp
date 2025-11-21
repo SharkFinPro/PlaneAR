@@ -20,7 +20,7 @@ namespace ge {
 
     m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapchain, m_commandPool);
 
-    m_quadPipeline = std::make_shared<QuadPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager);
+    m_quadPipeline = std::make_shared<QuadPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager, m_surface);
   }
 
   void RenderingManager::doRendering(uint32_t currentFrame)
