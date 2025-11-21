@@ -15,6 +15,9 @@ namespace ge {
     float y2;
     float x3;
     float y3;
+    float r;
+    float g;
+    float b;
   };
 
   QuadPipeline::QuadPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -69,7 +72,10 @@ namespace ge {
       .x2 = x + w,
       .y2 = y,
       .x3 = x + w,
-      .y3 = y + h
+      .y3 = y + h,
+      .r = 0,
+      .g = 0,
+      .b = 1
     };
 
     commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
@@ -85,7 +91,10 @@ namespace ge {
       .x2 = x,
       .y2 = y + h,
       .x3 = x + w,
-      .y3 = y + h
+      .y3 = y + h,
+      .r = 1,
+      .g = 0,
+      .b = 0
     };
 
     commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
