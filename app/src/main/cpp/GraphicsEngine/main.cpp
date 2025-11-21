@@ -4,6 +4,7 @@
 #include <memory>
 #include "Logger.h"
 #include "GraphicsEngine.h"
+#include "components/renderingManager/RenderingManager.h"
 
 void android_main(struct android_app* pApp)
 {
@@ -44,6 +45,18 @@ void android_main(struct android_app* pApp)
 
     if (engine)
     {
+      const auto renderingManger = engine->getRenderingManager();
+      static float x = 100;
+      static float y = 100;
+      static float w = 200;
+      static float h = 100;
+
+      renderingManger->renderRect(x, y, w, h, 0, 0, 1);
+
+      renderingManger->renderRect(x, y * 3, w, h, 0, 1, 0);
+
+      renderingManger->renderRect(x, y * 5, w, h, 1, 0, 0);
+
       engine->render();
     }
   }

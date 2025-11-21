@@ -50,6 +50,22 @@ namespace ge {
     }
   }
 
+  void RenderingManager::renderRect(float x,
+                                    float y,
+                                    float width,
+                                    float height,
+                                    float r,
+                                    float g,
+                                    float b)
+  {
+    m_quadPipeline->queueRectToRender(x, y, width, height, r, g, b);
+  }
+
+  void RenderingManager::createNewFrame()
+  {
+    m_quadPipeline->createNewFrame();
+  }
+
   void RenderingManager::recordSwapchainCommandBuffer(uint32_t imageIndex) const
   {
     m_swapchainCommandBuffer->record([this, imageIndex]()

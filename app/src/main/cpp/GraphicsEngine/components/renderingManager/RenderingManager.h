@@ -25,6 +25,16 @@ namespace ge {
 
     void doRendering(uint32_t currentFrame);
 
+    void renderRect(float x,
+                    float y,
+                    float width,
+                    float height,
+                    float r,
+                    float g,
+                    float b);
+
+    void createNewFrame();
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 

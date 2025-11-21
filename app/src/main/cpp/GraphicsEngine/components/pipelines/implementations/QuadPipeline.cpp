@@ -59,16 +59,10 @@ namespace ge {
   {
     commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
-    static float x = 100;
-    static float y = 100;
-    static float w = 200;
-    static float h = 100;
-
-    renderRect(commandBuffer, x, y, w, h, 0, 0, 1);
-
-    renderRect(commandBuffer, x, y * 3, w, h, 0, 1, 0);
-
-    renderRect(commandBuffer, x, y * 5, w, h, 1, 0, 0);
+    for (const auto& [x, y, width, height, r, g, b] : m_rectsToRender)
+    {
+      renderRect(commandBuffer, x, y, width, height, r, g, b);
+    }
   }
 
   void QuadPipeline::renderRect(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -108,5 +102,21 @@ namespace ge {
                                  0, sizeof(QuadPC), &quadPC);
 
     commandBuffer->draw(3, 1, 0, 0);
+  }
+
+  void QuadPipeline::queueRectToRender(float x,
+                                       float y,
+                                       float width,
+                                       float height,
+                                       float r,
+                                       float g,
+                                       float b)
+  {
+    m_rectsToRender.push_back({x, y, width, height, r, g, b});
+  }
+
+  void QuadPipeline::createNewFrame()
+  {
+    m_rectsToRender.clear();
   }
 } // ge

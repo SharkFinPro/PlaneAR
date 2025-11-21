@@ -39,6 +39,11 @@ namespace ge {
     createNewFrame();
   }
 
+  std::shared_ptr<RenderingManager> GraphicsEngine::getRenderingManager() const
+  {
+    return m_renderingManager;
+  }
+
   void GraphicsEngine::initializeVulkan()
   {
     m_instance = std::make_shared<Instance>();
@@ -101,6 +106,8 @@ namespace ge {
   void GraphicsEngine::createNewFrame()
   {
     m_currentFrame = (m_currentFrame + 1) % m_logicalDevice->getMaxFramesInFlight();
+
+    m_renderingManager->createNewFrame();
   }
 
 } // ge
