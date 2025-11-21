@@ -15,7 +15,7 @@ namespace ge {
 
     virtual ~Pipeline();
 
-//  protected:
+  protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;

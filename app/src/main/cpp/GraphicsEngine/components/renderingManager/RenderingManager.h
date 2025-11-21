@@ -10,11 +10,10 @@ namespace ge {
 
   class CommandBuffer;
   class LogicalDevice;
+  class QuadPipeline;
   class Renderer;
   class Surface;
   class Swapchain;
-
-  class GraphicsPipeline;
 
   class RenderingManager
   {
@@ -39,7 +38,7 @@ namespace ge {
 
     std::shared_ptr<CommandBuffer> m_swapchainCommandBuffer;
 
-    std::shared_ptr<GraphicsPipeline> m_graphicsPipeline;
+    std::shared_ptr<QuadPipeline> m_quadPipeline;
 
     void recordSwapchainCommandBuffer(uint32_t imageIndex) const;
   };
