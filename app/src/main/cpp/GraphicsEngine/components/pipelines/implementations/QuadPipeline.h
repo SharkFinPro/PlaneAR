@@ -22,6 +22,15 @@ namespace ge {
 
   private:
     std::shared_ptr<Surface> m_surface;
+
+    void renderRect(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                    float x,
+                    float y,
+                    float width,
+                    float height,
+                    float r,
+                    float g,
+                    float b);
   };
 
 } // ge

@@ -64,18 +64,34 @@ namespace ge {
     static float w = 200;
     static float h = 100;
 
+    renderRect(commandBuffer, x, y, w, h, 0, 0, 1);
+
+    renderRect(commandBuffer, x, y * 3, w, h, 0, 1, 0);
+
+    renderRect(commandBuffer, x, y * 5, w, h, 1, 0, 0);
+  }
+
+  void QuadPipeline::renderRect(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                float x,
+                                float y,
+                                float width,
+                                float height,
+                                float r,
+                                float g,
+                                float b)
+  {
     QuadPC quadPC {
       .screenWidth = m_surface->getWidth(),
       .screenHeight = m_surface->getHeight(),
       .x1 = x,
       .y1 = y,
-      .x2 = x + w,
+      .x2 = x + width,
       .y2 = y,
-      .x3 = x + w,
-      .y3 = y + h,
-      .r = 0,
-      .g = 0,
-      .b = 1
+      .x3 = x + width,
+      .y3 = y + height,
+      .r = r,
+      .g = g,
+      .b = b
     };
 
     commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
@@ -83,19 +99,10 @@ namespace ge {
 
     commandBuffer->draw(3, 1, 0, 0);
 
-    quadPC = {
-      .screenWidth = m_surface->getWidth(),
-      .screenHeight = m_surface->getHeight(),
-      .x1 = x,
-      .y1 = y,
-      .x2 = x,
-      .y2 = y + h,
-      .x3 = x + w,
-      .y3 = y + h,
-      .r = 1,
-      .g = 0,
-      .b = 0
-    };
+    quadPC.x2 = x;
+    quadPC.y2 = y + height;
+    quadPC.x3 = x + width;
+    quadPC.y3 = y + height;
 
     commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
                                  0, sizeof(QuadPC), &quadPC);
