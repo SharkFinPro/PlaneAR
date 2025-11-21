@@ -8,6 +8,7 @@ struct AAssetManager;
 namespace ge {
 
   class CommandBuffer;
+  class Surface;
 
   class QuadPipeline final : public GraphicsPipeline
   {
@@ -16,7 +17,10 @@ namespace ge {
                  std::shared_ptr<RenderPass> renderPass,
                  AAssetManager* assetManager);
 
-    void render(const std::shared_ptr<CommandBuffer> commandBuffer);
+    void render(const std::shared_ptr<CommandBuffer>& commandBuffer);
+
+  private:
+    std::shared_ptr<Surface> m_surface;
   };
 
 } // ge

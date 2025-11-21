@@ -30,7 +30,7 @@ namespace ge {
     createPipeline(graphicsPipelineOptions);
   }
 
-  void QuadPipeline::render(const std::shared_ptr<CommandBuffer> commandBuffer)
+  void QuadPipeline::render(const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
     commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
