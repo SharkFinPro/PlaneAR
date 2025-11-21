@@ -44,7 +44,7 @@ namespace ge {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
           .offset = 0,
           .size = sizeof(QuadPC)
         }
@@ -88,7 +88,7 @@ namespace ge {
       .b = b
     };
 
-    commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+    commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                                  0, sizeof(QuadPC), &quadPC);
 
     commandBuffer->draw(3, 1, 0, 0);
@@ -98,7 +98,7 @@ namespace ge {
     quadPC.x3 = x + width;
     quadPC.y3 = y + height;
 
-    commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+    commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                                  0, sizeof(QuadPC), &quadPC);
 
     commandBuffer->draw(3, 1, 0, 0);
