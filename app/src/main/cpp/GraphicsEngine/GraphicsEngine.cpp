@@ -5,7 +5,6 @@
 #include "components/physicalDevice/PhysicalDevice.h"
 #include "components/renderingManager/RenderingManager.h"
 #include "components/surface/Surface.h"
-
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 
 namespace ge {
