@@ -16,18 +16,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.gms.location.*
-import com.google.android.gms.tasks.Task
 import edu.osu.t22.planear.adsb.AdsbModule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.coroutines.resumeWithException
 
 class MainActivity : GameActivity() {
     companion object {
@@ -37,8 +34,6 @@ class MainActivity : GameActivity() {
 
         private const val CAMERA_PERMISSION_CODE = 0
         private const val LOCATION_PERMISSION_CODE = 1
-
-//        @JvmStatic external fun nativeUpdateAircraftBuffer(buffer: ByteBuffer, count: Int)
     }
 
     private var arSession: Session? = null
