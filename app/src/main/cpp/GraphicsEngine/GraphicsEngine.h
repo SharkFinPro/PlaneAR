@@ -23,6 +23,8 @@ namespace ge {
 
     void render();
 
+    [[nodiscard]] std::shared_ptr<RenderingManager> getRenderingManager() const;
+
   private:
     android_app* m_app;
 

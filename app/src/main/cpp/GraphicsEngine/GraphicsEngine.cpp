@@ -5,6 +5,7 @@
 #include "components/physicalDevice/PhysicalDevice.h"
 #include "components/renderingManager/RenderingManager.h"
 #include "components/surface/Surface.h"
+#include <game-activity/native_app_glue/android_native_app_glue.h>
 
 namespace ge {
 
@@ -36,6 +37,11 @@ namespace ge {
     m_renderingManager->doRendering(m_currentFrame);
 
     createNewFrame();
+  }
+
+  std::shared_ptr<RenderingManager> GraphicsEngine::getRenderingManager() const
+  {
+    return m_renderingManager;
   }
 
   void GraphicsEngine::initializeVulkan()
@@ -92,13 +98,16 @@ namespace ge {
     m_renderingManager = std::make_shared<RenderingManager>(
       m_logicalDevice,
       m_surface,
-      m_commandPool
+      m_commandPool,
+      m_app->activity->assetManager
     );
   }
 
   void GraphicsEngine::createNewFrame()
   {
     m_currentFrame = (m_currentFrame + 1) % m_logicalDevice->getMaxFramesInFlight();
+
+    m_renderingManager->createNewFrame();
   }
 
 } // ge

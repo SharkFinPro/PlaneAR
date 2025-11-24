@@ -11,6 +11,7 @@ add_library(${PROJECT_NAME} SHARED
   components/logicalDevice/LogicalDevice.cpp
   components/surface/Surface.cpp
   components/physicalDevice/PhysicalDevice.cpp
+  components/pipelines/implementations/QuadPipeline.cpp
   components/pipelines/GraphicsPipeline.cpp
   components/pipelines/Pipeline.cpp
   components/renderingManager/LegacyRenderer.cpp
