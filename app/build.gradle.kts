@@ -92,7 +92,7 @@ android {
         }
     }
 
-    sourceSets["main"].assets.srcDir("src/main/assets/shaders")
+    sourceSets["main"].assets.srcDir("src/main/assets")
 }
 
 dependencies {
