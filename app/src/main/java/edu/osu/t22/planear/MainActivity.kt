@@ -13,6 +13,9 @@ import com.google.ar.core.Session
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.ar.core.Anchor
+import com.google.ar.core.Config
+import com.google.ar.core.TrackingState
 import edu.osu.t22.planear.adsb.AdsbModule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -34,6 +37,7 @@ class MainActivity : GameActivity() {
     }
 
     private var arSession: Session? = null
+    private var arSessionManager: ARSessionManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -198,6 +202,27 @@ class MainActivity : GameActivity() {
             if (arSession == null) {
                 arSession = Session(this)
                 Log.i("PlaneAR", "ARCore session created (builtin)")
+
+                //NEW code
+                arSession?.let { session ->
+                    val config = Config(session).apply {
+                        planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
+                        depthMode = if (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
+                            Config.DepthMode.AUTOMATIC
+                        } else {
+                            Config.DepthMode.DISABLED
+                        }
+                        updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
+                    }
+                    session.configure(config)
+
+                    arSessionManager = ARSessionManager(
+                        session = session,
+                        displayRotation = { windowManager.defaultDisplay.rotation }
+                    )
+
+                    Log.i("PlaneAR", "ARSessionManager initialized")
+                }
             }
 
             return true
@@ -217,4 +242,91 @@ class MainActivity : GameActivity() {
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_FULLSCREEN)
     }
+
+    fun onArUpdateFrame() {
+        arSessionManager?.onUpdateFrame()
+    }
+
+    fun setCameraTexture(textureId: Int) {
+        arSessionManager?.setCameraTextureName(textureId)
+    }
+}
+
+class ARSessionManager(
+    private val session: Session,
+    private val displayRotation: () -> Int
+) {
+
+    private val anchors = mutableListOf<Anchor>()
+
+    private var viewportWidth: Int = 0
+    private var viewPortHeight: Int = 0
+
+    fun updateViewport(width: Int, height: Int) {
+        viewportWidth = width
+        viewPortHeight = height
+    }
+
+    fun onUpdateFrame() {
+        // Keep ARCore in sync with display rotation & surface size
+        session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
+
+        val frame = session.update()
+        val camera = frame.camera
+
+        if (camera.trackingState != TrackingState.TRACKING) {
+            // Inform native side that tracking is limited or lost
+            nativeOnTrackingStateChanged(camera.trackingState.ordinal)
+            return
+        }
+
+        // Camera pose -> 4x4 matrix
+        val cameraPose = camera.displayOrientedPose
+        val cameraMatrix = FloatArray(16)
+        cameraPose.toMatrix(cameraMatrix, 0)
+
+        // Send camera pose to native rendering engine
+        nativeUpdateCameraPose(cameraMatrix)
+
+        // Update any anchors we’re tracking (e.g., aircraft positions in AR space)
+        val iterator = anchors.iterator()
+        while (iterator.hasNext()) {
+            val anchor = iterator.next()
+
+            if (anchor.trackingState == TrackingState.STOPPED) {
+                anchor.detach()
+                iterator.remove()
+                continue
+            }
+
+            val anchorPose = anchor.pose
+            val anchorMatrix = FloatArray(16)
+            anchorPose.toMatrix(anchorMatrix, 0)
+
+            nativeUpdateAnchorPose(
+                anchor.hashCode(),               // simple ID for demo purposes
+                anchorMatrix,
+                anchor.trackingState.ordinal     // tracking state flag
+            )
+        }
+    }
+
+    fun addAnchor(anchor: Anchor) {
+        anchor.add(anchor)
+        val matrix = floatArray(16)
+        anchor.pose.toMatrix(matrix, 0)
+        nativeOnNewAircraftAnchor(anchor.hashCode(), matrix)
+    }
+
+    private external fun nativeUpdateCameraPose(poseMatrix: FloatArray)
+
+    private external  fun nativeUpdateAnchorPose(
+        anchorId: Int,
+        poseMatrix: FloatArray,
+        trackingState: Int
+    )
+
+    private external fun nativeOnTrackingStateChanged(
+        trackingState: Int
+    )
 }
