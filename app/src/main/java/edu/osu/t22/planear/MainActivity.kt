@@ -260,12 +260,13 @@ class ARSessionManager(
     private val anchors = mutableListOf<Anchor>()
 
     private var viewportWidth: Int = 0
-    private var viewPortHeight: Int = 0
+    private var viewportHeight: Int = 0
 
     fun updateViewport(width: Int, height: Int) {
         viewportWidth = width
-        viewPortHeight = height
+        viewportHeight = height
     }
+
 
     fun onUpdateFrame() {
         // Keep ARCore in sync with display rotation & surface size
@@ -312,11 +313,16 @@ class ARSessionManager(
     }
 
     fun addAnchor(anchor: Anchor) {
-        anchor.add(anchor)
-        val matrix = floatArray(16)
+        anchors.add(anchor)
+        val matrix = FloatArray(16)
         anchor.pose.toMatrix(matrix, 0)
         nativeOnNewAircraftAnchor(anchor.hashCode(), matrix)
     }
+
+    private external fun nativeOnNewAircraftAnchor(
+        anchorId: Int,
+        poseMatrix: FloatArray
+    )
 
     private external fun nativeUpdateCameraPose(poseMatrix: FloatArray)
 

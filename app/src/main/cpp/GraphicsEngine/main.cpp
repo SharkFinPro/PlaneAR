@@ -5,6 +5,7 @@
 #include "Logger.h"
 #include "GraphicsEngine.h"
 #include "components/renderingManager/RenderingManager.h"
+#include "ArBridge.h"
 
 static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY);
 
@@ -49,7 +50,24 @@ void android_main(struct android_app* pApp)
         return;
       }
     }
+/*
+   if (engine)
+   {
+    auto rm = engine->getRenderingManager();
 
+    {
+        std::lock_guard<std::mutex> lock(gArState.mtx);
+
+        if (gArState.hasCamera)
+            rm->setCameraMatrix(gArState.cameraMatrix);
+
+        rm->setAnchors(gArState.anchors);
+    }
+
+    engine->render();
+   }
+
+ */
     if (engine)
     {
       const auto renderingManger = engine->getRenderingManager();

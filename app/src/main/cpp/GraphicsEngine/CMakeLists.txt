@@ -3,6 +3,7 @@ project(GraphicsEngine)
 add_library(${PROJECT_NAME} SHARED
   main.cpp
   GraphicsEngine.cpp
+  ArBridge.cpp
   components/commandBuffer/CommandBuffer.cpp
   components/framebuffers/Framebuffer.cpp
   components/framebuffers/SwapchainFramebuffer.cpp
