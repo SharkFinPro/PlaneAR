@@ -7,6 +7,43 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
+val compileShaders by tasks.registering {
+    val shaderSrc = file("src/main/cpp/GraphicsEngine/shaders")
+    val shaderDst = file("src/main/assets/shaders")
+
+    inputs.dir(shaderSrc)
+    outputs.dir(shaderDst)
+
+    doLast {
+        shaderDst.mkdirs()
+
+        val shaderFiles = shaderSrc.walkTopDown()
+            .filter { f -> f.isFile && f.extension in listOf("vert", "frag", "geom", "comp") }
+            .toList()
+
+        val commonInclude = File(shaderSrc, "common")
+
+        println("Found ${shaderFiles.size} shaders")
+
+        shaderFiles.forEach { shader ->
+            val outputFile = File(shaderDst, shader.name + ".spv")
+
+            println("Compiling shader: ${shader.relativeTo(shaderSrc)} → ${outputFile.name}")
+
+            exec {
+                commandLine(
+                    "glslangValidator",
+                    "-V",
+                    "-I${commonInclude.absolutePath}",
+                    shader.absolutePath,
+                    "-o",
+                    outputFile.absolutePath
+                )
+            }
+        }
+    }
+}
+
 android {
     namespace = "edu.osu.t22.planear"
     compileSdk {
@@ -54,6 +91,8 @@ android {
             version = "3.22.1"
         }
     }
+
+    sourceSets["main"].assets.srcDir("src/main/assets")
 }
 
 dependencies {
@@ -61,7 +100,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.games.activity)
-    implementation("com.google.ar:core:1.44.0")
+    implementation("com.google.ar:core:1.51.0")
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.kotlinx.coroutines.android)
@@ -71,6 +110,10 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
+    androidTestImplementation("androidx.test:runner:1.7.0")
+    androidTestImplementation("androidx.test:rules:1.7.0")
+
 }
 
 val vulkanVersion = "1.4.328.1"
@@ -99,3 +142,13 @@ tasks.register<Copy>("extractVulkanLayers") {
 tasks.named("preBuild") {
     dependsOn("extractVulkanLayers")
 }
+
+tasks.matching {it.name.startsWith("merge") && it.name.endsWith("Assets") }
+    .configureEach {
+        dependsOn(compileShaders)
+    }
+
+tasks.matching { it.name.contains("lint", true) }
+    .configureEach {
+        dependsOn(compileShaders)
+    }

@@ -1,6 +1,8 @@
 #include "LogicalDevice.h"
+#include "../commandBuffer/CommandBuffer.h"
 #include "../instance/Instance.h"
 #include "../physicalDevice/PhysicalDevice.h"
+#include "../surface/Swapchain.h"
 #include <array>
 #include <set>
 #include <stdexcept>
@@ -14,6 +16,8 @@ namespace ge {
 
   LogicalDevice::~LogicalDevice()
   {
+    destroySyncObjects();
+
     vkDestroyDevice(m_device, nullptr);
   }
 
@@ -73,7 +77,6 @@ namespace ge {
     VkPhysicalDeviceFeatures2 deviceFeatures2 {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
       .features {
-        .fillModeNonSolid = VK_TRUE,
         .samplerAnisotropy = VK_TRUE
       }
     };
@@ -286,5 +289,199 @@ namespace ge {
     vkDestroyFramebuffer(m_device, framebuffer, nullptr);
 
     framebuffer = VK_NULL_HANDLE;
+  }
+
+  void LogicalDevice::waitForGraphicsFences(uint32_t currentFrame) const
+  {
+    vkWaitForFences(m_device, 1, &m_swapchainInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+  }
+
+  void LogicalDevice::resetGraphicsFences(uint32_t currentFrame) const
+  {
+    vkResetFences(m_device, 1, &m_swapchainInFlightFences[currentFrame]);
+  }
+
+  VkResult LogicalDevice::acquireNextImage(const uint32_t currentFrame,
+                                           const std::shared_ptr<Swapchain>& swapchain,
+                                           uint32_t* imageIndex) const
+  {
+    return vkAcquireNextImageKHR(
+      m_device,
+      swapchain->getSwapChain(),
+      UINT64_MAX,
+      m_swapchainImageAvailableSemaphores[currentFrame],
+      VK_NULL_HANDLE,
+      imageIndex
+    );
+  }
+
+  void LogicalDevice::submitGraphicsQueue(uint32_t currentFrame,
+                                          uint32_t imageIndex,
+                                          const std::shared_ptr<CommandBuffer>& commandBuffer)
+  {
+    const std::array<VkSemaphore, 1> waitSemaphores = {
+      m_swapchainImageAvailableSemaphores[currentFrame]
+    };
+    constexpr VkPipelineStageFlags waitStages[] = {
+      VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+    };
+
+    const VkSubmitInfo submitInfo {
+      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+      .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
+      .pWaitSemaphores = waitSemaphores.data(),
+      .pWaitDstStageMask = waitStages,
+      .commandBufferCount = 1,
+      .pCommandBuffers = commandBuffer->getCommandBuffer(),
+      .signalSemaphoreCount = 1,
+      .pSignalSemaphores = &m_swapchainRenderFinishedSemaphores[imageIndex]
+    };
+
+    if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_swapchainInFlightFences[currentFrame]) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to submit draw command buffer!");
+    }
+  }
+
+  VkResult LogicalDevice::queuePresent(const uint32_t imageIndex,
+                                       const std::shared_ptr<Swapchain>& swapchain) const
+  {
+    const std::array<VkSemaphore, 1> waitSemaphores = {
+      m_swapchainRenderFinishedSemaphores[imageIndex]
+    };
+
+    const VkPresentInfoKHR presentInfo {
+      .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+      .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
+      .pWaitSemaphores = waitSemaphores.data(),
+      .swapchainCount = 1,
+      .pSwapchains = &swapchain->getSwapChain(),
+      .pImageIndices = &imageIndex,
+      .pResults = nullptr
+    };
+
+    return vkQueuePresentKHR(m_presentQueue, &presentInfo);
+  }
+
+  VkPipelineLayout LogicalDevice::createPipelineLayout(const VkPipelineLayoutCreateInfo& pipelineLayoutCreateInfo) const
+  {
+    VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+
+    if (vkCreatePipelineLayout(m_device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create pipeline layout!");
+    }
+
+    return pipelineLayout;
+  }
+
+  void LogicalDevice::destroyPipelineLayout(VkPipelineLayout& pipelineLayout) const
+  {
+    if (pipelineLayout == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    vkDestroyPipelineLayout(m_device, pipelineLayout, nullptr);
+
+    pipelineLayout = VK_NULL_HANDLE;
+  }
+
+  VkPipeline LogicalDevice::createPipeline(const VkGraphicsPipelineCreateInfo& graphicsPipelineCreateInfo) const
+  {
+    VkPipeline pipeline = VK_NULL_HANDLE;
+
+    if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create graphics pipeline!");
+    }
+
+    return pipeline;
+  }
+
+  void LogicalDevice::destroyPipeline(VkPipeline& pipeline) const
+  {
+    if (pipeline == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    vkDestroyPipeline(m_device, pipeline, nullptr);
+
+    pipeline = VK_NULL_HANDLE;
+  }
+
+  VkShaderModule LogicalDevice::createShaderModule(const VkShaderModuleCreateInfo& shaderModuleCreateInfo) const
+  {
+    VkShaderModule shaderModule = VK_NULL_HANDLE;
+
+    if (vkCreateShaderModule(m_device, &shaderModuleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create shader module!");
+    }
+
+    return shaderModule;
+  }
+
+  void LogicalDevice::destroyShaderModule(VkShaderModule& shaderModule) const
+  {
+    if (shaderModule == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    vkDestroyShaderModule(m_device, shaderModule, nullptr);
+
+    shaderModule = VK_NULL_HANDLE;
+  }
+
+  void LogicalDevice::createSyncObjects(const std::shared_ptr<Swapchain>& swapchain)
+  {
+    m_swapchainImageCount = swapchain->getImageCount();
+
+    m_swapchainImageAvailableSemaphores.resize(m_maxFramesInFlight);
+    m_swapchainRenderFinishedSemaphores.resize(m_swapchainImageCount);
+    m_swapchainInFlightFences.resize(m_maxFramesInFlight);
+
+    constexpr VkSemaphoreCreateInfo semaphoreInfo {
+      .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+    };
+
+    constexpr VkFenceCreateInfo fenceInfo {
+      .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+      .flags = VK_FENCE_CREATE_SIGNALED_BIT
+    };
+
+    for (size_t i = 0; i < m_swapchainImageCount; i++)
+    {
+      if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_swapchainRenderFinishedSemaphores[i]) != VK_SUCCESS)
+      {
+        throw std::runtime_error("failed to create swapchain rendering sync objects!");
+      }
+    }
+
+    for (size_t i = 0; i < m_maxFramesInFlight; i++)
+    {
+      if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_swapchainImageAvailableSemaphores[i]) != VK_SUCCESS ||
+          vkCreateFence(m_device, &fenceInfo, nullptr, &m_swapchainInFlightFences[i]) != VK_SUCCESS)
+      {
+        throw std::runtime_error("failed to create swapchain rendering sync objects!");
+      }
+    }
+  }
+
+  void LogicalDevice::destroySyncObjects()
+  {
+    for (size_t i = 0; i < m_swapchainImageCount; i++)
+    {
+      vkDestroySemaphore(m_device, m_swapchainRenderFinishedSemaphores[i], nullptr);
+    }
+
+    for (size_t i = 0; i < m_maxFramesInFlight; i++)
+    {
+      vkDestroySemaphore(m_device, m_swapchainImageAvailableSemaphores[i], nullptr);
+      vkDestroyFence(m_device, m_swapchainInFlightFences[i], nullptr);
+    }
   }
 } // ge
