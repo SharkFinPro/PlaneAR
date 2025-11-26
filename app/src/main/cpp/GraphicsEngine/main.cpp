@@ -50,7 +50,7 @@ void android_main(struct android_app* pApp)
         return;
       }
     }
-/*
+
    if (engine)
    {
     auto rm = engine->getRenderingManager();
@@ -67,7 +67,8 @@ void android_main(struct android_app* pApp)
     engine->render();
    }
 
- */
+
+/*
     if (engine)
     {
       const auto renderingManger = engine->getRenderingManager();
@@ -88,6 +89,7 @@ void android_main(struct android_app* pApp)
 
       engine->render();
     }
+    */
   }
 }
 
