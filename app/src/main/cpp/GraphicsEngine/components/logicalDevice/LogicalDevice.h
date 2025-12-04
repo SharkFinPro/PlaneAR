@@ -104,6 +104,27 @@ namespace ge {
 
     void destroyShaderModule(VkShaderModule& shaderModule) const;
 
+    [[nodiscard]] VkBuffer createBuffer(const VkBufferCreateInfo& bufferCreateInfo) const;
+
+    void destroyBuffer(VkBuffer& buffer) const;
+
+    [[nodiscard]] VkMemoryRequirements getBufferMemoryRequirements(const VkBuffer& buffer) const;
+
+    void bindBufferMemory(const VkBuffer& buffer,
+                          const VkDeviceMemory& deviceMemory,
+                          VkDeviceSize memoryOffset = 0) const;
+
+    void doMappedMemoryOperation(VkDeviceMemory deviceMemory,
+                                 const std::function<void(void* data)>& operationFunction) const;
+
+    void mapMemory(const VkDeviceMemory& memory,
+                   VkDeviceSize offset,
+                   VkDeviceSize size,
+                   VkMemoryMapFlags flags,
+                   void** data) const;
+
+    void unmapMemory(const VkDeviceMemory& memory) const;
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 

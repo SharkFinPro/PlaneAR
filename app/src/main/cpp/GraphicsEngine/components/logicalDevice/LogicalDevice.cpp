@@ -484,4 +484,74 @@ namespace ge {
       vkDestroyFence(m_device, m_swapchainInFlightFences[i], nullptr);
     }
   }
+
+  VkBuffer LogicalDevice::createBuffer(const VkBufferCreateInfo& bufferCreateInfo) const
+  {
+    VkBuffer buffer = VK_NULL_HANDLE;
+
+    if (vkCreateBuffer(m_device, &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create buffer!");
+    }
+
+    return buffer;
+  }
+
+  void LogicalDevice::destroyBuffer(VkBuffer& buffer) const
+  {
+    if (buffer == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    vkDestroyBuffer(m_device, buffer, nullptr);
+
+    buffer = VK_NULL_HANDLE;
+  }
+
+  VkMemoryRequirements LogicalDevice::getBufferMemoryRequirements(const VkBuffer& buffer) const
+  {
+    VkMemoryRequirements memoryRequirements{};
+
+    vkGetBufferMemoryRequirements(m_device, buffer, &memoryRequirements);
+
+    return memoryRequirements;
+  }
+
+  void LogicalDevice::bindBufferMemory(const VkBuffer& buffer,
+                                       const VkDeviceMemory& deviceMemory,
+                                       VkDeviceSize memoryOffset) const
+  {
+    vkBindBufferMemory(m_device, buffer, deviceMemory, memoryOffset);
+  }
+
+  void LogicalDevice::doMappedMemoryOperation(VkDeviceMemory deviceMemory,
+                                              const std::function<void(void* data)>& operationFunction) const
+  {
+    void* data;
+    mapMemory(deviceMemory, 0, VK_WHOLE_SIZE, 0, &data);
+
+    operationFunction(data);
+
+    unmapMemory(deviceMemory);
+  }
+
+  void LogicalDevice::mapMemory(const VkDeviceMemory& memory,
+                                VkDeviceSize offset,
+                                VkDeviceSize size,
+                                VkMemoryMapFlags flags,
+                                void** data) const
+  {
+    vkMapMemory(m_device, memory, offset, size, flags, data);
+  }
+
+  void LogicalDevice::unmapMemory(const VkDeviceMemory& memory) const
+  {
+    if (memory == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    vkUnmapMemory(m_device, memory);
+  }
 } // ge
