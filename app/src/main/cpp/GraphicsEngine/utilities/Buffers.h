@@ -57,6 +57,44 @@ namespace ge::Buffers {
 
     logicalDevice->freeCommandBuffers(commandPool, 1, &commandBuffer);
   }
+
+  inline void createBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                           const VkDeviceSize size,
+                           const VkBufferUsageFlags usage,
+                           const VkMemoryPropertyFlags properties,
+                           VkBuffer& buffer,
+                           VkDeviceMemory& bufferMemory)
+  {
+    const VkBufferCreateInfo bufferInfo {
+      .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+      .size = size,
+      .usage = usage,
+      .sharingMode = VK_SHARING_MODE_EXCLUSIVE
+    };
+
+    buffer = logicalDevice->createBuffer(bufferInfo);
+
+    const VkMemoryRequirements memoryRequirements = logicalDevice->getBufferMemoryRequirements(buffer);
+
+    const VkMemoryAllocateInfo allocateInfo {
+      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+      .allocationSize = memoryRequirements.size,
+      .memoryTypeIndex = logicalDevice->getPhysicalDevice()->findMemoryType(memoryRequirements.memoryTypeBits, properties)
+    };
+
+    logicalDevice->allocateMemory(allocateInfo, bufferMemory);
+
+    logicalDevice->bindBufferMemory(buffer, bufferMemory);
+  }
+
+  inline void destroyBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                            VkBuffer& buffer,
+                            VkDeviceMemory& bufferMemory)
+  {
+    logicalDevice->freeMemory(bufferMemory);
+
+    logicalDevice->destroyBuffer(buffer);
+  }
 }
 
 #endif //PLANEAR_BUFFERS_H
