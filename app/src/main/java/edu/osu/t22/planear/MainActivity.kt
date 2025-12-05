@@ -47,6 +47,7 @@ class MainActivity : GameActivity() {
     private var locationCallback: LocationCallback? = null
     @Volatile private var lastKnownLocation: Location? = null
 
+    @Suppress("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -88,59 +89,61 @@ class MainActivity : GameActivity() {
                                 api.getClosestAircraft(lat, lon, 250)
                             }
 
-                        // log results
-                        val nearbyData = nearby.await()
-                        Log.d("ADSB_TEST", "Got ${nearbyData.total} aircraft")
-                        val closestData = closest.await()
-                        Log.d("ADSB_TEST", "Closest aircraft: ${closestData.ac.firstOrNull() ?: "No aircraft found"}")
-                        Log.d("ADSB_TEST", "Timing data: (now: ${nearbyData.now}, cTime: ${nearbyData.cTime}, pTime: ${nearbyData.pTime})")
-
-
-                        //--------------------TESTING GEO CALCULATIONS--------------------
-                        val closestAircraft = closestData.ac.firstOrNull()
-                        if (closestAircraft != null) {
-
-                            // will be replaced with arcore geolocation
-                            val userLat = 44.565722
-                            val userLon = -123.278917
-                            val userAltM = 0.0
-                            val userHeadingDeg = 90.0 //facing east
-
-                            val acLat = closestAircraft.lat
-                            val acLon =  closestAircraft.lon
-                            val acAltFeet = closestAircraft.alt_baro?.toDoubleOrNull() ?: 0.0
-                            val acAltM = acAltFeet * 0.3048
-
-                            val userPoint = GeoPoint(userLat, userLon, userAltM)
-                            val acPoint = GeoPoint(acLat, acLon, acAltM)
-
-                            val dir = GeoUtils.relativeDirection(
-                                user = userPoint,
-                                userHeadingDeg = userHeadingDeg,
-                                aircraft = acPoint
-                            )
-
+                            // log results
+                            val nearbyData = nearby.await()
+                            Log.d("ADSB_TEST", "Got ${nearbyData.total} aircraft")
+                            val closestData = closest.await()
                             Log.d(
-                                "ADSB_DIR",
-                                "distance=${"%.0f".format(dir.distanceMeters)} m, " +
-                                        "bearing=${"%.1f".format(dir.bearingToAircraft)}°" +
-                                        "relative=${"%.1f".format(dir.relativeBearingDeg)}°, " +
-                                        "elevation=${"%.1f".format(dir.elevationDeg)}°"
+                                "ADSB_TEST",
+                                "Closest aircraft: ${closestData.ac.firstOrNull() ?: "No aircraft found"}"
+                            )
+                            Log.d(
+                                "ADSB_TEST",
+                                "Timing data: (now: ${nearbyData.now}, cTime: ${nearbyData.cTime}, pTime: ${nearbyData.pTime})"
                             )
 
-                            val enh = GeoUtils.enhVector(userPoint, acPoint)
-                            Log.d(
-                                "ADSB_ENH",
-                                "east=${"%.1f".format(enh.east)}, " +
-                                        "north=${"%.1f".format(enh.north)} m, " +
-                                        "height=${"%.1f".format(enh.height)} m"
-                            )
-                        } else {
-                            Log.d("ADSB_DIR", "No closest aircraft")
+
+                            //--------------------TESTING GEO CALCULATIONS--------------------
+                            val closestAircraft = closestData.ac.firstOrNull()
+                            if (closestAircraft != null) {
+
+                                // will be replaced with arcore geolocation
+                                val userAltM = 0.0
+                                val userHeadingDeg = 90.0 //facing east
+
+                                val acLat = closestAircraft.lat
+                                val acLon = closestAircraft.lon
+                                val acAltFeet = closestAircraft.alt_baro.toDoubleOrNull() ?: 0.0
+                                val acAltM = acAltFeet * 0.3048
+
+                                val userPoint = GeoPoint(lat, lon, userAltM)
+                                val acPoint = GeoPoint(lat, lon, acAltM)
+
+                                val dir = GeoUtils.relativeDirection(
+                                    user = userPoint,
+                                    userHeadingDeg = userHeadingDeg,
+                                    aircraft = acPoint
+                                )
+
+                                Log.d(
+                                    "ADSB_DIR",
+                                    "distance=${"%.0f".format(dir.distanceMeters)} m, " +
+                                            "bearing=${"%.1f".format(dir.bearingToAircraft)}°" +
+                                            "relative=${"%.1f".format(dir.relativeBearingDeg)}°, " +
+                                            "elevation=${"%.1f".format(dir.elevationDeg)}°"
+                                )
+
+                                val enh = GeoUtils.enhVector(userPoint, acPoint)
+                                Log.d(
+                                    "ADSB_ENH",
+                                    "east=${"%.1f".format(enh.east)}, " +
+                                            "north=${"%.1f".format(enh.north)} m, " +
+                                            "height=${"%.1f".format(enh.height)} m"
+                                )
+                            } else {
+                                Log.d("ADSB_DIR", "No closest aircraft")
+                            }
                         }
-
-
-
                     } catch (e: Exception) {
                         Log.e("ADSB_TEST", "API call failed", e)
                     }
@@ -149,6 +152,18 @@ class MainActivity : GameActivity() {
                     delay(5_000L)
                 }
             }
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                LOCATION_PERMISSION_CODE
+            )
+        } else {
+            startLocationUpdates()
         }
     }
     @Suppress("MissingPermission")
@@ -160,6 +175,12 @@ class MainActivity : GameActivity() {
         //check camera permissions
         if (!hasCameraPermission()) {
             requestCameraPermission()
+            return
+        }
+
+        //check location permissions
+        if (!hasLocationPermission()) {
+            requestLocationPermission()
             return
         }
 
@@ -222,6 +243,19 @@ class MainActivity : GameActivity() {
             this,
             arrayOf(Manifest.permission.CAMERA),
             CAMERA_PERMISSION_CODE
+        )
+    }
+
+    private fun hasLocationPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestLocationPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION),
+            LOCATION_PERMISSION_CODE
         )
     }
 
