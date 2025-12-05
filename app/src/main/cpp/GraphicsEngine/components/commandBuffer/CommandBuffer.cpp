@@ -99,4 +99,22 @@ namespace ge {
   {
     vkCmdPushConstants(m_commandBuffers[m_currentFrame], layout, stageFlags, offset, size, values);
   }
+
+  void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint,
+                                         VkPipelineLayout pipelineLayout,
+                                         uint32_t firstSet,
+                                         uint32_t descriptorSetCount,
+                                         const VkDescriptorSet* descriptorSets) const
+  {
+    vkCmdBindDescriptorSets(
+      m_commandBuffers[m_currentFrame],
+      pipelineBindPoint,
+      pipelineLayout,
+      firstSet,
+      descriptorSetCount,
+      descriptorSets,
+      0,
+      nullptr
+    );
+  }
 } // ge

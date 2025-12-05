@@ -41,6 +41,12 @@ namespace ge {
                        uint32_t size,
                        const void* values) const;
 
+    void bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint,
+                            VkPipelineLayout pipelineLayout,
+                            uint32_t firstSet,
+                            uint32_t descriptorSetCount,
+                            const VkDescriptorSet* descriptorSets) const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 

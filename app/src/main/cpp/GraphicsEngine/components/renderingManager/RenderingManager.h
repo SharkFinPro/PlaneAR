@@ -22,7 +22,8 @@ namespace ge {
     RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                      const std::shared_ptr<Surface>& surface,
                      VkCommandPool commandPool,
-                     AAssetManager* assetManager);
+                     AAssetManager* assetManager,
+                     VkDescriptorPool descriptorPool);
 
     void doRendering(uint32_t currentFrame);
 
@@ -53,7 +54,7 @@ namespace ge {
 
     std::shared_ptr<FontPipeline> m_fontPipeline;
 
-    void recordSwapchainCommandBuffer(uint32_t imageIndex) const;
+    void recordSwapchainCommandBuffer(uint32_t currentFrame, uint32_t imageIndex) const;
   };
 
 } // ge

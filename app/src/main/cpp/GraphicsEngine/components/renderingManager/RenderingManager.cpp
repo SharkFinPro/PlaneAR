@@ -11,7 +11,8 @@ namespace ge {
   RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                      const std::shared_ptr<Surface>& surface,
                                      VkCommandPool commandPool,
-                                     AAssetManager* assetManager)
+                                     AAssetManager* assetManager,
+                                     VkDescriptorPool descriptorPool)
     : m_logicalDevice(logicalDevice), m_surface(surface), m_commandPool(commandPool)
   {
     m_swapchain = std::make_shared<Swapchain>(m_logicalDevice, m_surface);
@@ -23,7 +24,7 @@ namespace ge {
 
     m_quadPipeline = std::make_shared<QuadPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager, m_surface);
 
-    m_fontPipeline = std::make_shared<FontPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager);
+    m_fontPipeline = std::make_shared<FontPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager, m_commandPool, descriptorPool);
   }
 
   void RenderingManager::doRendering(uint32_t currentFrame)
@@ -42,7 +43,7 @@ namespace ge {
 
     m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
     m_swapchainCommandBuffer->resetCommandBuffer();
-    recordSwapchainCommandBuffer(imageIndex);
+    recordSwapchainCommandBuffer(currentFrame, imageIndex);
     m_logicalDevice->submitGraphicsQueue(currentFrame, imageIndex, m_swapchainCommandBuffer);
 
     result = m_logicalDevice->queuePresent(imageIndex, m_swapchain);
@@ -69,9 +70,9 @@ namespace ge {
     m_quadPipeline->createNewFrame();
   }
 
-  void RenderingManager::recordSwapchainCommandBuffer(uint32_t imageIndex) const
+  void RenderingManager::recordSwapchainCommandBuffer(uint32_t currentFrame, uint32_t imageIndex) const
   {
-    m_swapchainCommandBuffer->record([this, imageIndex]()
+    m_swapchainCommandBuffer->record([this, currentFrame, imageIndex]()
     {
       const auto extent = m_swapchain->getExtent();
       const auto commandBuffer = m_swapchainCommandBuffer;
@@ -96,7 +97,7 @@ namespace ge {
 
       m_quadPipeline->render(commandBuffer);
 
-      m_fontPipeline->render(commandBuffer);
+      m_fontPipeline->render(commandBuffer, currentFrame);
 
       m_renderer->endSwapchainRendering(imageIndex, commandBuffer, m_swapchain);
     });
