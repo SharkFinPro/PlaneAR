@@ -46,6 +46,12 @@ namespace ge::gps {
     .primitiveRestartEnable = VK_FALSE
   };
 
+  inline VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateTriangleStrip {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+    .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
+    .primitiveRestartEnable = VK_FALSE
+  };
+
   inline VkPipelineMultisampleStateCreateInfo getMultsampleState(const std::shared_ptr<LogicalDevice>& logicalDevice)
   {
     return {

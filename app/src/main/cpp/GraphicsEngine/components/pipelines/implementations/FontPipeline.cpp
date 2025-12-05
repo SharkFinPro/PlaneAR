@@ -18,7 +18,7 @@ namespace ge {
         .colorBlendState = gps::colorBlendState,
         .depthStencilState = gps::depthStencilStateNone,
         .dynamicState = gps::dynamicState,
-        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
         .multisampleState = gps::getMultsampleState(m_logicalDevice),
         .rasterizationState = gps::rasterizationStateNoCull,
         .vertexInputState = gps::vertexInputStateRaw,
@@ -30,8 +30,10 @@ namespace ge {
     createPipeline(graphicsPipelineOptions);
   }
 
-  void FontPipeline::render(const std::shared_ptr<CommandBuffer> &commandBuffer)
+  void FontPipeline::render(const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
     commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+
+    commandBuffer->draw(4, 1, 0, 0);
   }
 } // ge
