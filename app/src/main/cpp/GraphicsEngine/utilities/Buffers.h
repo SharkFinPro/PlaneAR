@@ -2,6 +2,7 @@
 #define PLANEAR_BUFFERS_H
 
 #include "../components/logicalDevice/LogicalDevice.h"
+#include "../components/physicalDevice/PhysicalDevice.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 

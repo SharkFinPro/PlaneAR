@@ -99,7 +99,8 @@ namespace ge {
       m_logicalDevice,
       m_surface,
       m_commandPool,
-      m_app->activity->assetManager
+      m_app->activity->assetManager,
+      m_descriptorPool
     );
   }
 

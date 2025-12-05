@@ -14,6 +14,7 @@ add_library(${PROJECT_NAME} SHARED
   components/logicalDevice/LogicalDevice.cpp
   components/surface/Surface.cpp
   components/physicalDevice/PhysicalDevice.cpp
+  components/pipelines/implementations/FontPipeline.cpp
   components/pipelines/implementations/QuadPipeline.cpp
   components/pipelines/GraphicsPipeline.cpp
   components/pipelines/Pipeline.cpp
@@ -22,6 +23,7 @@ add_library(${PROJECT_NAME} SHARED
   components/renderPass/RenderPass.cpp
   components/shaderModule/ShaderModule.cpp
   components/surface/Swapchain.cpp
+  components/textures/GlyphTexture.cpp
   components/textures/Texture.cpp
 )
 
