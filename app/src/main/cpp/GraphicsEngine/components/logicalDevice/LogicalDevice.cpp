@@ -554,4 +554,38 @@ namespace ge {
 
     vkUnmapMemory(m_device, memory);
   }
+
+  VkDescriptorSetLayout LogicalDevice::createDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const
+  {
+    VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
+
+    if (vkCreateDescriptorSetLayout(m_device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create descriptor set layout!");
+    }
+
+    return descriptorSetLayout;
+  }
+
+  void LogicalDevice::destroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout) const
+  {
+    vkDestroyDescriptorSetLayout(m_device, descriptorSetLayout, nullptr);
+
+    descriptorSetLayout = VK_NULL_HANDLE;
+  }
+
+  void LogicalDevice::allocateDescriptorSets(const VkDescriptorSetAllocateInfo& descriptorSetAllocateInfo,
+                                             VkDescriptorSet* descriptorSets) const
+  {
+    if (vkAllocateDescriptorSets(m_device, &descriptorSetAllocateInfo, descriptorSets) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to allocate descriptor sets!");
+    }
+  }
+
+  void LogicalDevice::updateDescriptorSets(uint32_t descriptorWriteCount,
+                                           const VkWriteDescriptorSet* descriptorWrites) const
+  {
+    vkUpdateDescriptorSets(m_device, descriptorWriteCount, descriptorWrites, 0, nullptr);
+  }
 } // ge

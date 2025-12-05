@@ -125,6 +125,16 @@ namespace ge {
 
     void unmapMemory(const VkDeviceMemory& memory) const;
 
+    [[nodiscard]] VkDescriptorSetLayout createDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const;
+
+    void destroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout) const;
+
+    void allocateDescriptorSets(const VkDescriptorSetAllocateInfo& descriptorSetAllocateInfo,
+                                VkDescriptorSet* descriptorSets) const;
+
+    void updateDescriptorSets(uint32_t descriptorWriteCount,
+                              const VkWriteDescriptorSet* descriptorWrites) const;
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 
