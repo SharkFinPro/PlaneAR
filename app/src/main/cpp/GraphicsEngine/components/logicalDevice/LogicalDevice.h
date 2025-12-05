@@ -135,6 +135,10 @@ namespace ge {
     void updateDescriptorSets(uint32_t descriptorWriteCount,
                               const VkWriteDescriptorSet* descriptorWrites) const;
 
+    [[nodiscard]] VkSampler createSampler(const VkSamplerCreateInfo& samplerCreateInfo) const;
+
+    void destroySampler(VkSampler& sampler) const;
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 

@@ -588,4 +588,23 @@ namespace ge {
   {
     vkUpdateDescriptorSets(m_device, descriptorWriteCount, descriptorWrites, 0, nullptr);
   }
+
+  VkSampler LogicalDevice::createSampler(const VkSamplerCreateInfo& samplerCreateInfo) const
+  {
+    VkSampler sampler = VK_NULL_HANDLE;
+
+    if (vkCreateSampler(m_device, &samplerCreateInfo, nullptr, &sampler) != VK_SUCCESS)
+    {
+      throw std::runtime_error("failed to create sampler!");
+    }
+
+    return sampler;
+  }
+
+  void LogicalDevice::destroySampler(VkSampler& sampler) const
+  {
+    vkDestroySampler(m_device, sampler, nullptr);
+
+    sampler = VK_NULL_HANDLE;
+  }
 } // ge
