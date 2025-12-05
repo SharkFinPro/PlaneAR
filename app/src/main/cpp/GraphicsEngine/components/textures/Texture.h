@@ -30,7 +30,7 @@ namespace ge {
 
     VkDescriptorImageInfo m_imageInfo{};
 
-    uint32_t m_mipLevels;
+    uint32_t m_mipLevels = 1;
 
     void createTextureSampler(VkSamplerAddressMode addressMode);
 

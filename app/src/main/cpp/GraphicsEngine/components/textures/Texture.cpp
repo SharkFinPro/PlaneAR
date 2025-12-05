@@ -5,6 +5,7 @@
 namespace ge {
   Texture::Texture(const std::shared_ptr<LogicalDevice>& logicalDevice,
                    VkSamplerAddressMode samplerAddressMode)
+    : m_logicalDevice(logicalDevice)
   {
     createTextureSampler(samplerAddressMode);
 
