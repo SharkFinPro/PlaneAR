@@ -9,6 +9,7 @@ struct AAssetManager;
 namespace ge {
 
   class CommandBuffer;
+  class FontPipeline;
   class LogicalDevice;
   class QuadPipeline;
   class Renderer;
@@ -49,6 +50,8 @@ namespace ge {
     std::shared_ptr<CommandBuffer> m_swapchainCommandBuffer;
 
     std::shared_ptr<QuadPipeline> m_quadPipeline;
+
+    std::shared_ptr<FontPipeline> m_fontPipeline;
 
     void recordSwapchainCommandBuffer(uint32_t imageIndex) const;
   };

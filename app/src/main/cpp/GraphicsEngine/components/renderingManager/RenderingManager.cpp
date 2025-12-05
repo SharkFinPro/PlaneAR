@@ -2,6 +2,7 @@
 #include "LegacyRenderer.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
+#include "../pipelines/implementations/FontPipeline.h"
 #include "../pipelines/implementations/QuadPipeline.h"
 #include "../surface/Swapchain.h"
 
@@ -21,6 +22,8 @@ namespace ge {
     m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapchain, m_commandPool);
 
     m_quadPipeline = std::make_shared<QuadPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager, m_surface);
+
+    m_fontPipeline = std::make_shared<FontPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager);
   }
 
   void RenderingManager::doRendering(uint32_t currentFrame)
@@ -92,6 +95,8 @@ namespace ge {
       commandBuffer->setScissor(scissor);
 
       m_quadPipeline->render(commandBuffer);
+
+      m_fontPipeline->render(commandBuffer);
 
       m_renderer->endSwapchainRendering(imageIndex, commandBuffer, m_swapchain);
     });
