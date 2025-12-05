@@ -6,6 +6,7 @@ add_library(${PROJECT_NAME} SHARED
   main.cpp
   GraphicsEngine.cpp
   components/commandBuffer/CommandBuffer.cpp
+  components/descriptorSet/DescriptorSet.cpp
   components/framebuffers/Framebuffer.cpp
   components/framebuffers/SwapchainFramebuffer.cpp
   components/instance/DebugMessenger.cpp
