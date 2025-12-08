@@ -261,11 +261,6 @@ class MainActivity : GameActivity() {
     fun setCameraTexture(textureId: Int) {
         arSessionManager?.setCameraTextureName(textureId)
     }
-
-    override fun onSurfaceChanged(width: Int, height: Int) {
-        super.onSurfaceChanged(width, height)
-        arSessionManager?.updateViewport(width, height)
-    }
 }
 
 class ARSessionManager(
