@@ -88,3 +88,11 @@ extern "C" {
         gArState.trackingState = trackingState;
     }
 }
+
+bool gArReady = false;
+
+extern "C" JNIEXPORT void JNICALL
+Java_edu_osu_t22_planear_MainActivity_nativeSetArReady(JNIEnv*, jobject, jboolean ready) {
+    std::lock_guard<std::mutex> lock(gArState.mtx);
+    gArReady = ready;
+}

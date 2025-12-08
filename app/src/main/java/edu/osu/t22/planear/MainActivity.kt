@@ -35,6 +35,9 @@ class MainActivity : GameActivity() {
         }
 
         private const val CAMERA_PERMISSION_CODE = 0
+
+        @JvmStatic
+        external fun nativeSetArReady(ready: Boolean)
     }
 
     private var arSession: Session? = null
@@ -197,52 +200,42 @@ class MainActivity : GameActivity() {
     }
 
     //ARCORE 1.51 install / create session flow
+    private external fun nativeSetArReady(ready: Boolean)
+
     private fun tryCreateSession(): Boolean {
         try {
-            // check if device / emulator supports ar core at all
             val availability = ArCoreApk.getInstance().checkAvailability(this)
             if (!availability.isSupported) {
-                Log.e("PlaneAR", "ARCore not supported on this device/emulator")
+                Log.e("PlaneAR", "ARCore not supported")
+                nativeSetArReady(false)
                 return false
             }
 
-            // if arcore is built into the apk we can remove requestInstall() step because
-            //ARCore has the client library already packaged
             if (arSession == null) {
                 arSession = Session(this)
-                Log.i("PlaneAR", "ARCore session created (builtin)")
+                Log.i("PlaneAR", "ARCore session created")
 
-                //NEW code
-                arSession?.let { session ->
-                    val config = Config(session).apply {
-                        planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
-                        depthMode = if (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
+                nativeSetArReady(true)             // <-- 🔥 Notify native renderer
+
+                val config = Config(arSession).apply {
+                    planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
+                    depthMode =
+                        if (arSession!!.isDepthModeSupported(Config.DepthMode.AUTOMATIC))
                             Config.DepthMode.AUTOMATIC
-                        } else {
-                            Config.DepthMode.DISABLED
-                        }
-                        updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
-                    }
-                    session.configure(config)
-
-                    arSessionManager = ARSessionManager(
-                        session = session,
-                        displayRotation = {
-                            display?.rotation ?: Surface.ROTATION_0
-                        }
-                    )
-
-                    Log.i("PlaneAR", "ARSessionManager initialized")
+                        else Config.DepthMode.DISABLED
                 }
+                arSession!!.configure(config)
             }
 
             return true
 
         } catch (e: Exception) {
             Log.e("PlaneAR", "Failed to create ARCore session", e)
+            nativeSetArReady(false)               // failed → stay non-AR mode
             return false
         }
     }
+
 
     private fun hideSystemUi() {
         val decorView = window.decorView

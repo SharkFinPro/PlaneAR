@@ -18,5 +18,9 @@ struct ArState {
     std::mutex mtx;
 };
 
+extern "C" {
+void nativeSetArReady(bool ready);
+}
+
 extern ArState gArState;
 
