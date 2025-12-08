@@ -19,7 +19,7 @@
 
     <uses-feature
         android:name="android.hardware.camera.ar"
-        android:required="false" />
+        android:required="true" />
 
     <!-- permissions -->
     <uses-permission android:name="android.permission.CAMERA" />
@@ -38,7 +38,7 @@
         <!-- bundle ARCore with the APK -->
         <meta-data
             android:name="com.google.ar.core"
-            android:value="builtin" />
+            android:value="required" />
 
         <activity
             android:name=".MainActivity"

@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import edu.osu.t22.planear.geo.GeoUtils
 import edu.osu.t22.planear.geo.GeoPoint
+import android.view.Surface
 
 
 class MainActivity : GameActivity() {
@@ -146,6 +147,14 @@ class MainActivity : GameActivity() {
             Log.e("PlaneAR", "Failed to resume AR session", e)
         }
 
+        window.decorView.post {
+            arSessionManager?.updateViewport(
+                window.decorView.width,
+                window.decorView.height
+            )
+        }
+
+
         hideSystemUi()
     }
 
@@ -218,7 +227,9 @@ class MainActivity : GameActivity() {
 
                     arSessionManager = ARSessionManager(
                         session = session,
-                        displayRotation = { windowManager.defaultDisplay.rotation }
+                        displayRotation = {
+                            display?.rotation ?: Surface.ROTATION_0
+                        }
                     )
 
                     Log.i("PlaneAR", "ARSessionManager initialized")
@@ -250,6 +261,11 @@ class MainActivity : GameActivity() {
     fun setCameraTexture(textureId: Int) {
         arSessionManager?.setCameraTextureName(textureId)
     }
+
+    override fun onSurfaceChanged(width: Int, height: Int) {
+        super.onSurfaceChanged(width, height)
+        arSessionManager?.updateViewport(width, height)
+    }
 }
 
 class ARSessionManager(
@@ -259,14 +275,17 @@ class ARSessionManager(
 
     private val anchors = mutableListOf<Anchor>()
 
-    private var viewportWidth: Int = 0
-    private var viewportHeight: Int = 0
+    private var viewportWidth: Int = 1
+    private var viewportHeight: Int = 1
 
     fun updateViewport(width: Int, height: Int) {
         viewportWidth = width
         viewportHeight = height
     }
 
+    fun setCameraTextureName(tex: Int) {
+        session.setCameraTextureName(tex)
+    }
 
     fun onUpdateFrame() {
         // Keep ARCore in sync with display rotation & surface size
@@ -280,6 +299,7 @@ class ARSessionManager(
             nativeOnTrackingStateChanged(camera.trackingState.ordinal)
             return
         }
+
 
         // Camera pose -> 4x4 matrix
         val cameraPose = camera.displayOrientedPose
