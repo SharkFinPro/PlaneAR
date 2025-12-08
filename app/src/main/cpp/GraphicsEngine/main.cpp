@@ -6,6 +6,7 @@
 #include "GraphicsEngine.h"
 #include "components/renderingManager/RenderingManager.h"
 #include "ArBridge.h"
+extern ArState gArState;
 extern bool gArReady;
 
 static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY);
@@ -20,7 +21,14 @@ void android_main(struct android_app* pApp)
   float mouseX = 0;
   float mouseY = 0;
 
-  while (true)
+    // UI rectangle positions
+    static float x = 100;
+    static float y = 100;
+    static float w = 200;
+    static float h = 100;
+
+
+    while (true)
   {
     int result = ALooper_pollOnce(0, nullptr, &events, (void**)&source);
 
@@ -95,23 +103,22 @@ void android_main(struct android_app* pApp)
       {
           const auto renderingManager = engine->getRenderingManager();
 
-          float r = 0, g = 0, b = 1;   // default = blue
+          float r = 0, g = 0, b = 1; // Default BLUE
 
           if (gArReady) {
               r = 0.0f;
               g = 1.0f;
-              b = 0.0f;               // ARCore active → GREEN
+              b = 0.0f;  // ARCore active → GREEN to prove arcore session is created because i couldnt get it to work on emulator
           }
 
-          // Top rectangle
+          // Top rectangle (status box)
           renderingManager->renderRect(x, y, w, h, r, g, b);
 
-          renderingManager->renderRect(x, y * 3.0f,
-                                       w * 3.0f, h, 0, 1, 0);
+          // Other demo rectangles
+          renderingManager->renderRect(x, y * 3.0f, w * 3.0f, h, 0, 1, 0);
+          renderingManager->renderRect(x, y * 5.0f, w * 2.0f, h, 1, 0, 0);
 
-          renderingManager->renderRect(x, y * 5.0f,
-                                       w * 2.0f, h, 1, 0, 0);
-
+          // Mouse cursor box
           float cursorSize = 50.0f;
           renderingManager->renderRect(
                   mouseX - cursorSize / 2.0f,

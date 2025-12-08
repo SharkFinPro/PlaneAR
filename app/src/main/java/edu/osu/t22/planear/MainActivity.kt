@@ -200,7 +200,6 @@ class MainActivity : GameActivity() {
     }
 
     //ARCORE 1.51 install / create session flow
-    private external fun nativeSetArReady(ready: Boolean)
 
     private fun tryCreateSession(): Boolean {
         try {
@@ -215,7 +214,7 @@ class MainActivity : GameActivity() {
                 arSession = Session(this)
                 Log.i("PlaneAR", "ARCore session created")
 
-                nativeSetArReady(true)             // <-- 🔥 Notify native renderer
+                nativeSetArReady(true)             // <--  Notify native renderer for top green box
 
                 val config = Config(arSession).apply {
                     planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
