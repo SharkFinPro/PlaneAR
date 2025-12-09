@@ -91,12 +91,12 @@ namespace ge {
   {
     float currentX = x;
 
-    for (int i = 0; i < message.length(); i++)
+    for (const auto& character : message)
     {
-      auto it = m_glyphMap.find(message[i]);
+      auto it = m_glyphMap.find(character);
       if (it != m_glyphMap.end())
       {
-        renderGlyph(commandBuffer, message[i], currentX, y, r, g, b);
+        renderGlyph(commandBuffer, character, currentX, y, r, g, b);
 
         currentX += it->second.advance;
       }
