@@ -1,10 +1,10 @@
 #include "RenderingManager.h"
 #include "LegacyRenderer.h"
+#include "renderer2D/Renderer2D.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../pipelines/implementations/FontPipeline.h"
 #include "../pipelines/implementations/QuadPipeline.h"
-#include "../renderer2D/Renderer2D.h"
 #include "../surface/Swapchain.h"
 #include <utility>
 

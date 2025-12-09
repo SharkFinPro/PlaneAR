@@ -5,7 +5,7 @@
 #include "Logger.h"
 #include "GraphicsEngine.h"
 #include "components/renderingManager/RenderingManager.h"
-#include "components/renderer2D/Renderer2D.h"
+#include "components/renderingManager/renderer2D/Renderer2D.h"
 
 static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY);
 
