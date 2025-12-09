@@ -55,28 +55,17 @@ namespace ge {
 
   void FontPipeline::loadFont(AAssetManager* assetManager, VkCommandPool commandPool)
   {
-    const char* fontPath = "fonts/Roboto-VariableFont_wdth,wght.ttf";
-
-    AAsset* asset = AAssetManager_open(assetManager, fontPath, AASSET_MODE_BUFFER);
-    if (!asset)
-    {
-      throw std::runtime_error(std::string("Failed to open asset: ") + fontPath);
-    }
+    loadFontFromAsset(assetManager);
 
     FT_Library ft;
     if (FT_Init_FreeType(&ft)) {
-      AAsset_close(asset);
       throw std::runtime_error("Failed to initialize FreeType");
     }
 
-    const auto fontBufferSize = AAsset_getLength(asset);
-    const void* fontBuffer = AAsset_getBuffer(asset);
-
     FT_Face face;
-    if (FT_New_Memory_Face(ft, static_cast<const FT_Byte*>(fontBuffer), fontBufferSize, 0, &face))
+    if (FT_New_Memory_Face(ft, m_fontBuffer.get(), static_cast<FT_Long>(m_fontBufferSize), 0, &face))
     {
       FT_Done_FreeType(ft);
-      AAsset_close(asset);
       throw std::runtime_error("Failed to load font from memory");
     }
 
@@ -94,6 +83,23 @@ namespace ge {
       face->glyph->bitmap.width,
       face->glyph->bitmap.rows
     );
+  }
+
+  void FontPipeline::loadFontFromAsset(AAssetManager* assetManager)
+  {
+    const char* fontPath = "fonts/Roboto-VariableFont_wdth,wght.ttf";
+
+    AAsset* asset = AAssetManager_open(assetManager, fontPath, AASSET_MODE_BUFFER);
+    if (!asset)
+    {
+      throw std::runtime_error(std::string("Failed to open asset: ") + fontPath);
+    }
+
+    m_fontBufferSize = AAsset_getLength(asset);
+    const void* fontBufferPtr = AAsset_getBuffer(asset);
+
+    m_fontBuffer = std::make_unique<uint8_t[]>(m_fontBufferSize);
+    std::memcpy(m_fontBuffer.get(), fontBufferPtr, m_fontBufferSize);
 
     AAsset_close(asset);
   }
