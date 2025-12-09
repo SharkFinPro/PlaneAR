@@ -38,7 +38,10 @@ namespace ge {
 
     void renderText(std::string message,
                     float x,
-                    float y);
+                    float y,
+                    float r,
+                    float g,
+                    float b);
 
     void createNewFrame();
 

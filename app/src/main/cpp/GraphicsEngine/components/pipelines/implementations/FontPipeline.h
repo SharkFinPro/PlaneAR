@@ -47,12 +47,18 @@ namespace ge {
     float height;
     float u0, v0;
     float u1, v1;
+    float r;
+    float g;
+    float b;
   };
 
   struct TextToRender {
     std::string message;
     float x;
     float y;
+    float r;
+    float g;
+    float b;
   };
 
   class FontPipeline final : public GraphicsPipeline
@@ -68,7 +74,12 @@ namespace ge {
     void render(const std::shared_ptr<CommandBuffer>& commandBuffer,
                 uint32_t currentFrame);
 
-    void queueTextToRender(std::string message, float x, float y);
+    void queueTextToRender(std::string message,
+                           float x,
+                           float y,
+                           float r,
+                           float g,
+                           float b);
 
     void createNewFrame();
 
@@ -89,12 +100,18 @@ namespace ge {
     void renderText(const std::shared_ptr<CommandBuffer>& commandBuffer,
                     std::string message,
                     float x,
-                    float y);
+                    float y,
+                    float r,
+                    float g,
+                    float b);
 
     void renderGlyph(const std::shared_ptr<CommandBuffer>& commandBuffer,
                      char character,
                      float x,
-                     float y);
+                     float y,
+                     float r,
+                     float g,
+                     float b);
 
     void createDescriptorSets(VkDescriptorPool descriptorPool);
 

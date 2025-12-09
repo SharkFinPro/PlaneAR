@@ -40,7 +40,7 @@ namespace ge {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
           .offset = 0,
           .size = sizeof(GlyphPushConstant)
         }
@@ -60,15 +60,20 @@ namespace ge {
 
     bindDescriptorSets(commandBuffer, currentFrame);
 
-    for (const auto& [message, x, y] : m_textsToRender)
+    for (const auto& [message, x, y, r, g, b] : m_textsToRender)
     {
-      renderText(commandBuffer, message, x, y);
+      renderText(commandBuffer, message, x, y, r, g, b);
     }
   }
 
-  void FontPipeline::queueTextToRender(std::string message, float x, float y)
+  void FontPipeline::queueTextToRender(std::string message,
+                                       float x,
+                                       float y,
+                                       float r,
+                                       float g,
+                                       float b)
   {
-    m_textsToRender.push_back({std::move(message), x, y});
+    m_textsToRender.push_back({std::move(message), x, y, r, g, b});
   }
 
   void FontPipeline::createNewFrame()
@@ -79,17 +84,19 @@ namespace ge {
   void FontPipeline::renderText(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                 std::string message,
                                 float x,
-                                float y)
+                                float y,
+                                float r,
+                                float g,
+                                float b)
   {
     float currentX = x;
 
     for (int i = 0; i < message.length(); i++)
     {
-      renderGlyph(commandBuffer, message[i], currentX, y);
       auto it = m_glyphMap.find(message[i]);
       if (it != m_glyphMap.end())
       {
-        renderGlyph(commandBuffer, message[i], currentX, y);
+        renderGlyph(commandBuffer, message[i], currentX, y, r, g, b);
 
         currentX += it->second.advance;
       }
@@ -99,7 +106,10 @@ namespace ge {
   void FontPipeline::renderGlyph(const std::shared_ptr<CommandBuffer>& commandBuffer,
                                  char character,
                                  float x,
-                                 float y)
+                                 float y,
+                                 float r,
+                                 float g,
+                                 float b)
   {
     auto it = m_glyphMap.find(character);
     if (it == m_glyphMap.end())
@@ -119,7 +129,10 @@ namespace ge {
       .u0 = glyph.u0,
       .v0 = glyph.v0,
       .u1 = glyph.u1,
-      .v1 = glyph.v1
+      .v1 = glyph.v1,
+      .r = r,
+      .g = g,
+      .b = b
     };
 
     commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,

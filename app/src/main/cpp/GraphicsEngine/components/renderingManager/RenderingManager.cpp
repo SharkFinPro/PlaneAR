@@ -5,6 +5,7 @@
 #include "../pipelines/implementations/FontPipeline.h"
 #include "../pipelines/implementations/QuadPipeline.h"
 #include "../surface/Swapchain.h"
+#include <utility>
 
 namespace ge {
 
@@ -67,9 +68,12 @@ namespace ge {
 
   void RenderingManager::renderText(std::string message,
                                     float x,
-                                    float y)
+                                    float y,
+                                    float r,
+                                    float g,
+                                    float b)
   {
-    m_fontPipeline->queueTextToRender(message, x, y);
+    m_fontPipeline->queueTextToRender(std::move(message), x, y, r, g, b);
   }
 
   void RenderingManager::createNewFrame()

@@ -68,7 +68,7 @@ void android_main(struct android_app* pApp)
       renderingManager->renderRect(mouseX - cursorSize / 2.0f, mouseY - cursorSize / 2.0f,
                                   cursorSize, cursorSize, 0.529f, 0.086f, 0.91f);
 
-      renderingManager->renderText("Hello, world!", 100, 800);
+      renderingManager->renderText("Hello, world!", 100, 800, 1, 1, 1);
 
       engine->render();
     }
