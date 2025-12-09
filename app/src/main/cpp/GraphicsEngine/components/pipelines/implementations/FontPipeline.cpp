@@ -53,6 +53,41 @@ namespace ge {
     commandBuffer->draw(4, 1, 0, 0);
   }
 
+  void FontPipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
+  {
+    constexpr VkDescriptorSetLayoutBinding glyphDescriptorSetLayoutBinding {
+      .binding = 0,
+      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    };
+
+    std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings {
+      glyphDescriptorSetLayoutBinding
+    };
+
+    m_fontDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, descriptorSetLayoutBindings);
+    m_fontDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+    {
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        m_glyphTexture->getDescriptorSet(0, descriptorSet)
+      }};
+
+      return descriptorWrites;
+    });
+  }
+
+  void FontPipeline::bindDescriptorSets(const std::shared_ptr<CommandBuffer>& commandBuffer, uint32_t currentFrame)
+  {
+    commandBuffer->bindDescriptorSets(
+      VK_PIPELINE_BIND_POINT_GRAPHICS,
+      m_pipelineLayout,
+      0,
+      1,
+      &m_fontDescriptorSet->getDescriptorSet(currentFrame)
+    );
+  }
+
   void FontPipeline::loadFont(AAssetManager* assetManager, VkCommandPool commandPool)
   {
     loadFontFromAsset(assetManager);
@@ -102,40 +137,5 @@ namespace ge {
     std::memcpy(m_fontBuffer.get(), fontBufferPtr, m_fontBufferSize);
 
     AAsset_close(asset);
-  }
-
-  void FontPipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
-  {
-    constexpr VkDescriptorSetLayoutBinding glyphDescriptorSetLayoutBinding {
-      .binding = 0,
-      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-      .descriptorCount = 1,
-      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
-    };
-
-    std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings {
-      glyphDescriptorSetLayoutBinding
-    };
-
-    m_fontDescriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, descriptorSetLayoutBindings);
-    m_fontDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
-    {
-      std::vector<VkWriteDescriptorSet> descriptorWrites{{
-        m_glyphTexture->getDescriptorSet(0, descriptorSet)
-      }};
-
-      return descriptorWrites;
-    });
-  }
-
-  void FontPipeline::bindDescriptorSets(const std::shared_ptr<CommandBuffer>& commandBuffer, uint32_t currentFrame)
-  {
-    commandBuffer->bindDescriptorSets(
-      VK_PIPELINE_BIND_POINT_GRAPHICS,
-      m_pipelineLayout,
-      0,
-      1,
-      &m_fontDescriptorSet->getDescriptorSet(currentFrame)
-    );
   }
 } // ge

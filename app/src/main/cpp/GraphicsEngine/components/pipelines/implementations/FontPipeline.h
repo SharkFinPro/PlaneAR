@@ -31,14 +31,14 @@ namespace ge {
     std::unique_ptr<uint8_t[]> m_fontBuffer;
     size_t m_fontBufferSize;
 
-    void loadFont(AAssetManager* assetManager, VkCommandPool commandPool);
-
-    void loadFontFromAsset(AAssetManager* assetManager);
-
     void createDescriptorSets(VkDescriptorPool descriptorPool);
 
     void bindDescriptorSets(const std::shared_ptr<CommandBuffer>& commandBuffer,
                             uint32_t currentFrame);
+
+    void loadFont(AAssetManager* assetManager, VkCommandPool commandPool);
+
+    void loadFontFromAsset(AAssetManager* assetManager);
   };
 
 } // ge
