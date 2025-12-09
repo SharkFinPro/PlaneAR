@@ -5,6 +5,7 @@
 #include "../../surface/Surface.h"
 #include "../../textures/GlyphTexture.h"
 #include <android/asset_manager.h>
+#include <utility>
 
 constexpr uint32_t MAX_ASCII_CODE = 255;
 
@@ -15,7 +16,7 @@ namespace ge {
                              VkCommandPool commandPool,
                              VkDescriptorPool descriptorPool,
                              std::shared_ptr<Surface> surface)
-    : GraphicsPipeline(logicalDevice), m_surface(surface)
+    : GraphicsPipeline(logicalDevice), m_surface(std::move(surface))
   {
     loadFont(assetManager, commandPool);
 
