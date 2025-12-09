@@ -73,6 +73,11 @@ namespace ge {
 
     std::unordered_map<char, GlyphInfo> m_glyphMap;
 
+    void renderText(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                    std::string message,
+                    float x,
+                    float y);
+
     void renderGlyph(const std::shared_ptr<CommandBuffer>& commandBuffer,
                      char character,
                      float x,

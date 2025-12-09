@@ -59,11 +59,27 @@ namespace ge {
 
     bindDescriptorSets(commandBuffer, currentFrame);
 
-    renderGlyph(commandBuffer, 'H', 100, 800);
-    renderGlyph(commandBuffer, 'E', 150, 800);
-    renderGlyph(commandBuffer, 'L', 200, 800);
-    renderGlyph(commandBuffer, 'L', 250, 800);
-    renderGlyph(commandBuffer, 'O', 300, 800);
+    renderText(commandBuffer, "HELLO, WORLD!", 100, 800);
+  }
+
+  void FontPipeline::renderText(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                std::string message,
+                                float x,
+                                float y)
+  {
+    float currentX = x;
+
+    for (int i = 0; i < message.length(); i++)
+    {
+      renderGlyph(commandBuffer, message[i], currentX, y);
+      auto it = m_glyphMap.find(message[i]);
+      if (it != m_glyphMap.end())
+      {
+        renderGlyph(commandBuffer, message[i], currentX, y);
+
+        currentX += it->second.advance;
+      }
+    }
   }
 
   void FontPipeline::renderGlyph(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -82,10 +98,10 @@ namespace ge {
     const GlyphPushConstant glyphPushConstant {
       .screenWidth = m_surface->getWidth(),
       .screenHeight = m_surface->getHeight(),
-      .x = x,
-      .y = y,
-      .width = 40,
-      .height = 50,
+      .x = x + glyph.bearingX,
+      .y = y - glyph.bearingY,
+      .width = glyph.width,
+      .height = glyph.height,
       .u0 = glyph.u0,
       .v0 = glyph.v0,
       .u1 = glyph.u1,
@@ -174,7 +190,7 @@ namespace ge {
       throw std::runtime_error("Failed to load font from memory");
     }
 
-    FT_Set_Pixel_Sizes(face, 0, 256);
+    FT_Set_Pixel_Sizes(face, 0, 64);
 
     const auto charset = getCharset(face);
 
