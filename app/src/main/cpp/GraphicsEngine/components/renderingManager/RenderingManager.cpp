@@ -4,6 +4,7 @@
 #include "../logicalDevice/LogicalDevice.h"
 #include "../pipelines/implementations/FontPipeline.h"
 #include "../pipelines/implementations/QuadPipeline.h"
+#include "../renderer2D/Renderer2D.h"
 #include "../surface/Swapchain.h"
 #include <utility>
 
@@ -23,9 +24,7 @@ namespace ge {
 
     m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapchain, m_commandPool);
 
-    m_quadPipeline = std::make_shared<QuadPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager, m_surface);
-
-    m_fontPipeline = std::make_shared<FontPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager, m_commandPool, descriptorPool, m_surface);
+    m_renderer2D = std::make_shared<Renderer2D>(m_logicalDevice, m_surface, m_renderer, m_commandPool, assetManager, descriptorPool);
   }
 
   void RenderingManager::doRendering(uint32_t currentFrame)
@@ -55,31 +54,14 @@ namespace ge {
     }
   }
 
-  void RenderingManager::renderRect(float x,
-                                    float y,
-                                    float width,
-                                    float height,
-                                    float r,
-                                    float g,
-                                    float b)
-  {
-    m_quadPipeline->queueRectToRender(x, y, width, height, r, g, b);
-  }
-
-  void RenderingManager::renderText(std::string message,
-                                    float x,
-                                    float y,
-                                    float r,
-                                    float g,
-                                    float b)
-  {
-    m_fontPipeline->queueTextToRender(std::move(message), x, y, r, g, b);
-  }
-
   void RenderingManager::createNewFrame()
   {
-    m_quadPipeline->createNewFrame();
-    m_fontPipeline->createNewFrame();
+    m_renderer2D->createNewFrame();
+  }
+
+  std::shared_ptr<Renderer2D> RenderingManager::getRenderer2D()
+  {
+    return m_renderer2D;
   }
 
   void RenderingManager::recordSwapchainCommandBuffer(uint32_t currentFrame, uint32_t imageIndex) const
@@ -107,9 +89,7 @@ namespace ge {
       };
       commandBuffer->setScissor(scissor);
 
-      m_quadPipeline->render(commandBuffer);
-
-      m_fontPipeline->render(commandBuffer, currentFrame);
+      m_renderer2D->render(commandBuffer, currentFrame);
 
       m_renderer->endSwapchainRendering(imageIndex, commandBuffer, m_swapchain);
     });
