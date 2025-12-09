@@ -2,6 +2,7 @@
 #include "common/GraphicsPipelineStates.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../descriptorSet/DescriptorSet.h"
+#include "../../surface/Surface.h"
 #include "../../textures/GlyphTexture.h"
 #include <android/asset_manager.h>
 
@@ -12,8 +13,9 @@ namespace ge {
                              std::shared_ptr<RenderPass> renderPass,
                              AAssetManager* assetManager,
                              VkCommandPool commandPool,
-                             VkDescriptorPool descriptorPool)
-    : GraphicsPipeline(logicalDevice)
+                             VkDescriptorPool descriptorPool,
+                             std::shared_ptr<Surface> surface)
+    : GraphicsPipeline(logicalDevice), m_surface(surface)
   {
     loadFont(assetManager, commandPool);
 
@@ -57,7 +59,11 @@ namespace ge {
 
     bindDescriptorSets(commandBuffer, currentFrame);
 
-    renderGlyph(commandBuffer, 'H', 0, 0);
+    renderGlyph(commandBuffer, 'H', 100, 800);
+    renderGlyph(commandBuffer, 'E', 150, 800);
+    renderGlyph(commandBuffer, 'L', 200, 800);
+    renderGlyph(commandBuffer, 'L', 250, 800);
+    renderGlyph(commandBuffer, 'O', 300, 800);
   }
 
   void FontPipeline::renderGlyph(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -74,14 +80,16 @@ namespace ge {
     const GlyphInfo& glyph = it->second;
 
     const GlyphPushConstant glyphPushConstant {
-      .posX = x,
-      .posY = y,
+      .screenWidth = m_surface->getWidth(),
+      .screenHeight = m_surface->getHeight(),
+      .x = x,
+      .y = y,
+      .width = 40,
+      .height = 50,
       .u0 = glyph.u0,
       .v0 = glyph.v0,
       .u1 = glyph.u1,
-      .v1 = glyph.v1,
-      .width = glyph.width,
-      .height = glyph.height
+      .v1 = glyph.v1
     };
 
     commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,

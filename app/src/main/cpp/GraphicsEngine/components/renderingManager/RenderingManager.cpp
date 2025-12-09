@@ -24,7 +24,7 @@ namespace ge {
 
     m_quadPipeline = std::make_shared<QuadPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager, m_surface);
 
-    m_fontPipeline = std::make_shared<FontPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager, m_commandPool, descriptorPool);
+    m_fontPipeline = std::make_shared<FontPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager, m_commandPool, descriptorPool, m_surface);
   }
 
   void RenderingManager::doRendering(uint32_t currentFrame)

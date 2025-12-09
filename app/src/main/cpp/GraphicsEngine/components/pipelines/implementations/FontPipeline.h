@@ -12,6 +12,7 @@ namespace ge {
   class CommandBuffer;
   class DescriptorSet;
   class GlyphTexture;
+  class Surface;
 
   /*
     * UV coordinates, dimensions, and positioning metrics for a single glyph in the atlas
@@ -37,10 +38,14 @@ namespace ge {
     * size: glyph dimensions in pixels
   */
   struct GlyphPushConstant {
-    float posX, posY;
+    int screenWidth;
+    int screenHeight;
+    float x;
+    float y;
+    float width;
+    float height;
     float u0, v0;
     float u1, v1;
-    float width, height;
   };
 
   class FontPipeline final : public GraphicsPipeline
@@ -50,12 +55,15 @@ namespace ge {
                  std::shared_ptr<RenderPass> renderPass,
                  AAssetManager* assetManager,
                  VkCommandPool commandPool,
-                 VkDescriptorPool descriptorPool);
+                 VkDescriptorPool descriptorPool,
+                 std::shared_ptr<Surface> surface);
 
     void render(const std::shared_ptr<CommandBuffer>& commandBuffer,
                 uint32_t currentFrame);
 
   private:
+    std::shared_ptr<Surface> m_surface;
+
     std::shared_ptr<DescriptorSet> m_fontDescriptorSet;
 
     std::shared_ptr<GlyphTexture> m_glyphTexture;
