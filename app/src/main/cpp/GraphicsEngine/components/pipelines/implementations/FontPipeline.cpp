@@ -59,7 +59,7 @@ namespace ge {
 
     bindDescriptorSets(commandBuffer, currentFrame);
 
-    renderText(commandBuffer, "HELLO, WORLD!", 100, 800);
+    renderText(commandBuffer, "Hello, world!", 100, 800);
   }
 
   void FontPipeline::renderText(const std::shared_ptr<CommandBuffer>& commandBuffer,
