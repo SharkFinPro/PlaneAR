@@ -68,7 +68,7 @@ namespace ge {
 
   void FontPipeline::queueTextToRender(std::string message, float x, float y)
   {
-    m_textsToRender.push_back({message, x, y});
+    m_textsToRender.push_back({std::move(message), x, y});
   }
 
   void FontPipeline::createNewFrame()
