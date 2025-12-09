@@ -84,7 +84,7 @@ namespace ge {
   }
 
   void FontPipeline::renderText(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                std::string message,
+                                const std::string& message,
                                 float x,
                                 float y,
                                 float r,
