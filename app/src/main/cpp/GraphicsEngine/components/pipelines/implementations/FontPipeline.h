@@ -29,6 +29,20 @@ namespace ge {
     float advance;
   };
 
+  /*
+    * Push constant data sent to shaders for rendering a single glyph
+    * position: screen position where glyph should be rendered
+    * uvMin: top-left UV coordinates in the atlas
+    * uvMax: bottom-right UV coordinates in the atlas
+    * size: glyph dimensions in pixels
+  */
+  struct GlyphPushConstant {
+    float posX, posY;
+    float u0, v0;
+    float u1, v1;
+    float width, height;
+  };
+
   class FontPipeline final : public GraphicsPipeline
   {
   public:
@@ -50,6 +64,11 @@ namespace ge {
     size_t m_fontBufferSize = 0;
 
     std::unordered_map<char, GlyphInfo> m_glyphMap;
+
+    void renderGlyph(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                     char character,
+                     float x,
+                     float y);
 
     void createDescriptorSets(VkDescriptorPool descriptorPool);
 

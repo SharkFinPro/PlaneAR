@@ -35,6 +35,13 @@ namespace ge {
         .vertexInputState = gps::vertexInputStateRaw,
         .viewportState = gps::viewportState
       },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+          .offset = 0,
+          .size = sizeof(GlyphPushConstant)
+        }
+      },
       .descriptorSetLayouts {
         m_fontDescriptorSet->getDescriptorSetLayout()
       },
@@ -49,6 +56,36 @@ namespace ge {
     commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
     bindDescriptorSets(commandBuffer, currentFrame);
+
+    renderGlyph(commandBuffer, 'H', 0, 0);
+  }
+
+  void FontPipeline::renderGlyph(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                 char character,
+                                 float x,
+                                 float y)
+  {
+    auto it = m_glyphMap.find(character);
+    if (it == m_glyphMap.end())
+    {
+      return;
+    }
+
+    const GlyphInfo& glyph = it->second;
+
+    const GlyphPushConstant glyphPushConstant {
+      .posX = x,
+      .posY = y,
+      .u0 = glyph.u0,
+      .v0 = glyph.v0,
+      .u1 = glyph.u1,
+      .v1 = glyph.v1,
+      .width = glyph.width,
+      .height = glyph.height
+    };
+
+    commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                                 0, sizeof(GlyphPushConstant), &glyphPushConstant);
 
     commandBuffer->draw(4, 1, 0, 0);
   }
