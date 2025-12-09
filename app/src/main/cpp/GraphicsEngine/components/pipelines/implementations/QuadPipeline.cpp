@@ -9,12 +9,10 @@ namespace ge {
   struct QuadPC {
     int screenWidth;
     int screenHeight;
-    float x1;
-    float y1;
-    float x2;
-    float y2;
-    float x3;
-    float y3;
+    float x;
+    float y;
+    float width;
+    float height;
     float r;
     float g;
     float b;
@@ -36,7 +34,7 @@ namespace ge {
         .colorBlendState = gps::colorBlendState,
         .depthStencilState = gps::depthStencilStateNone,
         .dynamicState = gps::dynamicState,
-        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
         .multisampleState = gps::getMultsampleState(m_logicalDevice),
         .rasterizationState = gps::rasterizationStateNoCull,
         .vertexInputState = gps::vertexInputStateRaw,
@@ -77,12 +75,10 @@ namespace ge {
     QuadPC quadPC {
       .screenWidth = m_surface->getWidth(),
       .screenHeight = m_surface->getHeight(),
-      .x1 = x,
-      .y1 = y,
-      .x2 = x + width,
-      .y2 = y,
-      .x3 = x + width,
-      .y3 = y + height,
+      .x = x,
+      .y = y,
+      .width = width,
+      .height = height,
       .r = r,
       .g = g,
       .b = b
@@ -91,17 +87,7 @@ namespace ge {
     commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                                  0, sizeof(QuadPC), &quadPC);
 
-    commandBuffer->draw(3, 1, 0, 0);
-
-    quadPC.x2 = x;
-    quadPC.y2 = y + height;
-    quadPC.x3 = x + width;
-    quadPC.y3 = y + height;
-
-    commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                                 0, sizeof(QuadPC), &quadPC);
-
-    commandBuffer->draw(3, 1, 0, 0);
+    commandBuffer->draw(4, 1, 0, 0);
   }
 
   void QuadPipeline::queueRectToRender(float x,

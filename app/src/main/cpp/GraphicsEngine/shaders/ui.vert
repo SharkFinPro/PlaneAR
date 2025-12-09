@@ -3,9 +3,10 @@
 layout(push_constant) uniform QuadPC {
   int screenWidth;
   int screenHeight;
-  vec2 p1;
-  vec2 p2;
-  vec2 p3;
+  float x;
+  float y;
+  float width;
+  float height;
 } pc;
 
 void main()
@@ -13,15 +14,19 @@ void main()
   vec2 pos = vec2(0, 0);
   if (gl_VertexIndex == 0)
   {
-    pos = pc.p1;
+    pos = vec2(pc.x, pc.y);
   }
   else if (gl_VertexIndex == 1)
   {
-    pos = pc.p2;
+    pos = vec2(pc.x + pc.width, pc.y);
+  }
+  else if (gl_VertexIndex == 2)
+  {
+    pos = vec2(pc.x, pc.y + pc.height);
   }
   else
   {
-    pos = pc.p3;
+    pos = vec2(pc.x + pc.width, pc.y + pc.height);
   }
 
   vec2 ndc;
