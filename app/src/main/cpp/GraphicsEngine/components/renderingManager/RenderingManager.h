@@ -3,6 +3,7 @@
 
 #include <vulkan/vulkan.h>
 #include <memory>
+#include <string>
 
 struct AAssetManager;
 
@@ -34,6 +35,10 @@ namespace ge {
                     float r,
                     float g,
                     float b);
+
+    void renderText(std::string message,
+                    float x,
+                    float y);
 
     void createNewFrame();
 

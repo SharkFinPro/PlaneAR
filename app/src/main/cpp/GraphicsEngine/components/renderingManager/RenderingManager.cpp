@@ -65,9 +65,17 @@ namespace ge {
     m_quadPipeline->queueRectToRender(x, y, width, height, r, g, b);
   }
 
+  void RenderingManager::renderText(std::string message,
+                                    float x,
+                                    float y)
+  {
+    m_fontPipeline->queueTextToRender(message, x, y);
+  }
+
   void RenderingManager::createNewFrame()
   {
     m_quadPipeline->createNewFrame();
+    m_fontPipeline->createNewFrame();
   }
 
   void RenderingManager::recordSwapchainCommandBuffer(uint32_t currentFrame, uint32_t imageIndex) const

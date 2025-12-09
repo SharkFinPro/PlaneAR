@@ -60,7 +60,20 @@ namespace ge {
 
     bindDescriptorSets(commandBuffer, currentFrame);
 
-    renderText(commandBuffer, "Hello, world!", 100, 800);
+    for (const auto& [message, x, y] : m_textsToRender)
+    {
+      renderText(commandBuffer, message, x, y);
+    }
+  }
+
+  void FontPipeline::queueTextToRender(std::string message, float x, float y)
+  {
+    m_textsToRender.push_back({message, x, y});
+  }
+
+  void FontPipeline::createNewFrame()
+  {
+    m_textsToRender.clear();
   }
 
   void FontPipeline::renderText(const std::shared_ptr<CommandBuffer>& commandBuffer,

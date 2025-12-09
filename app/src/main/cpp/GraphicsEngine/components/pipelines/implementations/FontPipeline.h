@@ -4,6 +4,7 @@
 #include "../GraphicsPipeline.h"
 #include <freetype/freetype.h>
 #include <unordered_map>
+#include <string>
 
 struct AAssetManager;
 
@@ -48,6 +49,12 @@ namespace ge {
     float u1, v1;
   };
 
+  struct TextToRender {
+    std::string message;
+    float x;
+    float y;
+  };
+
   class FontPipeline final : public GraphicsPipeline
   {
   public:
@@ -61,6 +68,10 @@ namespace ge {
     void render(const std::shared_ptr<CommandBuffer>& commandBuffer,
                 uint32_t currentFrame);
 
+    void queueTextToRender(std::string message, float x, float y);
+
+    void createNewFrame();
+
   private:
     std::shared_ptr<Surface> m_surface;
 
@@ -72,6 +83,8 @@ namespace ge {
     size_t m_fontBufferSize = 0;
 
     std::unordered_map<char, GlyphInfo> m_glyphMap;
+
+    std::vector<TextToRender> m_textsToRender;
 
     void renderText(const std::shared_ptr<CommandBuffer>& commandBuffer,
                     std::string message,
