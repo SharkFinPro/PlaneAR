@@ -131,24 +131,23 @@ namespace ge {
 
     FT_Set_Pixel_Sizes(face, 0, 256);
 
-    if (FT_Load_Char(face, 'H', FT_LOAD_RENDER))
-    {
-      throw std::runtime_error("Failed to load glyph");
-    }
-
-    m_glyphTexture = std::make_shared<GlyphTexture>(
-      m_logicalDevice,
-      commandPool,
-      face->glyph->bitmap.buffer,
-      face->glyph->bitmap.width,
-      face->glyph->bitmap.rows
-    );
-
     const auto charset = getCharset(face);
 
     uint32_t maxGlyphWidth, maxGlyphHeight, glyphsPerRow, atlasWidth, atlasHeight;
     auto atlasBuffer = createAtlasBuffer(face, charset, maxGlyphWidth, maxGlyphHeight,
                                          glyphsPerRow, atlasWidth, atlasHeight);
+
+
+    populateAtlasBuffer(face, charset, atlasBuffer, maxGlyphWidth, maxGlyphHeight,
+                        glyphsPerRow, atlasWidth, atlasHeight);
+
+    m_glyphTexture = std::make_shared<GlyphTexture>(
+      m_logicalDevice,
+      commandPool,
+      atlasBuffer.data(),
+      atlasWidth,
+      atlasHeight
+    );
   }
 
   std::vector<FT_ULong> FontPipeline::getCharset(FT_Face face)
@@ -199,5 +198,66 @@ namespace ge {
     std::vector<uint8_t> atlasBuffer(atlasWidth * atlasHeight, 0);
 
     return atlasBuffer;
+  }
+
+  void FontPipeline::populateAtlasBuffer(FT_Face face,
+                                         const std::vector<FT_ULong>& charset,
+                                         std::vector<uint8_t>& atlasBuffer,
+                                         uint32_t maxGlyphWidth,
+                                         uint32_t maxGlyphHeight,
+                                         uint32_t glyphsPerRow,
+                                         uint32_t atlasWidth,
+                                         uint32_t atlasHeight)
+  {
+    uint32_t x = 0;
+    uint32_t y = 0;
+    uint32_t currentGlyph = 0;
+
+    for (FT_ULong charcode : charset)
+    {
+      if (FT_Load_Char(face, charcode, FT_LOAD_RENDER))
+      {
+        continue;
+      }
+
+      const FT_Bitmap& bitmap = face->glyph->bitmap;
+
+      for (uint32_t row = 0; row < bitmap.rows; ++row)
+      {
+        for (uint32_t col = 0; col < bitmap.width; ++col)
+        {
+          const uint32_t atlasX = x + col;
+          const uint32_t atlasY = y + row;
+          const uint32_t atlasIndex = atlasY * atlasWidth + atlasX;
+          const uint32_t bitmapIndex = row * bitmap.width + col;
+
+          if (atlasIndex < atlasBuffer.size())
+          {
+            atlasBuffer[atlasIndex] = bitmap.buffer[bitmapIndex];
+          }
+        }
+      }
+
+      m_glyphMap[static_cast<char>(charcode)] = {
+        .u0 = static_cast<float>(x) / static_cast<float>(atlasWidth),
+        .v0 = static_cast<float>(y) / static_cast<float>(atlasHeight),
+        .u1 = static_cast<float>(x + bitmap.width) / static_cast<float>(atlasWidth),
+        .v1 = static_cast<float>(y + bitmap.rows) / static_cast<float>(atlasHeight),
+        .width = static_cast<float>(bitmap.width),
+        .height = static_cast<float>(bitmap.rows),
+        .bearingX = static_cast<float>(face->glyph->bitmap_left),
+        .bearingY = static_cast<float>(face->glyph->bitmap_top),
+        .advance = static_cast<float>(face->glyph->advance.x >> 6)
+      };
+
+      x += maxGlyphWidth;
+      currentGlyph++;
+
+      if (currentGlyph % glyphsPerRow == 0)
+      {
+        x = 0;
+        y += maxGlyphHeight;
+      }
+    }
   }
 } // ge
