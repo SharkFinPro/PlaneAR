@@ -9,6 +9,8 @@
 
 constexpr uint32_t MAX_ASCII_CODE = 255;
 
+const std::string FONT_PATH = "fonts/Roboto-VariableFont_wdth,wght.ttf";
+
 namespace ge {
   FontPipeline::FontPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              std::shared_ptr<RenderPass> renderPass,
@@ -185,12 +187,10 @@ namespace ge {
 
   void FontPipeline::loadFontFromAsset(AAssetManager* assetManager)
   {
-    const char* fontPath = "fonts/Roboto-VariableFont_wdth,wght.ttf";
-
-    AAsset* asset = AAssetManager_open(assetManager, fontPath, AASSET_MODE_BUFFER);
+    AAsset* asset = AAssetManager_open(assetManager, FONT_PATH.c_str(), AASSET_MODE_BUFFER);
     if (!asset)
     {
-      throw std::runtime_error(std::string("Failed to open asset: ") + fontPath);
+      throw std::runtime_error(std::string("Failed to open asset: ") + FONT_PATH);
     }
 
     m_fontBufferSize = AAsset_getLength(asset);
