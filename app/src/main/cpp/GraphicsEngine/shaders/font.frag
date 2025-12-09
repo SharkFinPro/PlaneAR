@@ -1,14 +1,21 @@
 #version 450
 
-layout(set = 0, binding = 0) uniform sampler2D glyphTexture;
+layout(push_constant) uniform QuadPC {
+  layout(offset = 40)
+  float r;
+  float g;
+  float b;
+} pc;
 
-layout(location = 0) in vec2 fragTexCoord;
+layout(set = 0, binding = 0) uniform sampler2D glyphAtlas;
+
+layout(location = 0) in vec2 fragUV;
 
 layout(location = 0) out vec4 outColor;
 
 void main()
 {
-    vec3 texColor = texture(glyphTexture, fragTexCoord).rgb;
+  float alpha = texture(glyphAtlas, fragUV).r;
 
-    outColor = vec4(texColor.xxxx);
+  outColor = vec4(pc.r, pc.g, pc.b, alpha);
 }

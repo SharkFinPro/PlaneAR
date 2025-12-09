@@ -1,20 +1,54 @@
 #version 450
 
-layout(location = 0) out vec2 fragTexCoord;
+layout(push_constant) uniform GlyphData {
+  int screenWidth;
+  int screenHeight;
+  float x;
+  float y;
+  float width;
+  float height;
+  float u0;
+  float v0;
+  float u1;
+  float v1;
+} pc;
 
-float s = 0.5;
-vec2 vertices[4] = {
-    {-s, -s},
-    {s, -s},
-    {-s, s},
-    {s, s}
-};
+layout(location = 0) out vec2 fragUV;
 
 void main()
 {
-    vec2 coord = vertices[gl_VertexIndex];
+  vec2 pos;
+  vec2 uv;
+  if (gl_VertexIndex == 0)
+  {
+    pos = vec2(pc.x, pc.y);
+    uv = vec2(0, 0);
+  }
+  else if (gl_VertexIndex == 1)
+  {
+    pos = vec2(pc.x + pc.width, pc.y);
+    uv = vec2(1, 0);
+  }
+  else if (gl_VertexIndex == 2)
+  {
+    pos = vec2(pc.x, pc.y + pc.height);
+    uv = vec2(0, 1);
+  }
+  else
+  {
+    pos = vec2(pc.x + pc.width, pc.y + pc.height);
+    uv = vec2(1, 1);
+  }
 
-    gl_Position = vec4(coord, 0.0, 1.0);
+  vec2 ndc;
+  ndc.x = 2.0 * pos.x / float(pc.screenWidth)  - 1.0;
+  ndc.y = 2.0 * pos.y / float(pc.screenHeight) - 1.0;
 
-    fragTexCoord = vec2(coord.x + s, coord.y + s);
+  gl_Position = vec4(ndc, 0.0, 1.0);
+
+  fragUV = mix(
+    vec2(pc.u0, pc.v0),
+    vec2(pc.u1, pc.v1),
+    uv
+  );
 }

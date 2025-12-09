@@ -2,18 +2,23 @@
 #include "common/GraphicsPipelineStates.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../descriptorSet/DescriptorSet.h"
+#include "../../surface/Surface.h"
 #include "../../textures/GlyphTexture.h"
 #include <android/asset_manager.h>
-#include <freetype/freetype.h>
+#include <utility>
 
+constexpr uint32_t MAX_ASCII_CODE = 255;
+
+const std::string FONT_PATH = "fonts/Roboto-VariableFont_wdth,wght.ttf";
 
 namespace ge {
   FontPipeline::FontPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              std::shared_ptr<RenderPass> renderPass,
                              AAssetManager* assetManager,
                              VkCommandPool commandPool,
-                             VkDescriptorPool descriptorPool)
-    : GraphicsPipeline(logicalDevice)
+                             VkDescriptorPool descriptorPool,
+                             std::shared_ptr<Surface> surface)
+    : GraphicsPipeline(logicalDevice), m_surface(std::move(surface))
   {
     loadFont(assetManager, commandPool);
 
@@ -35,6 +40,13 @@ namespace ge {
         .vertexInputState = gps::vertexInputStateRaw,
         .viewportState = gps::viewportState
       },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(GlyphPushConstant)
+        }
+      },
       .descriptorSetLayouts {
         m_fontDescriptorSet->getDescriptorSetLayout()
       },
@@ -50,52 +62,85 @@ namespace ge {
 
     bindDescriptorSets(commandBuffer, currentFrame);
 
-    commandBuffer->draw(4, 1, 0, 0);
+    for (const auto& [message, x, y, r, g, b] : m_textsToRender)
+    {
+      renderText(commandBuffer, message, x, y, r, g, b);
+    }
   }
 
-  void FontPipeline::loadFont(AAssetManager* assetManager, VkCommandPool commandPool)
+  void FontPipeline::queueTextToRender(std::string message,
+                                       float x,
+                                       float y,
+                                       float r,
+                                       float g,
+                                       float b)
   {
-    const char* fontPath = "fonts/Roboto-VariableFont_wdth,wght.ttf";
+    m_textsToRender.push_back({std::move(message), x, y, r, g, b});
+  }
 
-    AAsset* asset = AAssetManager_open(assetManager, fontPath, AASSET_MODE_BUFFER);
-    if (!asset)
+  void FontPipeline::createNewFrame()
+  {
+    m_textsToRender.clear();
+  }
+
+  void FontPipeline::renderText(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                const std::string& message,
+                                float x,
+                                float y,
+                                float r,
+                                float g,
+                                float b)
+  {
+    float currentX = x;
+
+    for (const auto& character : message)
     {
-      throw std::runtime_error(std::string("Failed to open asset: ") + fontPath);
+      auto it = m_glyphMap.find(character);
+      if (it != m_glyphMap.end())
+      {
+        renderGlyph(commandBuffer, character, currentX, y, r, g, b);
+
+        currentX += it->second.advance;
+      }
     }
+  }
 
-    FT_Library ft;
-    if (FT_Init_FreeType(&ft)) {
-      AAsset_close(asset);
-      throw std::runtime_error("Failed to initialize FreeType");
-    }
-
-    const auto fontBufferSize = AAsset_getLength(asset);
-    const void* fontBuffer = AAsset_getBuffer(asset);
-
-    FT_Face face;
-    if (FT_New_Memory_Face(ft, static_cast<const FT_Byte*>(fontBuffer), fontBufferSize, 0, &face))
+  void FontPipeline::renderGlyph(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                 char character,
+                                 float x,
+                                 float y,
+                                 float r,
+                                 float g,
+                                 float b)
+  {
+    auto it = m_glyphMap.find(character);
+    if (it == m_glyphMap.end())
     {
-      FT_Done_FreeType(ft);
-      AAsset_close(asset);
-      throw std::runtime_error("Failed to load font from memory");
+      return;
     }
 
-    FT_Set_Pixel_Sizes(face, 0, 256);
+    const GlyphInfo& glyph = it->second;
 
-    if (FT_Load_Char(face, 'H', FT_LOAD_RENDER))
-    {
-      throw std::runtime_error("Failed to load glyph");
-    }
+    const GlyphPushConstant glyphPushConstant {
+      .screenWidth = m_surface->getWidth(),
+      .screenHeight = m_surface->getHeight(),
+      .x = x + glyph.bearingX,
+      .y = y - glyph.bearingY,
+      .width = glyph.width,
+      .height = glyph.height,
+      .u0 = glyph.u0,
+      .v0 = glyph.v0,
+      .u1 = glyph.u1,
+      .v1 = glyph.v1,
+      .r = r,
+      .g = g,
+      .b = b
+    };
 
-    m_glyphTexture = std::make_shared<GlyphTexture>(
-      m_logicalDevice,
-      commandPool,
-      face->glyph->bitmap.buffer,
-      face->glyph->bitmap.width,
-      face->glyph->bitmap.rows
-    );
+    commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                                 0, sizeof(GlyphPushConstant), &glyphPushConstant);
 
-    AAsset_close(asset);
+    commandBuffer->draw(4, 1, 0, 0);
   }
 
   void FontPipeline::createDescriptorSets(VkDescriptorPool descriptorPool)
@@ -131,5 +176,176 @@ namespace ge {
       1,
       &m_fontDescriptorSet->getDescriptorSet(currentFrame)
     );
+  }
+
+  void FontPipeline::loadFont(AAssetManager* assetManager, VkCommandPool commandPool)
+  {
+    loadFontFromAsset(assetManager);
+
+    createGlyphAtlas(commandPool);
+  }
+
+  void FontPipeline::loadFontFromAsset(AAssetManager* assetManager)
+  {
+    AAsset* asset = AAssetManager_open(assetManager, FONT_PATH.c_str(), AASSET_MODE_BUFFER);
+    if (!asset)
+    {
+      throw std::runtime_error(std::string("Failed to open asset: ") + FONT_PATH);
+    }
+
+    m_fontBufferSize = AAsset_getLength(asset);
+    const void* fontBufferPtr = AAsset_getBuffer(asset);
+
+    m_fontBuffer = std::make_unique<uint8_t[]>(m_fontBufferSize);
+    std::memcpy(m_fontBuffer.get(), fontBufferPtr, m_fontBufferSize);
+
+    AAsset_close(asset);
+  }
+
+  void FontPipeline::createGlyphAtlas(VkCommandPool commandPool)
+  {
+    FT_Library ft;
+    if (FT_Init_FreeType(&ft))
+    {
+      throw std::runtime_error("Failed to initialize FreeType");
+    }
+
+    FT_Face face;
+    if (FT_New_Memory_Face(ft, m_fontBuffer.get(), static_cast<FT_Long>(m_fontBufferSize), 0, &face))
+    {
+      FT_Done_FreeType(ft);
+      throw std::runtime_error("Failed to load font from memory");
+    }
+
+    FT_Set_Pixel_Sizes(face, 0, 64);
+
+    const auto charset = getCharset(face);
+
+    uint32_t maxGlyphWidth, maxGlyphHeight, glyphsPerRow, atlasWidth, atlasHeight;
+    auto atlasBuffer = createAtlasBuffer(face, charset, maxGlyphWidth, maxGlyphHeight,
+                                         glyphsPerRow, atlasWidth, atlasHeight);
+
+
+    populateAtlasBuffer(face, charset, atlasBuffer, maxGlyphWidth, maxGlyphHeight,
+                        glyphsPerRow, atlasWidth, atlasHeight);
+
+    m_glyphTexture = std::make_shared<GlyphTexture>(
+      m_logicalDevice,
+      commandPool,
+      atlasBuffer.data(),
+      atlasWidth,
+      atlasHeight
+    );
+  }
+
+  std::vector<FT_ULong> FontPipeline::getCharset(FT_Face face)
+  {
+    std::vector<FT_ULong> charset;
+
+    FT_ULong charcode;
+    FT_UInt gindex;
+
+    charcode = FT_Get_First_Char(face, &gindex);
+    while (gindex != 0)
+    {
+      if (charcode <= MAX_ASCII_CODE)
+      {
+        charset.push_back(charcode);
+      }
+      charcode = FT_Get_Next_Char(face, charcode, &gindex);
+    }
+
+    return charset;
+  }
+
+  std::vector<uint8_t> FontPipeline::createAtlasBuffer(FT_Face face,
+                                                       const std::vector<FT_ULong>& charset,
+                                                       uint32_t& maxGlyphWidth,
+                                                       uint32_t& maxGlyphHeight,
+                                                       uint32_t& glyphsPerRow,
+                                                       uint32_t& atlasWidth,
+                                                       uint32_t& atlasHeight)
+  {
+    maxGlyphWidth = 0;
+    maxGlyphHeight = 0;
+
+    for (FT_ULong charcode : charset)
+    {
+      if (FT_Load_Char(face, charcode, FT_LOAD_RENDER))
+      {
+        continue;
+      }
+      maxGlyphWidth = std::max(maxGlyphWidth, face->glyph->bitmap.width);
+      maxGlyphHeight = std::max(maxGlyphHeight, face->glyph->bitmap.rows);
+    }
+
+    glyphsPerRow = static_cast<uint32_t>(std::ceil(std::sqrt(charset.size())));
+    atlasWidth = glyphsPerRow * maxGlyphWidth;
+    atlasHeight = glyphsPerRow * maxGlyphHeight;
+
+    std::vector<uint8_t> atlasBuffer(atlasWidth * atlasHeight, 0);
+
+    return atlasBuffer;
+  }
+
+  void FontPipeline::populateAtlasBuffer(FT_Face face,
+                                         const std::vector<FT_ULong>& charset,
+                                         std::vector<uint8_t>& atlasBuffer,
+                                         uint32_t maxGlyphWidth,
+                                         uint32_t maxGlyphHeight,
+                                         uint32_t glyphsPerRow,
+                                         uint32_t atlasWidth,
+                                         uint32_t atlasHeight)
+  {
+    uint32_t x = 0;
+    uint32_t y = 0;
+    uint32_t currentGlyph = 0;
+
+    for (FT_ULong charcode : charset)
+    {
+      if (FT_Load_Char(face, charcode, FT_LOAD_RENDER))
+      {
+        continue;
+      }
+
+      const FT_Bitmap& bitmap = face->glyph->bitmap;
+
+      for (uint32_t row = 0; row < bitmap.rows; ++row)
+      {
+        for (uint32_t col = 0; col < bitmap.width; ++col)
+        {
+          const uint32_t atlasX = x + col;
+          const uint32_t atlasY = y + row;
+          const uint32_t atlasIndex = atlasY * atlasWidth + atlasX;
+          const uint32_t bitmapIndex = row * bitmap.width + col;
+
+          if (atlasIndex < atlasBuffer.size())
+          {
+            atlasBuffer[atlasIndex] = bitmap.buffer[bitmapIndex];
+          }
+        }
+      }
+
+      m_glyphMap[static_cast<char>(charcode)] = {
+        .u0 = static_cast<float>(x) / static_cast<float>(atlasWidth),
+        .v0 = static_cast<float>(y) / static_cast<float>(atlasHeight),
+        .u1 = static_cast<float>(x + bitmap.width) / static_cast<float>(atlasWidth),
+        .v1 = static_cast<float>(y + bitmap.rows) / static_cast<float>(atlasHeight),
+        .width = static_cast<float>(bitmap.width),
+        .height = static_cast<float>(bitmap.rows),
+        .bearingX = static_cast<float>(face->glyph->bitmap_left),
+        .bearingY = static_cast<float>(face->glyph->bitmap_top),
+        .advance = static_cast<float>(face->glyph->advance.x >> 6)
+      };
+
+      x += maxGlyphWidth;
+      currentGlyph++;
+
+      if (currentGlyph % glyphsPerRow == 0)
+      {
+        x = 0;
+        y += maxGlyphHeight;
+      }
+    }
   }
 } // ge

@@ -5,6 +5,7 @@
 #include "../pipelines/implementations/FontPipeline.h"
 #include "../pipelines/implementations/QuadPipeline.h"
 #include "../surface/Swapchain.h"
+#include <utility>
 
 namespace ge {
 
@@ -24,7 +25,7 @@ namespace ge {
 
     m_quadPipeline = std::make_shared<QuadPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager, m_surface);
 
-    m_fontPipeline = std::make_shared<FontPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager, m_commandPool, descriptorPool);
+    m_fontPipeline = std::make_shared<FontPipeline>(m_logicalDevice, m_renderer->getRenderPass(), assetManager, m_commandPool, descriptorPool, m_surface);
   }
 
   void RenderingManager::doRendering(uint32_t currentFrame)
@@ -65,9 +66,20 @@ namespace ge {
     m_quadPipeline->queueRectToRender(x, y, width, height, r, g, b);
   }
 
+  void RenderingManager::renderText(std::string message,
+                                    float x,
+                                    float y,
+                                    float r,
+                                    float g,
+                                    float b)
+  {
+    m_fontPipeline->queueTextToRender(std::move(message), x, y, r, g, b);
+  }
+
   void RenderingManager::createNewFrame()
   {
     m_quadPipeline->createNewFrame();
+    m_fontPipeline->createNewFrame();
   }
 
   void RenderingManager::recordSwapchainCommandBuffer(uint32_t currentFrame, uint32_t imageIndex) const
