@@ -2,6 +2,7 @@
 #define PLANEAR_FONTPIPELINE_H
 
 #include "../GraphicsPipeline.h"
+#include <freetype/freetype.h>
 
 struct AAssetManager;
 
@@ -29,7 +30,7 @@ namespace ge {
     std::shared_ptr<GlyphTexture> m_glyphTexture;
 
     std::unique_ptr<uint8_t[]> m_fontBuffer;
-    size_t m_fontBufferSize;
+    size_t m_fontBufferSize = 0;
 
     void createDescriptorSets(VkDescriptorPool descriptorPool);
 
@@ -39,6 +40,18 @@ namespace ge {
     void loadFont(AAssetManager* assetManager, VkCommandPool commandPool);
 
     void loadFontFromAsset(AAssetManager* assetManager);
+
+    void createGlyphAtlas(VkCommandPool commandPool);
+
+    static std::vector<FT_ULong> getCharset(FT_Face face);
+
+    static std::vector<uint8_t> createAtlasBuffer(FT_Face face,
+                                                  const std::vector<FT_ULong>& charset,
+                                                  uint32_t& maxGlyphWidth,
+                                                  uint32_t& maxGlyphHeight,
+                                                  uint32_t& glyphsPerRow,
+                                                  uint32_t& atlasWidth,
+                                                  uint32_t& atlasHeight);
   };
 
 } // ge

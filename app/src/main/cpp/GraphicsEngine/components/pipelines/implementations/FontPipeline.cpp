@@ -4,8 +4,8 @@
 #include "../../descriptorSet/DescriptorSet.h"
 #include "../../textures/GlyphTexture.h"
 #include <android/asset_manager.h>
-#include <freetype/freetype.h>
 
+constexpr uint32_t MAX_ASCII_CODE = 255;
 
 namespace ge {
   FontPipeline::FontPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -92,8 +92,33 @@ namespace ge {
   {
     loadFontFromAsset(assetManager);
 
+    createGlyphAtlas(commandPool);
+  }
+
+  void FontPipeline::loadFontFromAsset(AAssetManager* assetManager)
+  {
+    const char* fontPath = "fonts/Roboto-VariableFont_wdth,wght.ttf";
+
+    AAsset* asset = AAssetManager_open(assetManager, fontPath, AASSET_MODE_BUFFER);
+    if (!asset)
+    {
+      throw std::runtime_error(std::string("Failed to open asset: ") + fontPath);
+    }
+
+    m_fontBufferSize = AAsset_getLength(asset);
+    const void* fontBufferPtr = AAsset_getBuffer(asset);
+
+    m_fontBuffer = std::make_unique<uint8_t[]>(m_fontBufferSize);
+    std::memcpy(m_fontBuffer.get(), fontBufferPtr, m_fontBufferSize);
+
+    AAsset_close(asset);
+  }
+
+  void FontPipeline::createGlyphAtlas(VkCommandPool commandPool)
+  {
     FT_Library ft;
-    if (FT_Init_FreeType(&ft)) {
+    if (FT_Init_FreeType(&ft))
+    {
       throw std::runtime_error("Failed to initialize FreeType");
     }
 
@@ -118,24 +143,61 @@ namespace ge {
       face->glyph->bitmap.width,
       face->glyph->bitmap.rows
     );
+
+    const auto charset = getCharset(face);
+
+    uint32_t maxGlyphWidth, maxGlyphHeight, glyphsPerRow, atlasWidth, atlasHeight;
+    auto atlasBuffer = createAtlasBuffer(face, charset, maxGlyphWidth, maxGlyphHeight,
+                                         glyphsPerRow, atlasWidth, atlasHeight);
   }
 
-  void FontPipeline::loadFontFromAsset(AAssetManager* assetManager)
+  std::vector<FT_ULong> FontPipeline::getCharset(FT_Face face)
   {
-    const char* fontPath = "fonts/Roboto-VariableFont_wdth,wght.ttf";
+    std::vector<FT_ULong> charset;
 
-    AAsset* asset = AAssetManager_open(assetManager, fontPath, AASSET_MODE_BUFFER);
-    if (!asset)
+    FT_ULong charcode;
+    FT_UInt gindex;
+
+    charcode = FT_Get_First_Char(face, &gindex);
+    while (gindex != 0)
     {
-      throw std::runtime_error(std::string("Failed to open asset: ") + fontPath);
+      if (charcode <= MAX_ASCII_CODE)
+      {
+        charset.push_back(charcode);
+      }
+      charcode = FT_Get_Next_Char(face, charcode, &gindex);
     }
 
-    m_fontBufferSize = AAsset_getLength(asset);
-    const void* fontBufferPtr = AAsset_getBuffer(asset);
+    return charset;
+  }
 
-    m_fontBuffer = std::make_unique<uint8_t[]>(m_fontBufferSize);
-    std::memcpy(m_fontBuffer.get(), fontBufferPtr, m_fontBufferSize);
+  std::vector<uint8_t> FontPipeline::createAtlasBuffer(FT_Face face,
+                                                       const std::vector<FT_ULong>& charset,
+                                                       uint32_t& maxGlyphWidth,
+                                                       uint32_t& maxGlyphHeight,
+                                                       uint32_t& glyphsPerRow,
+                                                       uint32_t& atlasWidth,
+                                                       uint32_t& atlasHeight)
+  {
+    maxGlyphWidth = 0;
+    maxGlyphHeight = 0;
 
-    AAsset_close(asset);
+    for (FT_ULong charcode : charset)
+    {
+      if (FT_Load_Char(face, charcode, FT_LOAD_RENDER))
+      {
+        continue;
+      }
+      maxGlyphWidth = std::max(maxGlyphWidth, face->glyph->bitmap.width);
+      maxGlyphHeight = std::max(maxGlyphHeight, face->glyph->bitmap.rows);
+    }
+
+    glyphsPerRow = static_cast<uint32_t>(std::ceil(std::sqrt(charset.size())));
+    atlasWidth = glyphsPerRow * maxGlyphWidth;
+    atlasHeight = glyphsPerRow * maxGlyphHeight;
+
+    std::vector<uint8_t> atlasBuffer(atlasWidth * atlasHeight, 0);
+
+    return atlasBuffer;
   }
 } // ge
