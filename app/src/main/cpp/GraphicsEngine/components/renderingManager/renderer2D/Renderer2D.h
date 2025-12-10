@@ -1,6 +1,7 @@
 #ifndef PLANEAR_RENDERER2D_H
 #define PLANEAR_RENDERER2D_H
 
+#include <glm/mat4x4.hpp>
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <string>
@@ -41,6 +42,16 @@ namespace ge {
               float g,
               float b);
 
+    void rotate(float angle);
+
+    void translate(float x,
+                   float y);
+
+    void scale(float xy);
+
+    void scale(float x,
+               float y);
+
     void rect(float x,
               float y,
               float width,
@@ -56,6 +67,8 @@ namespace ge {
     std::shared_ptr<FontPipeline> m_fontPipeline;
 
     Fill m_currentFill = {1, 1, 1};
+
+    glm::mat4 m_currentTransform = glm::mat4(1.0f);
   };
 
 } // ge

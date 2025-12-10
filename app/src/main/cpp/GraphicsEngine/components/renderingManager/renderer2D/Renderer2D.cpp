@@ -2,6 +2,7 @@
 #include "../../pipelines/implementations/FontPipeline.h"
 #include "../../pipelines/implementations/QuadPipeline.h"
 #include "../../renderingManager/LegacyRenderer.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace ge {
   Renderer2D::Renderer2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -20,6 +21,8 @@ namespace ge {
   {
     m_quadPipeline->createNewFrame();
     m_fontPipeline->createNewFrame();
+
+    m_currentTransform = glm::mat4(1.0f);
   }
 
   void Renderer2D::render(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -49,7 +52,7 @@ namespace ge {
       m_currentFill.r,
       m_currentFill.g,
       m_currentFill.b,
-      glm::mat4(1.0)
+      m_currentTransform
     );
   }
 
@@ -63,5 +66,25 @@ namespace ge {
       m_currentFill.g,
       m_currentFill.b
     );
+  }
+
+  void Renderer2D::rotate(float angle)
+  {
+    m_currentTransform *= glm::rotate(glm::mat4(1.0), glm::radians(angle), {0.0f, 0.0f, 1.0f});
+  }
+
+  void Renderer2D::translate(float x, float y)
+  {
+    m_currentTransform *= glm::translate(glm::mat4(1.0), {x, y, 0});
+  }
+
+  void Renderer2D::scale(float xy)
+  {
+    m_currentTransform *= glm::scale(glm::mat4(1.0), glm::vec3(xy));
+  }
+
+  void Renderer2D::scale(float x, float y)
+  {
+    m_currentTransform *= glm::scale(glm::mat4(1.0), {x, y, 1});
   }
 } // ge
