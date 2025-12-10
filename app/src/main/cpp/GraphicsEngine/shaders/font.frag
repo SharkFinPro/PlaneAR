@@ -1,10 +1,11 @@
 #version 450
 
 layout(push_constant) uniform QuadPC {
-  layout(offset = 40)
+  layout(offset = 104)
   float r;
   float g;
   float b;
+  float a;
 } pc;
 
 layout(set = 0, binding = 0) uniform sampler2D glyphAtlas;
@@ -17,5 +18,5 @@ void main()
 {
   float alpha = texture(glyphAtlas, fragUV).r;
 
-  outColor = vec4(pc.r, pc.g, pc.b, alpha);
+  outColor = vec4(pc.r, pc.g, pc.b, alpha * pc.a);
 }

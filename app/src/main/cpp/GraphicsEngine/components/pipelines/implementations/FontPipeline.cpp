@@ -62,9 +62,9 @@ namespace ge {
 
     bindDescriptorSets(commandBuffer, currentFrame);
 
-    for (const auto& [message, x, y, r, g, b] : m_textsToRender)
+    for (const auto& [message, x, y, r, g, b, a, transformation] : m_textsToRender)
     {
-      renderText(commandBuffer, message, x, y, r, g, b);
+      renderText(commandBuffer, message, x, y, r, g, b, a, transformation);
     }
   }
 
@@ -73,9 +73,11 @@ namespace ge {
                                        float y,
                                        float r,
                                        float g,
-                                       float b)
+                                       float b,
+                                       float a,
+                                       glm::mat4 transformation)
   {
-    m_textsToRender.push_back({std::move(message), x, y, r, g, b});
+    m_textsToRender.push_back({std::move(message), x, y, r, g, b, a, transformation});
   }
 
   void FontPipeline::createNewFrame()
@@ -89,7 +91,9 @@ namespace ge {
                                 float y,
                                 float r,
                                 float g,
-                                float b)
+                                float b,
+                                float a,
+                                glm::mat4 transformation)
   {
     float currentX = x;
 
@@ -98,7 +102,7 @@ namespace ge {
       auto it = m_glyphMap.find(character);
       if (it != m_glyphMap.end())
       {
-        renderGlyph(commandBuffer, character, currentX, y, r, g, b);
+        renderGlyph(commandBuffer, character, currentX, y, r, g, b, a, transformation);
 
         currentX += it->second.advance;
       }
@@ -111,7 +115,9 @@ namespace ge {
                                  float y,
                                  float r,
                                  float g,
-                                 float b)
+                                 float b,
+                                 float a,
+                                 glm::mat4 transformation)
   {
     auto it = m_glyphMap.find(character);
     if (it == m_glyphMap.end())
@@ -122,6 +128,7 @@ namespace ge {
     const GlyphInfo& glyph = it->second;
 
     const GlyphPushConstant glyphPushConstant {
+      .transformation = transformation,
       .screenWidth = m_surface->getWidth(),
       .screenHeight = m_surface->getHeight(),
       .x = x + glyph.bearingX,
@@ -134,7 +141,8 @@ namespace ge {
       .v1 = glyph.v1,
       .r = r,
       .g = g,
-      .b = b
+      .b = b,
+      .a = a
     };
 
     commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,

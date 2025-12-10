@@ -3,6 +3,7 @@
 
 #include "../GraphicsPipeline.h"
 #include <vector>
+#include <glm/mat4x4.hpp>
 
 struct AAssetManager;
 
@@ -19,6 +20,22 @@ namespace ge {
     float r;
     float g;
     float b;
+    float a;
+    glm::mat4 transformation;
+  };
+
+  struct QuadPushConstant {
+    glm::mat4 transformation;
+    int screenWidth;
+    int screenHeight;
+    float x;
+    float y;
+    float width;
+    float height;
+    float r;
+    float g;
+    float b;
+    float a;
   };
 
   class QuadPipeline final : public GraphicsPipeline
@@ -37,7 +54,9 @@ namespace ge {
                            float height,
                            float r,
                            float g,
-                           float b);
+                           float b,
+                           float a,
+                           glm::mat4 transformation);
 
     void createNewFrame();
 
@@ -47,13 +66,7 @@ namespace ge {
     std::vector<Rect> m_rectsToRender;
 
     void renderRect(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                    float x,
-                    float y,
-                    float width,
-                    float height,
-                    float r,
-                    float g,
-                    float b);
+                    Rect rect);
   };
 
 } // ge

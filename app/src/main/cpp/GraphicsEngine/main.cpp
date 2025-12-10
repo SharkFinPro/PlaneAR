@@ -100,21 +100,33 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   static float w = 200;
   static float h = 100;
 
+  r->pushMatrix();
+    r->translate(400, 1200);
+    r->rotate(45.0f);
+    r->scale(3.0f, 0.8f);
+    r->rect(-50, -50, 100, 100);
+  r->popMatrix();
+
   r->fill(0, 0, 255);
   r->rect(x, y, w, h);
 
   r->fill(0, 255, 0);
   r->rect(x, y * 3.0f, w * 3.0f, h);
 
-  r->fill(255, 0, 0);
-  r->rect(x, y * 5.0f, w * 2.0f, h);
-
   float cursorSize = 50.0f;
   r->fill(135, 22, 232);
   r->rect(mouseX - cursorSize / 2.0f, mouseY - cursorSize / 2.0f, cursorSize, cursorSize);
 
-  r->fill(255, 255, 255);
-  r->text("Hello, world!", 100, 800);
+  r->fill(255, 0, 0, 200);
+  r->rect(x, y * 5.0f, w * 2.0f, h);
+
+  r->pushMatrix();
+    r->translate(800, 1200);
+    r->rotate(15.0f);
+    r->scale(2.0f);
+    r->fill(255, 255, 255, 150);
+    r->text("Hello, world!", -400, -200);
+  r->popMatrix();
 
   engine->render();
 }

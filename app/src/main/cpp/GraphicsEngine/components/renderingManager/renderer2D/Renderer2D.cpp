@@ -2,6 +2,7 @@
 #include "../../pipelines/implementations/FontPipeline.h"
 #include "../../pipelines/implementations/QuadPipeline.h"
 #include "../../renderingManager/LegacyRenderer.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace ge {
   Renderer2D::Renderer2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -20,6 +21,8 @@ namespace ge {
   {
     m_quadPipeline->createNewFrame();
     m_fontPipeline->createNewFrame();
+
+    m_currentTransform = glm::mat4(1.0f);
   }
 
   void Renderer2D::render(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -30,13 +33,50 @@ namespace ge {
     m_fontPipeline->render(commandBuffer, currentFrame);
   }
 
-  void Renderer2D::fill(float r, float g, float b)
+  void Renderer2D::fill(float r, float g, float b, float a)
   {
     m_currentFill = {
       .r = r / 255.0f,
       .g = g / 255.0f,
-      .b = b / 255.0f
+      .b = b / 255.0f,
+      .a = a / 255.0f
     };
+  }
+
+  void Renderer2D::rotate(float angle)
+  {
+    m_currentTransform *= glm::rotate(glm::mat4(1.0), glm::radians(angle), {0.0f, 0.0f, 1.0f});
+  }
+
+  void Renderer2D::translate(float x, float y)
+  {
+    m_currentTransform *= glm::translate(glm::mat4(1.0), {x, y, 0});
+  }
+
+  void Renderer2D::scale(float xy)
+  {
+    m_currentTransform *= glm::scale(glm::mat4(1.0), glm::vec3(xy));
+  }
+
+  void Renderer2D::scale(float x, float y)
+  {
+    m_currentTransform *= glm::scale(glm::mat4(1.0), {x, y, 1});
+  }
+
+  void Renderer2D::pushMatrix()
+  {
+    m_transformStack.push_back(m_currentTransform);
+  }
+
+  void Renderer2D::popMatrix()
+  {
+    if (m_transformStack.empty())
+    {
+      return;
+    }
+
+    m_currentTransform = m_transformStack.back();
+    m_transformStack.pop_back();
   }
 
   void Renderer2D::rect(float x, float y, float width, float height)
@@ -48,7 +88,9 @@ namespace ge {
       height,
       m_currentFill.r,
       m_currentFill.g,
-      m_currentFill.b
+      m_currentFill.b,
+      m_currentFill.a,
+      m_currentTransform
     );
   }
 
@@ -60,7 +102,9 @@ namespace ge {
       y,
       m_currentFill.r,
       m_currentFill.g,
-      m_currentFill.b
+      m_currentFill.b,
+      m_currentFill.a,
+      m_currentTransform
     );
   }
 } // ge
