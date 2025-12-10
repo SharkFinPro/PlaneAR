@@ -9,6 +9,8 @@
 
 static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY);
 
+void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX, float mouseY);
+
 void android_main(struct android_app* pApp)
 {
   std::unique_ptr<ge::GraphicsEngine> engine;
@@ -53,29 +55,7 @@ void android_main(struct android_app* pApp)
 
     if (engine)
     {
-      const auto r = engine->getRenderingManager()->getRenderer2D();
-      static float x = 100;
-      static float y = 100;
-      static float w = 200;
-      static float h = 100;
-
-      r->fill(0, 0, 255);
-      r->rect(x, y, w, h);
-
-      r->fill(0, 255, 0);
-      r->rect(x, y * 3.0f, w * 3.0f, h);
-
-      r->fill(255, 0, 0);
-      r->rect(x, y * 5.0f, w * 2.0f, h);
-
-      float cursorSize = 50.0f;
-      r->fill(135, 22, 232);
-      r->rect(mouseX - cursorSize / 2.0f, mouseY - cursorSize / 2.0f, cursorSize, cursorSize);
-
-      r->fill(255, 255, 255);
-      r->text("Hello, world!", 100, 800);
-
-      engine->render();
+      doRendering(engine, mouseX, mouseY);
     }
   }
 }
@@ -110,4 +90,31 @@ static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mou
   }
 
   android_app_clear_motion_events(inputBuffer);
+}
+
+void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX, float mouseY)
+{
+  const auto r = engine->getRenderingManager()->getRenderer2D();
+  static float x = 100;
+  static float y = 100;
+  static float w = 200;
+  static float h = 100;
+
+  r->fill(0, 0, 255);
+  r->rect(x, y, w, h);
+
+  r->fill(0, 255, 0);
+  r->rect(x, y * 3.0f, w * 3.0f, h);
+
+  r->fill(255, 0, 0);
+  r->rect(x, y * 5.0f, w * 2.0f, h);
+
+  float cursorSize = 50.0f;
+  r->fill(135, 22, 232);
+  r->rect(mouseX - cursorSize / 2.0f, mouseY - cursorSize / 2.0f, cursorSize, cursorSize);
+
+  r->fill(255, 255, 255);
+  r->text("Hello, world!", 100, 800);
+
+  engine->render();
 }
