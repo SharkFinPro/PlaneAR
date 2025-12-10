@@ -100,6 +100,13 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   static float w = 200;
   static float h = 100;
 
+  r->pushMatrix();
+    r->translate(400, 1200);
+    r->rotate(45.0f);
+    r->scale(3.0f, 0.8f);
+    r->rect(-50, -50, 100, 100);
+  r->popMatrix();
+
   r->fill(0, 0, 255);
   r->rect(x, y, w, h);
 

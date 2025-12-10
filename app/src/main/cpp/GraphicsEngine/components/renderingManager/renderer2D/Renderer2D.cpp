@@ -87,4 +87,20 @@ namespace ge {
   {
     m_currentTransform *= glm::scale(glm::mat4(1.0), {x, y, 1});
   }
+
+  void Renderer2D::pushMatrix()
+  {
+    m_transformStack.push_back(m_currentTransform);
+  }
+
+  void Renderer2D::popMatrix()
+  {
+    if (m_transformStack.empty())
+    {
+      return;
+    }
+
+    m_currentTransform = m_transformStack.back();
+    m_transformStack.pop_back();
+  }
 } // ge

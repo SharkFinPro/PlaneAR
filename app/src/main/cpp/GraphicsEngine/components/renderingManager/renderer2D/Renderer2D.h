@@ -5,6 +5,7 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <string>
+#include <vector>
 
 struct AAssetManager;
 
@@ -52,6 +53,10 @@ namespace ge {
     void scale(float x,
                float y);
 
+    void pushMatrix();
+
+    void popMatrix();
+
     void rect(float x,
               float y,
               float width,
@@ -69,6 +74,8 @@ namespace ge {
     Fill m_currentFill = {1, 1, 1};
 
     glm::mat4 m_currentTransform = glm::mat4(1.0f);
+
+    std::vector<glm::mat4> m_transformStack;
   };
 
 } // ge
