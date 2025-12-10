@@ -33,12 +33,13 @@ namespace ge {
     m_fontPipeline->render(commandBuffer, currentFrame);
   }
 
-  void Renderer2D::fill(float r, float g, float b)
+  void Renderer2D::fill(float r, float g, float b, float a)
   {
     m_currentFill = {
       .r = r / 255.0f,
       .g = g / 255.0f,
-      .b = b / 255.0f
+      .b = b / 255.0f,
+      .a = a / 255.0f
     };
   }
 
@@ -88,6 +89,7 @@ namespace ge {
       m_currentFill.r,
       m_currentFill.g,
       m_currentFill.b,
+      m_currentFill.a,
       m_currentTransform
     );
   }
@@ -101,6 +103,7 @@ namespace ge {
       m_currentFill.r,
       m_currentFill.g,
       m_currentFill.b,
+      m_currentFill.a,
       m_currentTransform
     );
   }

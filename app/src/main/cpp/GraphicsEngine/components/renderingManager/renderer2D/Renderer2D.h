@@ -22,6 +22,7 @@ namespace ge {
     float r;
     float g;
     float b;
+    float a;
   };
 
   class Renderer2D
@@ -41,7 +42,8 @@ namespace ge {
 
     void fill(float r,
               float g,
-              float b);
+              float b,
+              float a = 255.0f);
 
     void rotate(float angle);
 
@@ -71,7 +73,7 @@ namespace ge {
 
     std::shared_ptr<FontPipeline> m_fontPipeline;
 
-    Fill m_currentFill = {1, 1, 1};
+    Fill m_currentFill = {1, 1, 1, 1};
 
     glm::mat4 m_currentTransform = glm::mat4(1.0f);
 

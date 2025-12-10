@@ -20,6 +20,7 @@ namespace ge {
     float r;
     float g;
     float b;
+    float a;
     glm::mat4 transformation;
   };
 
@@ -34,6 +35,7 @@ namespace ge {
     float r;
     float g;
     float b;
+    float a;
   };
 
   class QuadPipeline final : public GraphicsPipeline
@@ -53,6 +55,7 @@ namespace ge {
                            float r,
                            float g,
                            float b,
+                           float a,
                            glm::mat4 transformation);
 
     void createNewFrame();

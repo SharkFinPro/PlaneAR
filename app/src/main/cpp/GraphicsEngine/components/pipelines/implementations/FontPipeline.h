@@ -52,6 +52,7 @@ namespace ge {
     float r;
     float g;
     float b;
+    float a;
   };
 
   struct TextToRender {
@@ -61,6 +62,7 @@ namespace ge {
     float r;
     float g;
     float b;
+    float a;
     glm::mat4 transformation;
   };
 
@@ -83,6 +85,7 @@ namespace ge {
                            float r,
                            float g,
                            float b,
+                           float a,
                            glm::mat4 transformation);
 
     void createNewFrame();
@@ -110,6 +113,7 @@ namespace ge {
                     float r,
                     float g,
                     float b,
+                    float a,
                     glm::mat4 transformation);
 
     void renderGlyph(const std::shared_ptr<CommandBuffer>& commandBuffer,
@@ -119,6 +123,7 @@ namespace ge {
                      float r,
                      float g,
                      float b,
+                     float a,
                      glm::mat4 transformation);
 
     void createDescriptorSets(VkDescriptorPool descriptorPool);

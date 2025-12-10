@@ -19,7 +19,7 @@ namespace ge {
         .fragmentShader = "shaders/ui.frag.spv"
       },
       .states {
-        .colorBlendState = gps::colorBlendState,
+        .colorBlendState = gps::colorBlendStateTransparent,
         .depthStencilState = gps::depthStencilStateNone,
         .dynamicState = gps::dynamicState,
         .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
@@ -64,7 +64,8 @@ namespace ge {
       .height = rect.height,
       .r = rect.r,
       .g = rect.g,
-      .b = rect.b
+      .b = rect.b,
+      .a = rect.a
     };
 
     commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -80,6 +81,7 @@ namespace ge {
                                        float r,
                                        float g,
                                        float b,
+                                       float a,
                                        glm::mat4 transformation)
   {
     m_rectsToRender.push_back({
@@ -90,6 +92,7 @@ namespace ge {
       r,
       g,
       b,
+      a,
       transformation
     });
   }
