@@ -3,6 +3,7 @@
 
 #include "../GraphicsPipeline.h"
 #include <freetype/freetype.h>
+#include <glm/mat4x4.hpp>
 #include <unordered_map>
 #include <string>
 
@@ -39,6 +40,7 @@ namespace ge {
     * size: glyph dimensions in pixels
   */
   struct GlyphPushConstant {
+    glm::mat4 transformation;
     int screenWidth;
     int screenHeight;
     float x;
@@ -59,6 +61,7 @@ namespace ge {
     float r;
     float g;
     float b;
+    glm::mat4 transformation;
   };
 
   class FontPipeline final : public GraphicsPipeline
@@ -79,7 +82,8 @@ namespace ge {
                            float y,
                            float r,
                            float g,
-                           float b);
+                           float b,
+                           glm::mat4 transformation);
 
     void createNewFrame();
 
@@ -105,7 +109,8 @@ namespace ge {
                     float y,
                     float r,
                     float g,
-                    float b);
+                    float b,
+                    glm::mat4 transformation);
 
     void renderGlyph(const std::shared_ptr<CommandBuffer>& commandBuffer,
                      char character,
@@ -113,7 +118,8 @@ namespace ge {
                      float y,
                      float r,
                      float g,
-                     float b);
+                     float b,
+                     glm::mat4 transformation);
 
     void createDescriptorSets(VkDescriptorPool descriptorPool);
 

@@ -100,7 +100,8 @@ namespace ge {
       y,
       m_currentFill.r,
       m_currentFill.g,
-      m_currentFill.b
+      m_currentFill.b,
+      m_currentTransform
     );
   }
 } // ge

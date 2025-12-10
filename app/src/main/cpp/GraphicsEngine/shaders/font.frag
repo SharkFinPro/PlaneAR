@@ -1,7 +1,7 @@
 #version 450
 
 layout(push_constant) uniform QuadPC {
-  layout(offset = 40)
+  layout(offset = 104)
   float r;
   float g;
   float b;

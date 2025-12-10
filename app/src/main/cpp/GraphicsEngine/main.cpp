@@ -120,8 +120,13 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   r->fill(135, 22, 232);
   r->rect(mouseX - cursorSize / 2.0f, mouseY - cursorSize / 2.0f, cursorSize, cursorSize);
 
-  r->fill(255, 255, 255);
-  r->text("Hello, world!", 100, 800);
+  r->pushMatrix();
+    r->translate(800, 1200);
+    r->rotate(15.0f);
+    r->scale(2.0f);
+    r->fill(255, 255, 255);
+    r->text("Hello, world!", -400, -200);
+  r->popMatrix();
 
   engine->render();
 }
