@@ -125,7 +125,7 @@ namespace ge {
       .screenWidth = m_surface->getWidth(),
       .screenHeight = m_surface->getHeight(),
       .x = x + glyph.bearingX,
-      .y = y - glyph.bearingY,
+      .y = y - glyph.bearingY + m_maxGlyphHeight,
       .width = glyph.width,
       .height = glyph.height,
       .u0 = glyph.u0,
@@ -236,6 +236,8 @@ namespace ge {
       atlasWidth,
       atlasHeight
     );
+
+    m_maxGlyphHeight = static_cast<float>(maxGlyphHeight);
   }
 
   std::vector<FT_ULong> FontPipeline::getCharset(FT_Face face)
