@@ -1,6 +1,7 @@
 #version 450
 
 layout(push_constant) uniform QuadPC {
+  mat4 transformation;
   int screenWidth;
   int screenHeight;
   float x;
@@ -28,6 +29,8 @@ void main()
   {
     pos = vec2(pc.x + pc.width, pc.y + pc.height);
   }
+
+  pos = (pc.transformation * vec4(pos, 0.0, 1.0)).xy;
 
   vec2 ndc;
   ndc.x = 2.0 * pos.x / float(pc.screenWidth)  - 1.0;

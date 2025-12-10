@@ -2,22 +2,10 @@
 #include "common/GraphicsPipelineStates.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../surface/Surface.h"
+#include <glm/gtc/matrix_transform.hpp>
 #include <utility>
 
 namespace ge {
-
-  struct QuadPC {
-    int screenWidth;
-    int screenHeight;
-    float x;
-    float y;
-    float width;
-    float height;
-    float r;
-    float g;
-    float b;
-  };
-
   QuadPipeline::QuadPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              std::shared_ptr<RenderPass> renderPass,
                              AAssetManager* assetManager,
@@ -44,7 +32,7 @@ namespace ge {
         {
           .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
           .offset = 0,
-          .size = sizeof(QuadPC)
+          .size = sizeof(QuadPushConstant)
         }
       },
       .renderPass = renderPass
@@ -57,35 +45,30 @@ namespace ge {
   {
     commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
-    for (const auto& [x, y, width, height, r, g, b] : m_rectsToRender)
+    for (const auto& rect : m_rectsToRender)
     {
-      renderRect(commandBuffer, x, y, width, height, r, g, b);
+      renderRect(commandBuffer, rect);
     }
   }
 
   void QuadPipeline::renderRect(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                float x,
-                                float y,
-                                float width,
-                                float height,
-                                float r,
-                                float g,
-                                float b)
+                                Rect rect)
   {
-    QuadPC quadPC {
+    QuadPushConstant quadPC {
+      .transformation = rect.transformation,
       .screenWidth = m_surface->getWidth(),
       .screenHeight = m_surface->getHeight(),
-      .x = x,
-      .y = y,
-      .width = width,
-      .height = height,
-      .r = r,
-      .g = g,
-      .b = b
+      .x = rect.x,
+      .y = rect.y,
+      .width = rect.width,
+      .height = rect.height,
+      .r = rect.r,
+      .g = rect.g,
+      .b = rect.b
     };
 
     commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                                 0, sizeof(QuadPC), &quadPC);
+                                 0, sizeof(QuadPushConstant), &quadPC);
 
     commandBuffer->draw(4, 1, 0, 0);
   }
@@ -96,9 +79,19 @@ namespace ge {
                                        float height,
                                        float r,
                                        float g,
-                                       float b)
+                                       float b,
+                                       glm::mat4 transformation)
   {
-    m_rectsToRender.push_back({x, y, width, height, r, g, b});
+    m_rectsToRender.push_back({
+      x,
+      y,
+      width,
+      height,
+      r,
+      g,
+      b,
+      transformation
+    });
   }
 
   void QuadPipeline::createNewFrame()
