@@ -63,3 +63,7 @@ target_link_libraries(${PROJECT_NAME}
   log
   freetype
 )
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+  ${glm_SOURCE_DIR}
+)
