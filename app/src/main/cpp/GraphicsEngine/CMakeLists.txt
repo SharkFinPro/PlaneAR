@@ -32,16 +32,26 @@ find_package(game-activity REQUIRED CONFIG)
 
 find_library(VULKAN_LIBRARY vulkan)
 
-# Freetype
 set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../_deps)
 
+# GLM
+FetchContent_Declare(
+  glm
+  GIT_REPOSITORY https://github.com/g-truc/glm.git
+  GIT_TAG 1.0.2
+)
+
+# Freetype
 FetchContent_Declare(
   freetype
   GIT_REPOSITORY https://github.com/freetype/freetype.git
   GIT_TAG VER-2-14-1
 )
 
-FetchContent_MakeAvailable(freetype)
+FetchContent_MakeAvailable(
+  glm
+  freetype
+)
 
 set(CMAKE_SHARED_LINKER_FLAGS
   "${CMAKE_SHARED_LINKER_FLAGS} -u Java_com_google_androidgamesdk_GameActivity_initializeNativeCode")
