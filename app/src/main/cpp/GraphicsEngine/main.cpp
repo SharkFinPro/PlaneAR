@@ -53,23 +53,27 @@ void android_main(struct android_app* pApp)
 
     if (engine)
     {
-      const auto r2d = engine->getRenderingManager()->getRenderer2D();
+      const auto r = engine->getRenderingManager()->getRenderer2D();
       static float x = 100;
       static float y = 100;
       static float w = 200;
       static float h = 100;
 
-      r2d->renderRect(x, y, w, h, 0, 0, 1);
+      r->fill(0, 0, 255);
+      r->rect(x, y, w, h);
 
-      r2d->renderRect(x, y * 3.0f, w * 3.0f, h, 0, 1, 0);
+      r->fill(0, 255, 0);
+      r->rect(x, y * 3.0f, w * 3.0f, h);
 
-      r2d->renderRect(x, y * 5.0f, w * 2.0f, h, 1, 0, 0);
+      r->fill(255, 0, 0);
+      r->rect(x, y * 5.0f, w * 2.0f, h);
 
       float cursorSize = 50.0f;
-      r2d->renderRect(mouseX - cursorSize / 2.0f, mouseY - cursorSize / 2.0f,
-                      cursorSize, cursorSize, 0.529f, 0.086f, 0.91f);
+      r->fill(135, 22, 232);
+      r->rect(mouseX - cursorSize / 2.0f, mouseY - cursorSize / 2.0f, cursorSize, cursorSize);
 
-      r2d->renderText("Hello, world!", 100, 800, 1, 1, 1);
+      r->fill(255, 255, 255);
+      r->text("Hello, world!", 100, 800);
 
       engine->render();
     }

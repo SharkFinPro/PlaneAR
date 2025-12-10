@@ -1,7 +1,7 @@
 #include "Renderer2D.h"
-#include "../pipelines/implementations/FontPipeline.h"
-#include "../pipelines/implementations/QuadPipeline.h"
-#include "../renderingManager/LegacyRenderer.h"
+#include "../../pipelines/implementations/FontPipeline.h"
+#include "../../pipelines/implementations/QuadPipeline.h"
+#include "../../renderingManager/LegacyRenderer.h"
 
 namespace ge {
   Renderer2D::Renderer2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
@@ -30,24 +30,37 @@ namespace ge {
     m_fontPipeline->render(commandBuffer, currentFrame);
   }
 
-  void Renderer2D::renderRect(float x,
-                              float y,
-                              float width,
-                              float height,
-                              float r,
-                              float g,
-                              float b)
+  void Renderer2D::fill(float r, float g, float b)
   {
-    m_quadPipeline->queueRectToRender(x, y, width, height, r, g, b);
+    m_currentFill = {
+      .r = r / 255.0f,
+      .g = g / 255.0f,
+      .b = b / 255.0f
+    };
   }
 
-  void Renderer2D::renderText(std::string message,
-                              float x,
-                              float y,
-                              float r,
-                              float g,
-                              float b)
+  void Renderer2D::rect(float x, float y, float width, float height)
   {
-    m_fontPipeline->queueTextToRender(std::move(message), x, y, r, g, b);
+    m_quadPipeline->queueRectToRender(
+      x,
+      y,
+      width,
+      height,
+      m_currentFill.r,
+      m_currentFill.g,
+      m_currentFill.b
+    );
+  }
+
+  void Renderer2D::text(std::string message, float x, float y)
+  {
+    m_fontPipeline->queueTextToRender(
+      std::move(message),
+      x,
+      y,
+      m_currentFill.r,
+      m_currentFill.g,
+      m_currentFill.b
+    );
   }
 } // ge
