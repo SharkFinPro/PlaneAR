@@ -42,32 +42,6 @@ namespace ge {
     };
   }
 
-  void Renderer2D::rect(float x, float y, float width, float height)
-  {
-    m_quadPipeline->queueRectToRender(
-      x,
-      y,
-      width,
-      height,
-      m_currentFill.r,
-      m_currentFill.g,
-      m_currentFill.b,
-      m_currentTransform
-    );
-  }
-
-  void Renderer2D::text(std::string message, float x, float y)
-  {
-    m_fontPipeline->queueTextToRender(
-      std::move(message),
-      x,
-      y,
-      m_currentFill.r,
-      m_currentFill.g,
-      m_currentFill.b
-    );
-  }
-
   void Renderer2D::rotate(float angle)
   {
     m_currentTransform *= glm::rotate(glm::mat4(1.0), glm::radians(angle), {0.0f, 0.0f, 1.0f});
@@ -102,5 +76,31 @@ namespace ge {
 
     m_currentTransform = m_transformStack.back();
     m_transformStack.pop_back();
+  }
+
+  void Renderer2D::rect(float x, float y, float width, float height)
+  {
+    m_quadPipeline->queueRectToRender(
+      x,
+      y,
+      width,
+      height,
+      m_currentFill.r,
+      m_currentFill.g,
+      m_currentFill.b,
+      m_currentTransform
+    );
+  }
+
+  void Renderer2D::text(std::string message, float x, float y)
+  {
+    m_fontPipeline->queueTextToRender(
+      std::move(message),
+      x,
+      y,
+      m_currentFill.r,
+      m_currentFill.g,
+      m_currentFill.b
+    );
   }
 } // ge
