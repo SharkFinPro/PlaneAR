@@ -97,6 +97,8 @@ namespace ge {
 
     std::vector<TextToRender> m_textsToRender;
 
+    float m_maxGlyphHeight = 0;
+
     void renderText(const std::shared_ptr<CommandBuffer>& commandBuffer,
                     const std::string& message,
                     float x,
