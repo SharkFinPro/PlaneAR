@@ -6,6 +6,7 @@ add_library(${PROJECT_NAME} SHARED
   main.cpp
   GraphicsEngine.cpp
   components/assets/AssetManager.cpp
+  components/assets/fonts/Font.cpp
   components/commandBuffer/CommandBuffer.cpp
   components/descriptorSet/DescriptorSet.cpp
   components/framebuffers/Framebuffer.cpp
