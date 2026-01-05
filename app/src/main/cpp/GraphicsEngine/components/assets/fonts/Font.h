@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-class AAssetManager;
+struct AAssetManager;
 
 namespace ge {
 
