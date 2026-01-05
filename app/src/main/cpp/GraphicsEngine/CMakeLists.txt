@@ -7,6 +7,8 @@ add_library(${PROJECT_NAME} SHARED
   GraphicsEngine.cpp
   components/assets/AssetManager.cpp
   components/assets/fonts/Font.cpp
+  components/assets/textures/GlyphTexture.cpp
+  components/assets/textures/Texture.cpp
   components/commandBuffer/CommandBuffer.cpp
   components/descriptorSet/DescriptorSet.cpp
   components/framebuffers/Framebuffer.cpp
@@ -26,8 +28,6 @@ add_library(${PROJECT_NAME} SHARED
   components/renderPass/RenderPass.cpp
   components/shaderModule/ShaderModule.cpp
   components/surface/Swapchain.cpp
-  components/textures/GlyphTexture.cpp
-  components/textures/Texture.cpp
 )
 
 find_package(game-activity REQUIRED CONFIG)

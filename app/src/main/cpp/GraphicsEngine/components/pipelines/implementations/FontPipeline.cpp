@@ -3,7 +3,7 @@
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../descriptorSet/DescriptorSet.h"
 #include "../../surface/Surface.h"
-#include "../../textures/GlyphTexture.h"
+#include "../../assets/textures/GlyphTexture.h"
 #include <android/asset_manager.h>
 #include <utility>
 
