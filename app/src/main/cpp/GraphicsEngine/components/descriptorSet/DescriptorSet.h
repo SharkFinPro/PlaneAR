@@ -13,9 +13,13 @@ namespace ge {
   class DescriptorSet
   {
   public:
-    explicit DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                           VkDescriptorPool descriptorPool,
-                           const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
+    DescriptorSet(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                  VkDescriptorPool descriptorPool,
+                  const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
+
+    DescriptorSet(std::shared_ptr<LogicalDevice> logicalDevice,
+                  VkDescriptorPool descriptorPool,
+                  VkDescriptorSetLayout descriptorSetLayout);
 
     ~DescriptorSet();
 
@@ -31,6 +35,8 @@ namespace ge {
     VkDescriptorSetLayout m_descriptorSetLayout = VK_NULL_HANDLE;
 
     std::vector<VkDescriptorSet> m_descriptorSets;
+
+    bool m_ownsLayout = false;
 
     void createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings);
 

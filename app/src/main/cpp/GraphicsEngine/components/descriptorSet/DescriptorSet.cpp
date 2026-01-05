@@ -12,9 +12,20 @@ namespace ge {
     allocateDescriptorSets(descriptorPool);
   }
 
+  DescriptorSet::DescriptorSet(std::shared_ptr<LogicalDevice> logicalDevice,
+                               VkDescriptorPool descriptorPool,
+                               VkDescriptorSetLayout descriptorSetLayout)
+    : m_logicalDevice(std::move(logicalDevice)), m_descriptorSetLayout(descriptorSetLayout)
+  {
+    allocateDescriptorSets(descriptorPool);
+  }
+
   DescriptorSet::~DescriptorSet()
   {
-    m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
+    if (m_ownsLayout)
+    {
+      m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
+    }
   }
 
   void DescriptorSet::updateDescriptorSets(const std::function<std::vector<VkWriteDescriptorSet>(VkDescriptorSet, size_t)>& getWriteDescriptorSets) const
@@ -46,6 +57,8 @@ namespace ge {
     };
 
     m_descriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
+
+    m_ownsLayout = true;
   }
 
   void DescriptorSet::allocateDescriptorSets(VkDescriptorPool descriptorPool)
