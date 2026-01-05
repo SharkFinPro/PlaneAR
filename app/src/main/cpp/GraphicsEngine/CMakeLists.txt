@@ -5,6 +5,7 @@ include(FetchContent)
 add_library(${PROJECT_NAME} SHARED
   main.cpp
   GraphicsEngine.cpp
+  components/assets/AssetManager.cpp
   components/commandBuffer/CommandBuffer.cpp
   components/descriptorSet/DescriptorSet.cpp
   components/framebuffers/Framebuffer.cpp
