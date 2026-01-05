@@ -5,8 +5,8 @@
 
 namespace ge {
   AssetManager::AssetManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                             AAssetManager* assetManager)
-    : m_logicalDevice(std::move(logicalDevice)), m_assetManager(assetManager)
+                             AAssetManager* aassetManager)
+    : m_logicalDevice(std::move(logicalDevice)), m_aassetManager(aassetManager)
   {
     createCommandPool();
 
@@ -22,6 +22,11 @@ namespace ge {
     m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
 
     m_logicalDevice->destroyCommandPool(m_commandPool);
+  }
+
+  AAssetManager* AssetManager::getAAssetManager() const
+  {
+    return m_aassetManager;
   }
 
   void AssetManager::registerFont(std::string fontName,
@@ -91,7 +96,7 @@ namespace ge {
 
     auto font = std::make_shared<Font>(
       m_logicalDevice,
-      m_assetManager,
+      m_aassetManager,
       fontPath->second,
       fontSize,
       m_commandPool,

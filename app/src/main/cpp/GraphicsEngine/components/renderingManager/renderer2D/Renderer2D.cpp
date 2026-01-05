@@ -1,4 +1,5 @@
 #include "Renderer2D.h"
+#include "../../assets/AssetManager.h"
 #include "../../pipelines/implementations/FontPipeline.h"
 #include "../../pipelines/implementations/QuadPipeline.h"
 #include "../../renderingManager/LegacyRenderer.h"
@@ -8,13 +9,14 @@ namespace ge {
   Renderer2D::Renderer2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
                          const std::shared_ptr<Surface>& surface,
                          const std::shared_ptr<Renderer>& renderer,
+                         std::shared_ptr<AssetManager> assetManager,
                          VkCommandPool commandPool,
-                         AAssetManager* assetManager,
                          VkDescriptorPool descriptorPool)
+    : m_assetManager(std::move(assetManager))
   {
-    m_quadPipeline = std::make_shared<QuadPipeline>(logicalDevice, renderer->getRenderPass(), assetManager, surface);
+    m_quadPipeline = std::make_shared<QuadPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager(), surface);
 
-    m_fontPipeline = std::make_shared<FontPipeline>(logicalDevice, renderer->getRenderPass(), assetManager, commandPool, descriptorPool, surface);
+    m_fontPipeline = std::make_shared<FontPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager(), commandPool, descriptorPool, surface);
   }
 
   void Renderer2D::createNewFrame()

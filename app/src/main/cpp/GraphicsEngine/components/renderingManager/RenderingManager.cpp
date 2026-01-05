@@ -12,8 +12,8 @@ namespace ge {
 
   RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                      const std::shared_ptr<Surface>& surface,
+                                     std::shared_ptr<AssetManager> assetManager,
                                      VkCommandPool commandPool,
-                                     AAssetManager* assetManager,
                                      VkDescriptorPool descriptorPool)
     : m_logicalDevice(logicalDevice), m_surface(surface), m_commandPool(commandPool)
   {
@@ -24,7 +24,7 @@ namespace ge {
 
     m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapchain, m_commandPool);
 
-    m_renderer2D = std::make_shared<Renderer2D>(m_logicalDevice, m_surface, m_renderer, m_commandPool, assetManager, descriptorPool);
+    m_renderer2D = std::make_shared<Renderer2D>(m_logicalDevice, m_surface, m_renderer, std::move(assetManager), m_commandPool, descriptorPool);
   }
 
   void RenderingManager::doRendering(uint32_t currentFrame)

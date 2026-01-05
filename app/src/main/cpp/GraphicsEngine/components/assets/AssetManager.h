@@ -37,9 +37,11 @@ namespace ge {
   {
   public:
     AssetManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                 AAssetManager* assetManager);
+                 AAssetManager* aassetManager);
 
     ~AssetManager();
+
+    [[nodiscard]] AAssetManager* getAAssetManager() const;
 
     void registerFont(std::string fontName,
                       std::string fontPath);
@@ -52,7 +54,7 @@ namespace ge {
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    AAssetManager* m_assetManager = nullptr;
+    AAssetManager* m_aassetManager = nullptr;
 
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 

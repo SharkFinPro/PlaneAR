@@ -11,6 +11,7 @@ struct AAssetManager;
 
 namespace ge {
 
+  class AssetManager;
   class CommandBuffer;
   class FontPipeline;
   class LogicalDevice;
@@ -31,8 +32,8 @@ namespace ge {
     Renderer2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
                const std::shared_ptr<Surface>& surface,
                const std::shared_ptr<Renderer>& renderer,
+               std::shared_ptr<AssetManager> assetManager,
                VkCommandPool commandPool,
-               AAssetManager* assetManager,
                VkDescriptorPool descriptorPool);
 
     void createNewFrame();
@@ -69,6 +70,8 @@ namespace ge {
               float y);
 
   private:
+    std::shared_ptr<AssetManager> m_assetManager;
+
     std::shared_ptr<QuadPipeline> m_quadPipeline;
 
     std::shared_ptr<FontPipeline> m_fontPipeline;

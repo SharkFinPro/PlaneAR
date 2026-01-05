@@ -1,5 +1,6 @@
 #include "GraphicsEngine.h"
 #include "Logger.h"
+#include "components/assets/AssetManager.h"
 #include "components/instance/Instance.h"
 #include "components/logicalDevice/LogicalDevice.h"
 #include "components/physicalDevice/PhysicalDevice.h"
@@ -37,6 +38,11 @@ namespace ge {
     m_renderingManager->doRendering(m_currentFrame);
 
     createNewFrame();
+  }
+
+  std::shared_ptr<AssetManager> GraphicsEngine::getAssetManager() const
+  {
+    return m_assetManager;
   }
 
   std::shared_ptr<RenderingManager> GraphicsEngine::getRenderingManager() const
@@ -95,11 +101,13 @@ namespace ge {
 
   void GraphicsEngine::createComponents()
   {
+    m_assetManager = std::make_shared<AssetManager>(m_logicalDevice, m_app->activity->assetManager);
+
     m_renderingManager = std::make_shared<RenderingManager>(
       m_logicalDevice,
       m_surface,
+      m_assetManager,
       m_commandPool,
-      m_app->activity->assetManager,
       m_descriptorPool
     );
   }

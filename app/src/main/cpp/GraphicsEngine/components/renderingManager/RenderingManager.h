@@ -8,6 +8,7 @@ struct AAssetManager;
 
 namespace ge {
 
+  class AssetManager;
   class CommandBuffer;
   class LogicalDevice;
   class Renderer;
@@ -20,8 +21,8 @@ namespace ge {
   public:
     RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                      const std::shared_ptr<Surface>& surface,
+                     std::shared_ptr<AssetManager> assetManager,
                      VkCommandPool commandPool,
-                     AAssetManager* assetManager,
                      VkDescriptorPool descriptorPool);
 
     void doRendering(uint32_t currentFrame);
