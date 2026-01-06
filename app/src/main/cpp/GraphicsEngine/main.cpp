@@ -1,11 +1,12 @@
+#include "GraphicsEngine.h"
+#include "Logger.h"
+#include "components/assets/AssetManager.h"
+#include "components/renderingManager/RenderingManager.h"
+#include "components/renderingManager/renderer2D/Renderer2D.h"
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 #include <vulkan/vulkan.h>
 #include <stdexcept>
 #include <memory>
-#include "Logger.h"
-#include "GraphicsEngine.h"
-#include "components/renderingManager/RenderingManager.h"
-#include "components/renderingManager/renderer2D/Renderer2D.h"
 
 static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY);
 
@@ -38,6 +39,8 @@ void android_main(struct android_app* pApp)
       {
         LOGI("Window initialized, creating graphics engine...");
         engine = std::make_unique<ge::GraphicsEngine>(pApp);
+
+        engine->getAssetManager()->registerFont("roboto", "fonts/Roboto-VariableFont_wdth,wght.ttf");
       }
 
       if (pApp->window == nullptr && engine)
@@ -125,7 +128,10 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
     r->rotate(15.0f);
     r->scale(2.0f);
     r->fill(255, 255, 255, 150);
+    r->textFont("roboto", 42);
     r->text("Hello, world!", -400, -200);
+    r->textSize(64);
+    r->text("Bigger Text!", -400, -100);
   r->popMatrix();
 
   engine->render();

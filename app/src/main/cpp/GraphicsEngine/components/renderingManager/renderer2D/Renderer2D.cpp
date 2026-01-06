@@ -1,5 +1,7 @@
 #include "Renderer2D.h"
 #include "../../assets/AssetManager.h"
+#include "../../assets/fonts/Font.h"
+#include "../../pipelines/GraphicsPipeline.h"
 #include "../../pipelines/implementations/FontPipeline.h"
 #include "../../pipelines/implementations/QuadPipeline.h"
 #include "../../renderingManager/LegacyRenderer.h"
@@ -16,33 +18,38 @@ namespace ge {
   {
     m_quadPipeline = std::make_shared<QuadPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager(), surface);
 
-    m_fontPipeline = std::make_shared<FontPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager(), commandPool, descriptorPool, surface);
+    m_fontPipeline = std::make_shared<FontPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager(), m_assetManager->getFontDescriptorSetLayout());
   }
 
   void Renderer2D::createNewFrame()
   {
+    m_currentZ = 0.0f;
+
     m_quadPipeline->createNewFrame();
-    m_fontPipeline->createNewFrame();
 
     m_currentTransform = glm::mat4(1.0f);
+
+    m_glyphsToRender.clear();
   }
 
-  void Renderer2D::render(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                          uint32_t currentFrame)
+  void Renderer2D::render(const RenderInfo* renderInfo)
   {
-    m_quadPipeline->render(commandBuffer);
+    m_quadPipeline->render(renderInfo->commandBuffer);
 
-    m_fontPipeline->render(commandBuffer, currentFrame);
+    m_fontPipeline->render(renderInfo, &m_glyphsToRender, m_assetManager);
   }
 
-  void Renderer2D::fill(float r, float g, float b, float a)
+  void Renderer2D::fill(const float r,
+                        const float g,
+                        const float b,
+                        const float a)
   {
-    m_currentFill = {
-      .r = r / 255.0f,
-      .g = g / 255.0f,
-      .b = b / 255.0f,
-      .a = a / 255.0f
-    };
+    m_currentFill = glm::vec4(
+      r / 255.0f,
+      g / 255.0f,
+      b / 255.0f,
+      a / 255.0f
+    );
   }
 
   void Renderer2D::rotate(float angle)
@@ -96,17 +103,72 @@ namespace ge {
     );
   }
 
-  void Renderer2D::text(std::string message, float x, float y)
+  void Renderer2D::textFont(const std::string &font)
   {
-    m_fontPipeline->queueTextToRender(
-      std::move(message),
-      x,
-      y,
-      m_currentFill.r,
-      m_currentFill.g,
-      m_currentFill.b,
-      m_currentFill.a,
-      m_currentTransform
-    );
+    m_currentFontName = font;
+
+    updateCurrentFont();
+  }
+
+  void Renderer2D::textFont(const std::string &font, uint32_t size)
+  {
+    m_currentFontName = font;
+    m_currentFontSize = size;
+
+    updateCurrentFont();
+  }
+
+  void Renderer2D::textSize(uint32_t size)
+  {
+    m_currentFontSize = size;
+
+    updateCurrentFont();
+  }
+
+  void Renderer2D::text(std::string text,
+                        float x,
+                        float y)
+  {
+    const float maxGlyphHeight = m_currentFont->getMaxGlyphHeight();
+
+    float currentX = x;
+
+    for (const auto& character : text)
+    {
+      if (const auto glyphInfo = m_currentFont->getGlyphInfo(character))
+      {
+        m_glyphsToRender[m_currentFontName][m_currentFontSize].push_back({
+          .bounds = glm::vec4(
+            currentX + glyphInfo->bearingX,
+            y - glyphInfo->bearingY + maxGlyphHeight,
+            glyphInfo->width,
+            glyphInfo->height
+          ),
+          .color = m_currentFill,
+          .transform = m_currentTransform,
+          .uv = glm::vec4(
+            glyphInfo->u0,
+            glyphInfo->v0,
+            glyphInfo->u1,
+            glyphInfo->v1
+          ),
+          .z = m_currentZ
+        });
+
+        currentX += glyphInfo->advance;
+      }
+    }
+
+    increaseCurrentZ();
+  }
+
+  void Renderer2D::updateCurrentFont()
+  {
+    m_currentFont = m_assetManager->getFont(m_currentFontName, m_currentFontSize);
+  }
+
+  void Renderer2D::increaseCurrentZ()
+  {
+    m_currentZ += 1.0f;
   }
 } // ge

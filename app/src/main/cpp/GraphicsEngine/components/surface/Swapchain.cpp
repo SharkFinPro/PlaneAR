@@ -3,6 +3,7 @@
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../../utilities/Images.h"
+#include <algorithm>
 
 namespace ge {
   Swapchain::Swapchain(const std::shared_ptr<LogicalDevice>& logicalDevice,
