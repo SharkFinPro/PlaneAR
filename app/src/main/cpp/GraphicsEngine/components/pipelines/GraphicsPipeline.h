@@ -8,7 +8,14 @@
 
 namespace ge {
 
+  class CommandBuffer;
   class RenderPass;
+
+  struct RenderInfo {
+    std::shared_ptr<CommandBuffer> commandBuffer;
+    uint32_t currentFrame;
+    VkExtent2D extent;
+  };
 
   struct GraphicsPipelineOptions {
     struct {

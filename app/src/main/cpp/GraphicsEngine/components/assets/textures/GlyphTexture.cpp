@@ -1,6 +1,6 @@
 #include "GlyphTexture.h"
-#include "../../utilities/Buffers.h"
-#include "../../utilities/Images.h"
+#include "../../../utilities/Buffers.h"
+#include "../../../utilities/Images.h"
 
 namespace ge {
   GlyphTexture::GlyphTexture(const std::shared_ptr<LogicalDevice>& logicalDevice,

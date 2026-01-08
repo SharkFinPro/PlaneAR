@@ -2,8 +2,10 @@
 #define PLANEAR_RENDERER2D_H
 
 #include <glm/mat4x4.hpp>
+#include <glm/vec4.hpp>
 #include <vulkan/vulkan.h>
 #include <memory>
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -11,18 +13,22 @@ struct AAssetManager;
 
 namespace ge {
 
+  class AssetManager;
   class CommandBuffer;
+  class Font;
   class FontPipeline;
   class LogicalDevice;
   class QuadPipeline;
   class Renderer;
+  struct RenderInfo;
   class Surface;
 
-  struct Fill {
-    float r;
-    float g;
-    float b;
-    float a;
+  struct Glyph {
+    glm::vec4 bounds;
+    glm::vec4 color;
+    glm::mat4 transform;
+    glm::vec4 uv;
+    float z;
   };
 
   class Renderer2D
@@ -31,14 +37,13 @@ namespace ge {
     Renderer2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
                const std::shared_ptr<Surface>& surface,
                const std::shared_ptr<Renderer>& renderer,
+               std::shared_ptr<AssetManager> assetManager,
                VkCommandPool commandPool,
-               AAssetManager* assetManager,
                VkDescriptorPool descriptorPool);
 
     void createNewFrame();
 
-    void render(const std::shared_ptr<CommandBuffer>& commandBuffer,
-                uint32_t currentFrame);
+    void render(const RenderInfo* renderInfo);
 
     void fill(float r,
               float g,
@@ -64,20 +69,41 @@ namespace ge {
               float width,
               float height);
 
-    void text(std::string message,
+    void textFont(const std::string& font);
+
+    void textFont(const std::string& font,
+                  uint32_t size);
+
+    void textSize(uint32_t size);
+
+    void text(std::string text,
               float x,
               float y);
 
   private:
+    std::shared_ptr<AssetManager> m_assetManager;
+
     std::shared_ptr<QuadPipeline> m_quadPipeline;
 
     std::shared_ptr<FontPipeline> m_fontPipeline;
 
-    Fill m_currentFill = {1, 1, 1, 1};
+    glm::vec4 m_currentFill = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
     glm::mat4 m_currentTransform = glm::mat4(1.0f);
 
     std::vector<glm::mat4> m_transformStack;
+
+    std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>> m_glyphsToRender;
+
+    std::shared_ptr<Font> m_currentFont;
+    std::string m_currentFontName;
+    uint32_t m_currentFontSize = 12;
+
+    float m_currentZ = 0.0f;
+
+    void updateCurrentFont();
+
+    void increaseCurrentZ();
   };
 
 } // ge

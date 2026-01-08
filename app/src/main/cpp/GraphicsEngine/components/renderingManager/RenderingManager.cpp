@@ -3,6 +3,7 @@
 #include "renderer2D/Renderer2D.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
+#include "../pipelines/GraphicsPipeline.h"
 #include "../pipelines/implementations/FontPipeline.h"
 #include "../pipelines/implementations/QuadPipeline.h"
 #include "../surface/Swapchain.h"
@@ -12,8 +13,8 @@ namespace ge {
 
   RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                      const std::shared_ptr<Surface>& surface,
+                                     std::shared_ptr<AssetManager> assetManager,
                                      VkCommandPool commandPool,
-                                     AAssetManager* assetManager,
                                      VkDescriptorPool descriptorPool)
     : m_logicalDevice(logicalDevice), m_surface(surface), m_commandPool(commandPool)
   {
@@ -24,7 +25,7 @@ namespace ge {
 
     m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapchain, m_commandPool);
 
-    m_renderer2D = std::make_shared<Renderer2D>(m_logicalDevice, m_surface, m_renderer, m_commandPool, assetManager, descriptorPool);
+    m_renderer2D = std::make_shared<Renderer2D>(m_logicalDevice, m_surface, m_renderer, std::move(assetManager), m_commandPool, descriptorPool);
   }
 
   void RenderingManager::doRendering(uint32_t currentFrame)
@@ -68,30 +69,33 @@ namespace ge {
   {
     m_swapchainCommandBuffer->record([this, currentFrame, imageIndex]()
     {
-      const auto extent = m_swapchain->getExtent();
-      const auto commandBuffer = m_swapchainCommandBuffer;
+      RenderInfo renderInfo {
+        .commandBuffer = m_swapchainCommandBuffer,
+        .currentFrame = currentFrame,
+        .extent = m_swapchain->getExtent()
+      };
 
-      m_renderer->beginSwapchainRendering(imageIndex, extent, commandBuffer, m_swapchain);
+      m_renderer->beginSwapchainRendering(imageIndex, renderInfo.extent, renderInfo.commandBuffer, m_swapchain);
 
       const VkViewport viewport = {
         .x = 0.0f,
         .y = 0.0f,
-        .width = static_cast<float>(extent.width),
-        .height = static_cast<float>(extent.height),
+        .width = static_cast<float>(renderInfo.extent.width),
+        .height = static_cast<float>(renderInfo.extent.height),
         .minDepth = 0.0f,
         .maxDepth = 1.0f
       };
-      commandBuffer->setViewport(viewport);
+      renderInfo.commandBuffer->setViewport(viewport);
 
       const VkRect2D scissor = {
         .offset = {0, 0},
-        .extent = extent
+        .extent = renderInfo.extent
       };
-      commandBuffer->setScissor(scissor);
+      renderInfo.commandBuffer->setScissor(scissor);
 
-      m_renderer2D->render(commandBuffer, currentFrame);
+      m_renderer2D->render(&renderInfo);
 
-      m_renderer->endSwapchainRendering(imageIndex, commandBuffer, m_swapchain);
+      m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapchain);
     });
   }
 } // ge

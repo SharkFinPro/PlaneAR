@@ -1,0 +1,136 @@
+#include "AssetManager.h"
+#include "fonts/Font.h"
+#include "../logicalDevice/LogicalDevice.h"
+#include "../physicalDevice/PhysicalDevice.h"
+
+namespace ge {
+  AssetManager::AssetManager(std::shared_ptr<LogicalDevice> logicalDevice,
+                             AAssetManager* aassetManager)
+    : m_logicalDevice(std::move(logicalDevice)), m_aassetManager(aassetManager)
+  {
+    createCommandPool();
+
+    createDescriptorPool();
+
+    createDescriptorSetLayouts();
+  }
+
+  AssetManager::~AssetManager()
+  {
+    m_logicalDevice->destroyDescriptorSetLayout(m_fontDescriptorSetLayout);
+
+    m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
+
+    m_logicalDevice->destroyCommandPool(m_commandPool);
+  }
+
+  AAssetManager* AssetManager::getAAssetManager() const
+  {
+    return m_aassetManager;
+  }
+
+  void AssetManager::registerFont(std::string fontName,
+                                  std::string fontPath)
+  {
+    m_fontNames.insert({ std::move(fontName), std::move(fontPath) });
+  }
+
+  std::shared_ptr<Font> AssetManager::getFont(const std::string& fontName,
+                                              uint32_t fontSize)
+  {
+    const FontKey key { fontName, fontSize };
+
+    auto font = m_fonts.find(key);
+
+    if (font == m_fonts.end())
+    {
+      loadFont(fontName, fontSize);
+
+      font = m_fonts.find(key);
+    }
+
+    return font->second;
+  }
+
+  VkDescriptorSetLayout AssetManager::getFontDescriptorSetLayout() const
+  {
+    return m_fontDescriptorSetLayout;
+  }
+
+  void AssetManager::createDescriptorSetLayouts()
+  {
+    createFontDescriptorSetLayout();
+  }
+
+  void AssetManager::createFontDescriptorSetLayout()
+  {
+    constexpr VkDescriptorSetLayoutBinding glyphDescriptorSetLayoutBinding {
+      .binding = 0,
+      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    };
+
+    constexpr std::array descriptorSetLayoutBindings {
+      glyphDescriptorSetLayoutBinding
+    };
+
+    const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+      .bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size()),
+      .pBindings = descriptorSetLayoutBindings.data()
+    };
+
+    m_fontDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
+  }
+
+  void AssetManager::loadFont(const std::string& fontName,
+                              uint32_t fontSize)
+  {
+    const auto fontPath = m_fontNames.find(fontName);
+
+    if (fontPath == m_fontNames.end())
+    {
+      throw std::runtime_error("Font not found: " + fontName);
+    }
+
+    auto font = std::make_shared<Font>(
+      m_logicalDevice,
+      m_aassetManager,
+      fontPath->second,
+      fontSize,
+      m_commandPool,
+      m_descriptorPool,
+      m_fontDescriptorSetLayout
+    );
+
+    m_fonts.emplace(FontKey{ fontName, fontSize }, std::move(font));
+  }
+
+  void AssetManager::createCommandPool()
+  {
+    const VkCommandPoolCreateInfo poolInfo {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .queueFamilyIndex = m_logicalDevice->getPhysicalDevice()->getQueueFamilies().graphicsFamily.value()
+    };
+
+    m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
+  }
+
+  void AssetManager::createDescriptorPool()
+  {
+    const std::array<VkDescriptorPoolSize, 2> poolSizes {{
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 10}
+    }};
+
+    const VkDescriptorPoolCreateInfo poolCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 1000,
+      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+      .pPoolSizes = poolSizes.data()
+    };
+
+    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
+  }
+} // ge

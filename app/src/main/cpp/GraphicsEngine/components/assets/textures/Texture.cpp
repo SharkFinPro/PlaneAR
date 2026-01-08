@@ -1,6 +1,6 @@
 #include "Texture.h"
-#include "../logicalDevice/LogicalDevice.h"
-#include "../physicalDevice/PhysicalDevice.h"
+#include "../../logicalDevice/LogicalDevice.h"
+#include "../../physicalDevice/PhysicalDevice.h"
 
 namespace ge {
   Texture::Texture(const std::shared_ptr<LogicalDevice>& logicalDevice,
