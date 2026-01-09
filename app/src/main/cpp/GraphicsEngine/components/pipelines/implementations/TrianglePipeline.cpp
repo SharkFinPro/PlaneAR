@@ -5,11 +5,13 @@
 
 namespace ge {
   TrianglePipeline::TrianglePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
-                                     std::shared_ptr<RenderPass> renderPass)
+                                     std::shared_ptr<RenderPass> renderPass,
+                                     AAssetManager* assetManager)
     : GraphicsPipeline(std::move(logicalDevice))
   {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {
+        .assetManager = assetManager,
         .vertexShader = "shaders/triangle.vert.spv",
         .fragmentShader = "shaders/triangle.frag.spv"
       },

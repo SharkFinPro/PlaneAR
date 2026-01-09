@@ -4,6 +4,7 @@
 #include "../../pipelines/GraphicsPipeline.h"
 #include "../../pipelines/implementations/FontPipeline.h"
 #include "../../pipelines/implementations/RectPipeline.h"
+#include "../../pipelines/implementations/TrianglePipeline.h"
 #include "../../renderingManager/LegacyRenderer.h"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -18,6 +19,8 @@ namespace ge {
     m_rectPipeline = std::make_shared<RectPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager());
 
     m_fontPipeline = std::make_shared<FontPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager(), m_assetManager->getFontDescriptorSetLayout());
+
+    m_trianglePipeline = std::make_shared<TrianglePipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager());
   }
 
   void Renderer2D::createNewFrame()
@@ -38,6 +41,8 @@ namespace ge {
     normalizeZValues();
 
     m_rectPipeline->render(renderInfo, &m_rectsToRender);
+
+    m_trianglePipeline->render(renderInfo, &m_trianglesToRender);
 
     m_fontPipeline->render(renderInfo, &m_glyphsToRender, m_assetManager);
   }

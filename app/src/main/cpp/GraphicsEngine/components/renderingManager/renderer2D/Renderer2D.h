@@ -21,6 +21,7 @@ namespace ge {
   class RectPipeline;
   class Renderer;
   struct RenderInfo;
+  class TrianglePipeline;
 
   struct Glyph {
     glm::vec4 bounds;
@@ -105,6 +106,8 @@ namespace ge {
     std::shared_ptr<AssetManager> m_assetManager;
 
     std::shared_ptr<RectPipeline> m_rectPipeline;
+
+    std::shared_ptr<TrianglePipeline> m_trianglePipeline;
 
     std::shared_ptr<FontPipeline> m_fontPipeline;
 

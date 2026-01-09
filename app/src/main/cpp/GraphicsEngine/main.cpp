@@ -103,6 +103,7 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   static float w = 200;
   static float h = 100;
 
+  r->fill(200, 200, 200);
   r->pushMatrix();
     r->translate(400, 1200);
     r->rotate(45.0f);
@@ -133,6 +134,9 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
     r->textSize(64);
     r->text("Bigger Text!", -400, -100);
   r->popMatrix();
+
+  r->fill(100, 200, 100);
+  r->triangle(100, 1200, 200, 1100, 200, 1300);
 
   engine->render();
 }

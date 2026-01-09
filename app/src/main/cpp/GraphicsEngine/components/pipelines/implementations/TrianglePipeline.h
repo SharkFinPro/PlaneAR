@@ -29,7 +29,8 @@ namespace ge {
   {
   public:
     TrianglePipeline(std::shared_ptr<LogicalDevice> logicalDevice,
-                     std::shared_ptr<RenderPass> renderPass);
+                     std::shared_ptr<RenderPass> renderPass,
+                     AAssetManager* assetManager);
 
     void render(const RenderInfo* renderInfo,
                 const std::vector<Triangle>* triangles);
