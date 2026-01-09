@@ -20,6 +20,7 @@ add_library(${PROJECT_NAME} SHARED
   components/physicalDevice/PhysicalDevice.cpp
   components/pipelines/implementations/FontPipeline.cpp
   components/pipelines/implementations/RectPipeline.cpp
+  components/pipelines/implementations/TrianglePipeline.cpp
   components/pipelines/GraphicsPipeline.cpp
   components/pipelines/Pipeline.cpp
   components/renderingManager/renderer2D/Renderer2D.cpp
