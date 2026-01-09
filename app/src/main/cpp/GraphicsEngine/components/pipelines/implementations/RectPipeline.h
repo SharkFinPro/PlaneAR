@@ -1,5 +1,5 @@
-#ifndef PLANEAR_QUADPIPELINE_H
-#define PLANEAR_QUADPIPELINE_H
+#ifndef PLANEAR_RECTPIPELINE_H
+#define PLANEAR_RECTPIPELINE_H
 
 #include "../GraphicsPipeline.h"
 #include <vector>
@@ -11,7 +11,7 @@ namespace ge {
 
   struct Rect;
 
-  struct QuadPushConstant {
+  struct RectPushConstant {
     glm::mat4 transform;
     int screenWidth;
     int screenHeight;
@@ -26,10 +26,10 @@ namespace ge {
     float a;
   };
 
-  class QuadPipeline final : public GraphicsPipeline
+  class RectPipeline final : public GraphicsPipeline
   {
   public:
-    QuadPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    RectPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                  std::shared_ptr<RenderPass> renderPass,
                  AAssetManager* assetManager);
 
@@ -43,4 +43,4 @@ namespace ge {
 
 } // ge
 
-#endif //PLANEAR_QUADPIPELINE_H
+#endif //PLANEAR_RECTPIPELINE_H

@@ -1,6 +1,6 @@
 #version 450
 
-layout(push_constant) uniform GlyphData {
+layout(push_constant) uniform FontPC {
   mat4 transformation;
   int screenWidth;
   int screenHeight;

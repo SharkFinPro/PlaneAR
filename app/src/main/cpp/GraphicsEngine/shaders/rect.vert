@@ -1,6 +1,6 @@
 #version 450
 
-layout(push_constant) uniform QuadPC {
+layout(push_constant) uniform RectPC {
   mat4 transformation;
   int screenWidth;
   int screenHeight;

@@ -1,6 +1,6 @@
 #version 450
 
-layout(push_constant) uniform QuadPC {
+layout(push_constant) uniform RectPC {
   layout(offset = 92)
   float r;
   float g;

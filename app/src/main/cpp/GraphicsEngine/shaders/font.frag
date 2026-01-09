@@ -1,6 +1,6 @@
 #version 450
 
-layout(push_constant) uniform QuadPC {
+layout(push_constant) uniform FontPC {
   layout(offset = 108)
   float r;
   float g;

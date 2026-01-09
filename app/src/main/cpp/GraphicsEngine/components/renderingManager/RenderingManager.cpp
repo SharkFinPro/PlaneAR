@@ -5,7 +5,7 @@
 #include "../logicalDevice/LogicalDevice.h"
 #include "../pipelines/GraphicsPipeline.h"
 #include "../pipelines/implementations/FontPipeline.h"
-#include "../pipelines/implementations/QuadPipeline.h"
+#include "../pipelines/implementations/RectPipeline.h"
 #include "../surface/Swapchain.h"
 #include <utility>
 

@@ -1,4 +1,4 @@
-#include "QuadPipeline.h"
+#include "RectPipeline.h"
 #include "common/GraphicsPipelineStates.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../renderingManager/renderer2D/Renderer2D.h"
@@ -7,7 +7,7 @@
 #include <utility>
 
 namespace ge {
-  QuadPipeline::QuadPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  RectPipeline::RectPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                              std::shared_ptr<RenderPass> renderPass,
                              AAssetManager* assetManager)
     : GraphicsPipeline(logicalDevice)
@@ -15,8 +15,8 @@ namespace ge {
     const GraphicsPipelineOptions graphicsPipelineOptions {
       .shaders {
         .assetManager = assetManager,
-        .vertexShader = "shaders/ui.vert.spv",
-        .fragmentShader = "shaders/ui.frag.spv"
+        .vertexShader = "shaders/rect.vert.spv",
+        .fragmentShader = "shaders/rect.frag.spv"
       },
       .states {
         .colorBlendState = gps::colorBlendStateTransparent,
@@ -32,7 +32,7 @@ namespace ge {
         {
           .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
           .offset = 0,
-          .size = sizeof(QuadPushConstant)
+          .size = sizeof(RectPushConstant)
         }
       },
       .renderPass = renderPass
@@ -41,7 +41,7 @@ namespace ge {
     createPipeline(graphicsPipelineOptions);
   }
 
-  void QuadPipeline::render(const RenderInfo* renderInfo,
+  void RectPipeline::render(const RenderInfo* renderInfo,
                             const std::vector<Rect>* rects)
   {
     renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
@@ -52,10 +52,10 @@ namespace ge {
     }
   }
 
-  void QuadPipeline::renderRect(const RenderInfo* renderInfo,
+  void RectPipeline::renderRect(const RenderInfo* renderInfo,
                                 Rect rect)
   {
-    QuadPushConstant quadPC {
+    RectPushConstant rectPC {
       .transform = rect.transform,
       .screenWidth = static_cast<int>(renderInfo->extent.width),
       .screenHeight = static_cast<int>(renderInfo->extent.height),
@@ -71,7 +71,7 @@ namespace ge {
     };
 
     renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                                             0, sizeof(QuadPushConstant), &quadPC);
+                                             0, sizeof(RectPushConstant), &rectPC);
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
   }

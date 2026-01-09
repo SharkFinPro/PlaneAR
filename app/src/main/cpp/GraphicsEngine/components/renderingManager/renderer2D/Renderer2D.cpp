@@ -3,7 +3,7 @@
 #include "../../assets/fonts/Font.h"
 #include "../../pipelines/GraphicsPipeline.h"
 #include "../../pipelines/implementations/FontPipeline.h"
-#include "../../pipelines/implementations/QuadPipeline.h"
+#include "../../pipelines/implementations/RectPipeline.h"
 #include "../../renderingManager/LegacyRenderer.h"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -15,7 +15,7 @@ namespace ge {
                          VkDescriptorPool descriptorPool)
     : m_assetManager(std::move(assetManager))
   {
-    m_quadPipeline = std::make_shared<QuadPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager());
+    m_rectPipeline = std::make_shared<RectPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager());
 
     m_fontPipeline = std::make_shared<FontPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager(), m_assetManager->getFontDescriptorSetLayout());
   }
@@ -33,7 +33,7 @@ namespace ge {
 
   void Renderer2D::render(const RenderInfo* renderInfo)
   {
-    m_quadPipeline->render(renderInfo, &m_rectsToRender);
+    m_rectPipeline->render(renderInfo, &m_rectsToRender);
 
     m_fontPipeline->render(renderInfo, &m_glyphsToRender, m_assetManager);
   }
