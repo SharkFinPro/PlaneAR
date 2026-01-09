@@ -47,6 +47,13 @@ namespace ge {
     float z;
   };
 
+  struct Ellipse {
+    glm::vec4 bounds;
+    glm::vec4 color;
+    glm::mat4 transform;
+    float z;
+  };
+
   class Renderer2D
   {
   public:
@@ -91,6 +98,11 @@ namespace ge {
                   float x3,
                   float y3);
 
+    void ellipse(float x,
+                 float y,
+                 float width,
+                 float height);
+
     void textFont(const std::string& font);
 
     void textFont(const std::string& font,
@@ -126,6 +138,8 @@ namespace ge {
     std::vector<Rect> m_rectsToRender;
 
     std::vector<Triangle> m_trianglesToRender;
+
+    std::vector<Ellipse> m_ellipsesToRender;
 
     float m_currentZ = 0.0f;
 

@@ -34,6 +34,8 @@ namespace ge {
     m_rectsToRender.clear();
 
     m_trianglesToRender.clear();
+
+    m_ellipsesToRender.clear();
   }
 
   void Renderer2D::render(const RenderInfo* renderInfo)
@@ -127,6 +129,21 @@ namespace ge {
     increaseCurrentZ();
   }
 
+  void Renderer2D::ellipse(const float x,
+                           const float y,
+                           const float width,
+                           const float height)
+  {
+    m_ellipsesToRender.push_back({
+      .bounds = glm::vec4(x, y, width, height),
+      .color = m_currentFill,
+      .transform = m_currentTransform,
+      .z = m_currentZ
+    });
+
+    increaseCurrentZ();
+  }
+
   void Renderer2D::textFont(const std::string &font)
   {
     m_currentFontName = font;
@@ -208,6 +225,12 @@ namespace ge {
     {
       triangle.z /= m_currentZ;
       triangle.z = 1.0f - triangle.z;
+    }
+
+    for (auto& ellipse : m_ellipsesToRender)
+    {
+      ellipse.z /= m_currentZ;
+      ellipse.z = 1.0f - ellipse.z;
     }
 
     for (auto& font : m_glyphsToRender)
