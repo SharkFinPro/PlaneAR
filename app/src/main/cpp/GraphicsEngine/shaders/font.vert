@@ -19,28 +19,9 @@ layout(location = 0) out vec2 fragUV;
 
 void main()
 {
-  vec2 pos;
-  vec2 uv;
-  if (gl_VertexIndex == 0)
-  {
-    pos = vec2(pc.x, pc.y);
-    uv = vec2(0, 0);
-  }
-  else if (gl_VertexIndex == 1)
-  {
-    pos = vec2(pc.x + pc.width, pc.y);
-    uv = vec2(1, 0);
-  }
-  else if (gl_VertexIndex == 2)
-  {
-    pos = vec2(pc.x, pc.y + pc.height);
-    uv = vec2(0, 1);
-  }
-  else
-  {
-    pos = vec2(pc.x + pc.width, pc.y + pc.height);
-    uv = vec2(1, 1);
-  }
+  vec2 corner = vec2(gl_VertexIndex & 1, gl_VertexIndex >> 1);
+
+  vec2 pos = vec2(pc.x, pc.y) + corner * vec2(pc.width, pc.height);
 
   pos = (pc.transformation * vec4(pos, 0.0, 1.0)).xy;
 
@@ -53,6 +34,6 @@ void main()
   fragUV = mix(
     vec2(pc.u0, pc.v0),
     vec2(pc.u1, pc.v1),
-    uv
+    corner
   );
 }
