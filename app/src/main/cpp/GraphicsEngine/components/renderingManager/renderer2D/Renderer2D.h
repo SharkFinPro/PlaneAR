@@ -15,6 +15,7 @@ namespace ge {
 
   class AssetManager;
   class CommandBuffer;
+  class EllipsePipeline;
   class Font;
   class FontPipeline;
   class LogicalDevice;
@@ -120,6 +121,8 @@ namespace ge {
     std::shared_ptr<RectPipeline> m_rectPipeline;
 
     std::shared_ptr<TrianglePipeline> m_trianglePipeline;
+
+    std::shared_ptr<EllipsePipeline> m_ellipsePipeline;
 
     std::shared_ptr<FontPipeline> m_fontPipeline;
 
