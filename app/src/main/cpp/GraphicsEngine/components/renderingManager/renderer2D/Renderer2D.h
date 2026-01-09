@@ -21,7 +21,6 @@ namespace ge {
   class QuadPipeline;
   class Renderer;
   struct RenderInfo;
-  class Surface;
 
   struct Glyph {
     glm::vec4 bounds;
@@ -42,7 +41,6 @@ namespace ge {
   {
   public:
     Renderer2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
-               const std::shared_ptr<Surface>& surface,
                const std::shared_ptr<Renderer>& renderer,
                std::shared_ptr<AssetManager> assetManager,
                VkCommandPool commandPool,

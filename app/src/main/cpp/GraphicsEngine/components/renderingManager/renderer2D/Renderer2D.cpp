@@ -9,7 +9,6 @@
 
 namespace ge {
   Renderer2D::Renderer2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                         const std::shared_ptr<Surface>& surface,
                          const std::shared_ptr<Renderer>& renderer,
                          std::shared_ptr<AssetManager> assetManager,
                          VkCommandPool commandPool,

@@ -25,7 +25,7 @@ namespace ge {
 
     m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapchain, m_commandPool);
 
-    m_renderer2D = std::make_shared<Renderer2D>(m_logicalDevice, m_surface, m_renderer, std::move(assetManager), m_commandPool, descriptorPool);
+    m_renderer2D = std::make_shared<Renderer2D>(m_logicalDevice, m_renderer, std::move(assetManager), m_commandPool, descriptorPool);
   }
 
   void RenderingManager::doRendering(uint32_t currentFrame)
