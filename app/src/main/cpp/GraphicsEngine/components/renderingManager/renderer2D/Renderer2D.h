@@ -81,7 +81,7 @@ namespace ge {
 
     void textSize(uint32_t size);
 
-    void text(std::string text,
+    void text(const std::string& text,
               float x,
               float y);
 
@@ -111,6 +111,8 @@ namespace ge {
     void updateCurrentFont();
 
     void increaseCurrentZ();
+
+    void normalizeZValues();
   };
 
 } // ge

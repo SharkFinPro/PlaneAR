@@ -33,6 +33,8 @@ namespace ge {
 
   void Renderer2D::render(const RenderInfo* renderInfo)
   {
+    normalizeZValues();
+
     m_rectPipeline->render(renderInfo, &m_rectsToRender);
 
     m_fontPipeline->render(renderInfo, &m_glyphsToRender, m_assetManager);
@@ -121,7 +123,7 @@ namespace ge {
     updateCurrentFont();
   }
 
-  void Renderer2D::text(std::string text,
+  void Renderer2D::text(const std::string& text,
                         float x,
                         float y)
   {
@@ -166,5 +168,26 @@ namespace ge {
   void Renderer2D::increaseCurrentZ()
   {
     m_currentZ += 1.0f;
+  }
+
+  void Renderer2D::normalizeZValues()
+  {
+    for (auto& rect : m_rectsToRender)
+    {
+      rect.z /= m_currentZ;
+      rect.z = 1.0f - rect.z;
+    }
+
+    for (auto& font : m_glyphsToRender)
+    {
+      for (auto& fontSize : font.second)
+      {
+        for (auto& glyph : fontSize.second)
+        {
+          glyph.z /= m_currentZ;
+          glyph.z = 1.0f - glyph.z;
+        }
+      }
+    }
   }
 } // ge
