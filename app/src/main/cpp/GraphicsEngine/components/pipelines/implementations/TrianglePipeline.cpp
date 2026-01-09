@@ -41,7 +41,7 @@ namespace ge {
   void TrianglePipeline::render(const RenderInfo* renderInfo,
                                 const std::vector<Triangle>* triangles)
   {
-    renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+    bindPipeline(renderInfo);
 
     for (const auto& triangle : *triangles)
     {

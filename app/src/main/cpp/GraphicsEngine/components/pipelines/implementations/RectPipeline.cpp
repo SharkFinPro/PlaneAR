@@ -44,7 +44,7 @@ namespace ge {
   void RectPipeline::render(const RenderInfo* renderInfo,
                             const std::vector<Rect>* rects)
   {
-    renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+    bindPipeline(renderInfo);
 
     for (const auto& rect : *rects)
     {

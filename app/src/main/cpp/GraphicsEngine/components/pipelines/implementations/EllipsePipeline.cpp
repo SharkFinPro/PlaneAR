@@ -41,7 +41,7 @@ namespace ge {
   void EllipsePipeline::render(const RenderInfo* renderInfo,
                                const std::vector<Ellipse>* ellipses)
   {
-    renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+    bindPipeline(renderInfo);
 
     for (const auto& ellipse : *ellipses)
     {

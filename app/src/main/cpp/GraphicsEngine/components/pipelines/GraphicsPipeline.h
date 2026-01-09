@@ -99,6 +99,8 @@ namespace ge {
     void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);
 
     void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions);
+
+    void bindPipeline(const RenderInfo* renderInfo);
   };
 
 } // ge
