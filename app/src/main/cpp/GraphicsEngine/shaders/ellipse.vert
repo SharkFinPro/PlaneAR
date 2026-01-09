@@ -19,23 +19,10 @@ layout(location = 0) out vec2 fragPos;
 
 void main()
 {
-  vec2 pos = vec2(0, 0);
-  if (gl_VertexIndex == 0)
-  {
-    pos = vec2(pc.x - pc.width / 2.0, pc.y - pc.height / 2.0);
-  }
-  else if (gl_VertexIndex == 1)
-  {
-    pos = vec2(pc.x + pc.width / 2.0, pc.y - pc.height / 2.0);
-  }
-  else if (gl_VertexIndex == 2)
-  {
-    pos = vec2(pc.x - pc.width / 2.0, pc.y + pc.height / 2.0);
-  }
-  else
-  {
-    pos = vec2(pc.x + pc.width / 2.0, pc.y + pc.height / 2.0);
-  }
+  vec2 corner = vec2(gl_VertexIndex & 1, gl_VertexIndex >> 1);
+
+  vec2 pos = vec2(pc.x, pc.y) + (corner * 2.0 - 1.0) * vec2(pc.width, pc.height) * 0.5;
+
 
   pos = (pc.transform * vec4(pos, 0.0, 1.0)).xy;
 
