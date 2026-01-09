@@ -32,13 +32,13 @@ namespace ge {
 
     m_currentTransform = glm::mat4(1.0f);
 
-    m_glyphsToRender.clear();
-
     m_rectsToRender.clear();
 
     m_trianglesToRender.clear();
 
     m_ellipsesToRender.clear();
+
+    m_glyphsToRender.clear();
   }
 
   void Renderer2D::render(const RenderInfo* renderInfo)
