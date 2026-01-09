@@ -138,5 +138,11 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   r->fill(100, 200, 100);
   r->triangle(100, 1200, 200, 1100, 200, 1300);
 
+  r->fill(100, 100, 200);
+  r->ellipse(800, 1500, 400, 200);
+
+  r->fill(200, 50, 50);
+  r->ellipse(800, 1500, 50, 50);
+
   engine->render();
 }
