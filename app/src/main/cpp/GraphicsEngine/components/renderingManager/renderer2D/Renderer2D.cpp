@@ -19,11 +19,11 @@ namespace ge {
   {
     m_rectPipeline = std::make_shared<RectPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager());
 
-    m_fontPipeline = std::make_shared<FontPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager(), m_assetManager->getFontDescriptorSetLayout());
-
     m_trianglePipeline = std::make_shared<TrianglePipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager());
 
     m_ellipsePipeline = std::make_shared<EllipsePipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager());
+
+    m_fontPipeline = std::make_shared<FontPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager(), m_assetManager->getFontDescriptorSetLayout());
   }
 
   void Renderer2D::createNewFrame()
