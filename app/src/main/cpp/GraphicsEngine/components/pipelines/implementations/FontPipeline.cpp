@@ -20,7 +20,7 @@ namespace ge {
       },
       .states {
         .colorBlendState = gps::colorBlendStateTransparent,
-        .depthStencilState = gps::depthStencilStateNone,
+        .depthStencilState = gps::depthStencilState,
         .dynamicState = gps::dynamicState,
         .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
         .multisampleState = gps::getMultsampleState(m_logicalDevice),
@@ -48,7 +48,7 @@ namespace ge {
                             const std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>>* glyphs,
                             const std::shared_ptr<AssetManager>& assetManager)
   {
-    renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+    bindPipeline(renderInfo);
 
     for (const auto& [fontName, fontSizes] : *glyphs)
     {

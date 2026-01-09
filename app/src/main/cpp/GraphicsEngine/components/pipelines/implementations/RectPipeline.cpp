@@ -1,0 +1,78 @@
+#include "RectPipeline.h"
+#include "common/GraphicsPipelineStates.h"
+#include "../../commandBuffer/CommandBuffer.h"
+#include "../../renderingManager/renderer2D/Renderer2D.h"
+#include "../../surface/Surface.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include <utility>
+
+namespace ge {
+  RectPipeline::RectPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                             std::shared_ptr<RenderPass> renderPass,
+                             AAssetManager* assetManager)
+    : GraphicsPipeline(logicalDevice)
+  {
+    const GraphicsPipelineOptions graphicsPipelineOptions {
+      .shaders {
+        .assetManager = assetManager,
+        .vertexShader = "shaders/rect.vert.spv",
+        .fragmentShader = "shaders/rect.frag.spv"
+      },
+      .states {
+        .colorBlendState = gps::colorBlendStateTransparent,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
+        .multisampleState = gps::getMultsampleState(m_logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(RectPushConstant)
+        }
+      },
+      .renderPass = renderPass
+    };
+
+    createPipeline(graphicsPipelineOptions);
+  }
+
+  void RectPipeline::render(const RenderInfo* renderInfo,
+                            const std::vector<Rect>* rects)
+  {
+    bindPipeline(renderInfo);
+
+    for (const auto& rect : *rects)
+    {
+      renderRect(renderInfo, rect);
+    }
+  }
+
+  void RectPipeline::renderRect(const RenderInfo* renderInfo,
+                                Rect rect)
+  {
+    RectPushConstant rectPC {
+      .transform = rect.transform,
+      .screenWidth = static_cast<int>(renderInfo->extent.width),
+      .screenHeight = static_cast<int>(renderInfo->extent.height),
+      .z = rect.z,
+      .x = rect.bounds.x,
+      .y = rect.bounds.y,
+      .width = rect.bounds.z,
+      .height = rect.bounds.w,
+      .r = rect.color.r,
+      .g = rect.color.g,
+      .b = rect.color.b,
+      .a = rect.color.a
+    };
+
+    renderInfo->commandBuffer->pushConstants(m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                                             0, sizeof(RectPushConstant), &rectPC);
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
+  }
+} // ge

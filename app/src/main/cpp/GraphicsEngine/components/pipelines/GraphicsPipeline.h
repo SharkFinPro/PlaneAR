@@ -93,12 +93,14 @@ namespace ge {
   class GraphicsPipeline : public Pipeline
   {
   public:
-    explicit GraphicsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
+    explicit GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice);
 
   protected:
     void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);
 
     void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions);
+
+    void bindPipeline(const RenderInfo* renderInfo);
   };
 
 } // ge

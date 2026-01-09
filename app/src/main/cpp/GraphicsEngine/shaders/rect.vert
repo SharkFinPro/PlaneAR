@@ -1,9 +1,10 @@
 #version 450
 
-layout(push_constant) uniform QuadPC {
+layout(push_constant) uniform RectPC {
   mat4 transformation;
   int screenWidth;
   int screenHeight;
+  float z;
   float x;
   float y;
   float width;
@@ -12,23 +13,9 @@ layout(push_constant) uniform QuadPC {
 
 void main()
 {
-  vec2 pos = vec2(0, 0);
-  if (gl_VertexIndex == 0)
-  {
-    pos = vec2(pc.x, pc.y);
-  }
-  else if (gl_VertexIndex == 1)
-  {
-    pos = vec2(pc.x + pc.width, pc.y);
-  }
-  else if (gl_VertexIndex == 2)
-  {
-    pos = vec2(pc.x, pc.y + pc.height);
-  }
-  else
-  {
-    pos = vec2(pc.x + pc.width, pc.y + pc.height);
-  }
+  vec2 corner = vec2(gl_VertexIndex & 1, gl_VertexIndex >> 1);
+
+  vec2 pos = vec2(pc.x, pc.y) + corner * vec2(pc.width, pc.height);
 
   pos = (pc.transformation * vec4(pos, 0.0, 1.0)).xy;
 

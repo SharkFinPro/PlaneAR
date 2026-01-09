@@ -15,13 +15,14 @@ namespace ge {
 
   class AssetManager;
   class CommandBuffer;
+  class EllipsePipeline;
   class Font;
   class FontPipeline;
   class LogicalDevice;
-  class QuadPipeline;
+  class RectPipeline;
   class Renderer;
   struct RenderInfo;
-  class Surface;
+  class TrianglePipeline;
 
   struct Glyph {
     glm::vec4 bounds;
@@ -31,11 +32,33 @@ namespace ge {
     float z;
   };
 
+  struct Rect {
+    glm::vec4 bounds;
+    glm::vec4 color;
+    glm::mat4 transform;
+    float z;
+  };
+
+  struct Triangle {
+    glm::vec2 p1;
+    glm::vec2 p2;
+    glm::vec2 p3;
+    glm::vec4 color;
+    glm::mat4 transform;
+    float z;
+  };
+
+  struct Ellipse {
+    glm::vec4 bounds;
+    glm::vec4 color;
+    glm::mat4 transform;
+    float z;
+  };
+
   class Renderer2D
   {
   public:
     Renderer2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
-               const std::shared_ptr<Surface>& surface,
                const std::shared_ptr<Renderer>& renderer,
                std::shared_ptr<AssetManager> assetManager,
                VkCommandPool commandPool,
@@ -69,6 +92,18 @@ namespace ge {
               float width,
               float height);
 
+    void triangle(float x1,
+                  float y1,
+                  float x2,
+                  float y2,
+                  float x3,
+                  float y3);
+
+    void ellipse(float x,
+                 float y,
+                 float width,
+                 float height);
+
     void textFont(const std::string& font);
 
     void textFont(const std::string& font,
@@ -76,14 +111,18 @@ namespace ge {
 
     void textSize(uint32_t size);
 
-    void text(std::string text,
+    void text(const std::string& text,
               float x,
               float y);
 
   private:
     std::shared_ptr<AssetManager> m_assetManager;
 
-    std::shared_ptr<QuadPipeline> m_quadPipeline;
+    std::shared_ptr<RectPipeline> m_rectPipeline;
+
+    std::shared_ptr<TrianglePipeline> m_trianglePipeline;
+
+    std::shared_ptr<EllipsePipeline> m_ellipsePipeline;
 
     std::shared_ptr<FontPipeline> m_fontPipeline;
 
@@ -92,6 +131,12 @@ namespace ge {
     glm::mat4 m_currentTransform = glm::mat4(1.0f);
 
     std::vector<glm::mat4> m_transformStack;
+
+    std::vector<Rect> m_rectsToRender;
+
+    std::vector<Triangle> m_trianglesToRender;
+
+    std::vector<Ellipse> m_ellipsesToRender;
 
     std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>> m_glyphsToRender;
 
@@ -104,6 +149,8 @@ namespace ge {
     void updateCurrentFont();
 
     void increaseCurrentZ();
+
+    void normalizeZValues();
   };
 
 } // ge

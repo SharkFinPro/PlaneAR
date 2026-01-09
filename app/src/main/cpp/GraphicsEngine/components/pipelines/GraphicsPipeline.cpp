@@ -1,11 +1,12 @@
 #include "GraphicsPipeline.h"
+#include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
 #include "../renderPass/RenderPass.h"
 
 namespace ge {
-  GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice)
-    : Pipeline(logicalDevice)
+  GraphicsPipeline::GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice)
+    : Pipeline(std::move(logicalDevice))
   {}
 
   void GraphicsPipeline::createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions)
@@ -59,5 +60,10 @@ namespace ge {
     };
 
     m_pipeline = m_logicalDevice->createPipeline(pipelineInfo);
+  }
+
+  void GraphicsPipeline::bindPipeline(const RenderInfo* renderInfo)
+  {
+    renderInfo->commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
   }
 } // ge

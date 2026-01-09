@@ -2,8 +2,8 @@
 #include "../logicalDevice/LogicalDevice.h"
 
 namespace ge {
-  Pipeline::Pipeline(const std::shared_ptr<LogicalDevice>& logicalDevice)
-    : m_logicalDevice(logicalDevice)
+  Pipeline::Pipeline(std::shared_ptr<LogicalDevice> logicalDevice)
+    : m_logicalDevice(std::move(logicalDevice))
   {}
 
   Pipeline::~Pipeline()

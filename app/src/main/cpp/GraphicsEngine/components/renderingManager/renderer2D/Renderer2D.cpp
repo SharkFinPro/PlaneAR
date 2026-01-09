@@ -2,21 +2,26 @@
 #include "../../assets/AssetManager.h"
 #include "../../assets/fonts/Font.h"
 #include "../../pipelines/GraphicsPipeline.h"
+#include "../../pipelines/implementations/EllipsePipeline.h"
 #include "../../pipelines/implementations/FontPipeline.h"
-#include "../../pipelines/implementations/QuadPipeline.h"
+#include "../../pipelines/implementations/RectPipeline.h"
+#include "../../pipelines/implementations/TrianglePipeline.h"
 #include "../../renderingManager/LegacyRenderer.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace ge {
   Renderer2D::Renderer2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                         const std::shared_ptr<Surface>& surface,
                          const std::shared_ptr<Renderer>& renderer,
                          std::shared_ptr<AssetManager> assetManager,
                          VkCommandPool commandPool,
                          VkDescriptorPool descriptorPool)
     : m_assetManager(std::move(assetManager))
   {
-    m_quadPipeline = std::make_shared<QuadPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager(), surface);
+    m_rectPipeline = std::make_shared<RectPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager());
+
+    m_trianglePipeline = std::make_shared<TrianglePipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager());
+
+    m_ellipsePipeline = std::make_shared<EllipsePipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager());
 
     m_fontPipeline = std::make_shared<FontPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager(), m_assetManager->getFontDescriptorSetLayout());
   }
@@ -25,16 +30,26 @@ namespace ge {
   {
     m_currentZ = 0.0f;
 
-    m_quadPipeline->createNewFrame();
-
     m_currentTransform = glm::mat4(1.0f);
+
+    m_rectsToRender.clear();
+
+    m_trianglesToRender.clear();
+
+    m_ellipsesToRender.clear();
 
     m_glyphsToRender.clear();
   }
 
   void Renderer2D::render(const RenderInfo* renderInfo)
   {
-    m_quadPipeline->render(renderInfo->commandBuffer);
+    normalizeZValues();
+
+    m_rectPipeline->render(renderInfo, &m_rectsToRender);
+
+    m_trianglePipeline->render(renderInfo, &m_trianglesToRender);
+
+    m_ellipsePipeline->render(renderInfo, &m_ellipsesToRender);
 
     m_fontPipeline->render(renderInfo, &m_glyphsToRender, m_assetManager);
   }
@@ -90,17 +105,48 @@ namespace ge {
 
   void Renderer2D::rect(float x, float y, float width, float height)
   {
-    m_quadPipeline->queueRectToRender(
-      x,
-      y,
-      width,
-      height,
-      m_currentFill.r,
-      m_currentFill.g,
-      m_currentFill.b,
-      m_currentFill.a,
-      m_currentTransform
-    );
+    m_rectsToRender.push_back({
+      .bounds = glm::vec4(x, y, width, height),
+      .color = m_currentFill,
+      .transform = m_currentTransform,
+      .z = m_currentZ
+    });
+
+    increaseCurrentZ();
+  }
+
+  void Renderer2D::triangle(const float x1,
+                            const float y1,
+                            const float x2,
+                            const float y2,
+                            const float x3,
+                            const float y3)
+  {
+    m_trianglesToRender.push_back({
+      .p1 = glm::vec2(x1, y1),
+      .p2 = glm::vec2(x2, y2),
+      .p3 = glm::vec2(x3, y3),
+      .color = m_currentFill,
+      .transform = m_currentTransform,
+      .z = m_currentZ
+    });
+
+    increaseCurrentZ();
+  }
+
+  void Renderer2D::ellipse(const float x,
+                           const float y,
+                           const float width,
+                           const float height)
+  {
+    m_ellipsesToRender.push_back({
+      .bounds = glm::vec4(x, y, width, height),
+      .color = m_currentFill,
+      .transform = m_currentTransform,
+      .z = m_currentZ
+    });
+
+    increaseCurrentZ();
   }
 
   void Renderer2D::textFont(const std::string &font)
@@ -125,7 +171,7 @@ namespace ge {
     updateCurrentFont();
   }
 
-  void Renderer2D::text(std::string text,
+  void Renderer2D::text(const std::string& text,
                         float x,
                         float y)
   {
@@ -170,5 +216,38 @@ namespace ge {
   void Renderer2D::increaseCurrentZ()
   {
     m_currentZ += 1.0f;
+  }
+
+  void Renderer2D::normalizeZValues()
+  {
+    for (auto& rect : m_rectsToRender)
+    {
+      rect.z /= m_currentZ;
+      rect.z = 1.0f - rect.z;
+    }
+
+    for (auto& triangle : m_trianglesToRender)
+    {
+      triangle.z /= m_currentZ;
+      triangle.z = 1.0f - triangle.z;
+    }
+
+    for (auto& ellipse : m_ellipsesToRender)
+    {
+      ellipse.z /= m_currentZ;
+      ellipse.z = 1.0f - ellipse.z;
+    }
+
+    for (auto& font : m_glyphsToRender)
+    {
+      for (auto& fontSize : font.second)
+      {
+        for (auto& glyph : fontSize.second)
+        {
+          glyph.z /= m_currentZ;
+          glyph.z = 1.0f - glyph.z;
+        }
+      }
+    }
   }
 } // ge
