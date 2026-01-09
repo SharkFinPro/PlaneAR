@@ -11,7 +11,7 @@ namespace ge {
   class Pipeline
   {
   public:
-    explicit Pipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
+    explicit Pipeline(std::shared_ptr<LogicalDevice> logicalDevice);
 
     virtual ~Pipeline();
 

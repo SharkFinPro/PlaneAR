@@ -4,8 +4,8 @@
 #include "../renderPass/RenderPass.h"
 
 namespace ge {
-  GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice)
-    : Pipeline(logicalDevice)
+  GraphicsPipeline::GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice)
+    : Pipeline(std::move(logicalDevice))
   {}
 
   void GraphicsPipeline::createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions)
