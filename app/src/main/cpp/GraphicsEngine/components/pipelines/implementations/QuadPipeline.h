@@ -9,25 +9,13 @@ struct AAssetManager;
 
 namespace ge {
 
-  class CommandBuffer;
-  class Surface;
-
-  struct Rect {
-    float x;
-    float y;
-    float width;
-    float height;
-    float r;
-    float g;
-    float b;
-    float a;
-    glm::mat4 transformation;
-  };
+  struct Rect;
 
   struct QuadPushConstant {
-    glm::mat4 transformation;
+    glm::mat4 transform;
     int screenWidth;
     int screenHeight;
+    float z;
     float x;
     float y;
     float width;
@@ -43,29 +31,13 @@ namespace ge {
   public:
     QuadPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice,
                  std::shared_ptr<RenderPass> renderPass,
-                 AAssetManager* assetManager,
-                 std::shared_ptr<Surface> surface);
+                 AAssetManager* assetManager);
 
-    void render(const std::shared_ptr<CommandBuffer>& commandBuffer);
-
-    void queueRectToRender(float x,
-                           float y,
-                           float width,
-                           float height,
-                           float r,
-                           float g,
-                           float b,
-                           float a,
-                           glm::mat4 transformation);
-
-    void createNewFrame();
+    void render(const RenderInfo* renderInfo,
+                const std::vector<Rect>* rects);
 
   private:
-    std::shared_ptr<Surface> m_surface;
-
-    std::vector<Rect> m_rectsToRender;
-
-    void renderRect(const std::shared_ptr<CommandBuffer>& commandBuffer,
+    void renderRect(const RenderInfo* renderInfo,
                     Rect rect);
   };
 

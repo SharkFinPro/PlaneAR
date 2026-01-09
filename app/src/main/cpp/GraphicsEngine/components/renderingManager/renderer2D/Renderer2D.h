@@ -31,6 +31,13 @@ namespace ge {
     float z;
   };
 
+  struct Rect {
+    glm::vec4 bounds;
+    glm::vec4 color;
+    glm::mat4 transform;
+    float z;
+  };
+
   class Renderer2D
   {
   public:
@@ -98,6 +105,8 @@ namespace ge {
     std::shared_ptr<Font> m_currentFont;
     std::string m_currentFontName;
     uint32_t m_currentFontSize = 12;
+
+    std::vector<Rect> m_rectsToRender;
 
     float m_currentZ = 0.0f;
 

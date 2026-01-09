@@ -16,7 +16,7 @@ namespace ge {
                          VkDescriptorPool descriptorPool)
     : m_assetManager(std::move(assetManager))
   {
-    m_quadPipeline = std::make_shared<QuadPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager(), surface);
+    m_quadPipeline = std::make_shared<QuadPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager());
 
     m_fontPipeline = std::make_shared<FontPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager(), m_assetManager->getFontDescriptorSetLayout());
   }
@@ -25,16 +25,16 @@ namespace ge {
   {
     m_currentZ = 0.0f;
 
-    m_quadPipeline->createNewFrame();
-
     m_currentTransform = glm::mat4(1.0f);
 
     m_glyphsToRender.clear();
+
+    m_rectsToRender.clear();
   }
 
   void Renderer2D::render(const RenderInfo* renderInfo)
   {
-    m_quadPipeline->render(renderInfo->commandBuffer);
+    m_quadPipeline->render(renderInfo, &m_rectsToRender);
 
     m_fontPipeline->render(renderInfo, &m_glyphsToRender, m_assetManager);
   }
@@ -90,17 +90,14 @@ namespace ge {
 
   void Renderer2D::rect(float x, float y, float width, float height)
   {
-    m_quadPipeline->queueRectToRender(
-      x,
-      y,
-      width,
-      height,
-      m_currentFill.r,
-      m_currentFill.g,
-      m_currentFill.b,
-      m_currentFill.a,
-      m_currentTransform
-    );
+    m_rectsToRender.push_back({
+      .bounds = glm::vec4(x, y, width, height),
+      .color = m_currentFill,
+      .transform = m_currentTransform,
+      .z = m_currentZ
+    });
+
+    increaseCurrentZ();
   }
 
   void Renderer2D::textFont(const std::string &font)
