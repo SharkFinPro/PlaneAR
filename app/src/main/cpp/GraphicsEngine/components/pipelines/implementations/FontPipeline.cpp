@@ -20,7 +20,7 @@ namespace ge {
       },
       .states {
         .colorBlendState = gps::colorBlendStateTransparent,
-        .depthStencilState = gps::depthStencilStateNone,
+        .depthStencilState = gps::depthStencilState,
         .dynamicState = gps::dynamicState,
         .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
         .multisampleState = gps::getMultsampleState(m_logicalDevice),
