@@ -29,6 +29,8 @@ namespace ge {
     m_glyphsToRender.clear();
 
     m_rectsToRender.clear();
+
+    m_trianglesToRender.clear();
   }
 
   void Renderer2D::render(const RenderInfo* renderInfo)
@@ -93,6 +95,25 @@ namespace ge {
   {
     m_rectsToRender.push_back({
       .bounds = glm::vec4(x, y, width, height),
+      .color = m_currentFill,
+      .transform = m_currentTransform,
+      .z = m_currentZ
+    });
+
+    increaseCurrentZ();
+  }
+
+  void Renderer2D::triangle(const float x1,
+                            const float y1,
+                            const float x2,
+                            const float y2,
+                            const float x3,
+                            const float y3)
+  {
+    m_trianglesToRender.push_back({
+      .p1 = glm::vec2(x1, y1),
+      .p2 = glm::vec2(x2, y2),
+      .p3 = glm::vec2(x3, y3),
       .color = m_currentFill,
       .transform = m_currentTransform,
       .z = m_currentZ
@@ -176,6 +197,12 @@ namespace ge {
     {
       rect.z /= m_currentZ;
       rect.z = 1.0f - rect.z;
+    }
+
+    for (auto& triangle : m_trianglesToRender)
+    {
+      triangle.z /= m_currentZ;
+      triangle.z = 1.0f - triangle.z;
     }
 
     for (auto& font : m_glyphsToRender)

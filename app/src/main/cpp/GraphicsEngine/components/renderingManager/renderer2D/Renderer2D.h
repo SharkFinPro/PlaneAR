@@ -37,6 +37,15 @@ namespace ge {
     float z;
   };
 
+  struct Triangle {
+    glm::vec2 p1;
+    glm::vec2 p2;
+    glm::vec2 p3;
+    glm::vec4 color;
+    glm::mat4 transform;
+    float z;
+  };
+
   class Renderer2D
   {
   public:
@@ -74,6 +83,13 @@ namespace ge {
               float width,
               float height);
 
+    void triangle(float x1,
+                  float y1,
+                  float x2,
+                  float y2,
+                  float x3,
+                  float y3);
+
     void textFont(const std::string& font);
 
     void textFont(const std::string& font,
@@ -105,6 +121,8 @@ namespace ge {
     uint32_t m_currentFontSize = 12;
 
     std::vector<Rect> m_rectsToRender;
+
+    std::vector<Triangle> m_trianglesToRender;
 
     float m_currentZ = 0.0f;
 
