@@ -18,6 +18,7 @@ namespace ge {
   class CommandBuffer;
   class Font;
   class LogicalDevice;
+  class PipelineManager;
   class Renderer;
   struct RenderInfo;
 
@@ -28,7 +29,8 @@ namespace ge {
 
     void createNewFrame();
 
-    void render(const RenderInfo* renderInfo);
+    void render(const std::shared_ptr<PipelineManager>& pipelineManager,
+                const RenderInfo* renderInfo);
 
     void fill(float r,
               float g,
@@ -105,6 +107,34 @@ namespace ge {
     void increaseCurrentZ();
 
     void normalizeZValues();
+
+    void renderRects(const std::shared_ptr<PipelineManager>& pipelineManager,
+                     const RenderInfo* renderInfo) const;
+
+    static void renderRect(const std::shared_ptr<PipelineManager>& pipelineManager,
+                           const RenderInfo* renderInfo,
+                           const Rect& rect);
+
+    void renderTriangles(const std::shared_ptr<PipelineManager>& pipelineManager,
+                         const RenderInfo* renderInfo) const;
+
+    static void renderTriangle(const std::shared_ptr<PipelineManager>& pipelineManager,
+                               const RenderInfo* renderInfo,
+                               const Triangle& triangle);
+
+    void renderEllipses(const std::shared_ptr<PipelineManager>& pipelineManager,
+                        const RenderInfo* renderInfo) const;
+
+    static void renderEllipse(const std::shared_ptr<PipelineManager>& pipelineManager,
+                              const RenderInfo* renderInfo,
+                              const Ellipse& ellipse);
+
+    void renderGlyphs(const std::shared_ptr<PipelineManager>& pipelineManager,
+                      const RenderInfo* renderInfo) const;
+
+    static void renderGlyph(const std::shared_ptr<PipelineManager>& pipelineManager,
+                            const RenderInfo* renderInfo,
+                            const Glyph& glyph);
   };
 
 } // ge

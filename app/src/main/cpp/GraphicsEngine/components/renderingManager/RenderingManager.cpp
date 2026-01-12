@@ -25,7 +25,8 @@ namespace ge {
     m_renderer2D = std::make_shared<Renderer2D>(std::move(assetManager));
   }
 
-  void RenderingManager::doRendering(uint32_t currentFrame)
+  void RenderingManager::doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                     uint32_t currentFrame)
   {
     m_logicalDevice->waitForGraphicsFences(currentFrame);
 
@@ -41,7 +42,7 @@ namespace ge {
 
     m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
     m_swapchainCommandBuffer->resetCommandBuffer();
-    recordSwapchainCommandBuffer(currentFrame, imageIndex);
+    recordSwapchainCommandBuffer(pipelineManager, currentFrame, imageIndex);
     m_logicalDevice->submitGraphicsQueue(currentFrame, imageIndex, m_swapchainCommandBuffer);
 
     result = m_logicalDevice->queuePresent(imageIndex, m_swapchain);
@@ -67,9 +68,11 @@ namespace ge {
     return m_renderer2D;
   }
 
-  void RenderingManager::recordSwapchainCommandBuffer(uint32_t currentFrame, uint32_t imageIndex) const
+  void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                      uint32_t currentFrame,
+                                                      uint32_t imageIndex) const
   {
-    m_swapchainCommandBuffer->record([this, currentFrame, imageIndex]()
+    m_swapchainCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]
     {
       RenderInfo renderInfo {
         .commandBuffer = m_swapchainCommandBuffer,
@@ -95,7 +98,7 @@ namespace ge {
       };
       renderInfo.commandBuffer->setScissor(scissor);
 
-      m_renderer2D->render(&renderInfo);
+      m_renderer2D->render(pipelineManager, &renderInfo);
 
       m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapchain);
     });

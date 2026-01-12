@@ -34,7 +34,7 @@ namespace ge {
 
   void GraphicsEngine::render()
   {
-    m_renderingManager->doRendering(m_currentFrame);
+    m_renderingManager->doRendering(m_pipelineManager, m_currentFrame);
 
     createNewFrame();
   }
