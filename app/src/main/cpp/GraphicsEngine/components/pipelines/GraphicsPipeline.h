@@ -95,6 +95,12 @@ namespace ge {
   public:
     explicit GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice);
 
+    void bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
+    void bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                           VkDescriptorSet descriptorSet,
+                           uint32_t location) const;
+
   protected:
     void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);
 

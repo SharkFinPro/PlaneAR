@@ -3,11 +3,13 @@
 
 #include <vulkan/vulkan.h>
 #include <memory>
+#include <unordered_map>
 
 namespace ge {
 
   class AssetManager;
   class CommandBuffer;
+  class GraphicsPipeline;
   class LogicalDevice;
   class Renderer;
 
@@ -36,6 +38,11 @@ namespace ge {
                                            PipelineType pipelineType,
                                            VkDescriptorSet descriptorSet,
                                            uint32_t location) const;
+
+  private:
+    std::unordered_map<PipelineType, std::unique_ptr<GraphicsPipeline>> m_graphicsPipelines;
+
+    [[nodiscard]] const GraphicsPipeline& getGraphicsPipeline(PipelineType pipelineType) const;
   };
 
 } // ge
