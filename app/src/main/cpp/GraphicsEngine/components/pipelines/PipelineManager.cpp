@@ -1,7 +1,10 @@
 #include "PipelineManager.h"
 #include "GraphicsPipeline.h"
+#include "PipelineConfig.h"
+#include "../assets/AssetManager.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
+#include "../renderingManager/Renderer.h"
 
 namespace ge {
   PipelineManager::PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -93,7 +96,23 @@ namespace ge {
   void PipelineManager::createPipelines(const std::shared_ptr<Renderer>& renderer,
                                         const std::shared_ptr<AssetManager>& assetManager)
   {
+    const auto renderPass = renderer->getRenderPass();
 
+    createGraphicsPipeline(PipelineType::rect,
+                           PipelineConfig::createRectPipelineOptions(m_logicalDevice,
+                           renderPass, assetManager->getAAssetManager()));
+
+    createGraphicsPipeline(PipelineType::triangle,
+                           PipelineConfig::createTrianglePipelineOptions(m_logicalDevice,
+                           renderPass, assetManager->getAAssetManager()));
+
+    createGraphicsPipeline(PipelineType::ellipse,
+                           PipelineConfig::createEllipsePipelineOptions(m_logicalDevice,
+                           renderPass, assetManager->getAAssetManager()));
+
+    createGraphicsPipeline(PipelineType::font,
+                           PipelineConfig::createFontPipelineOptions(m_logicalDevice, renderPass,
+                           assetManager->getAAssetManager(), assetManager->getFontDescriptorSetLayout()));
   }
 
   void PipelineManager::createGraphicsPipeline(PipelineType pipelineType,

@@ -14,7 +14,12 @@ namespace ge {
   class LogicalDevice;
   class Renderer;
 
-  enum class PipelineType;
+  enum class PipelineType {
+    rect,
+    triangle,
+    ellipse,
+    font
+  };
 
   class PipelineManager
   {
