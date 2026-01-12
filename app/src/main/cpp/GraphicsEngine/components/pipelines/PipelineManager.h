@@ -40,7 +40,17 @@ namespace ge {
                                            uint32_t location) const;
 
   private:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+
+    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+
     std::unordered_map<PipelineType, std::unique_ptr<GraphicsPipeline>> m_graphicsPipelines;
+
+    void createCommandPool();
+
+    void createDescriptorPool();
 
     [[nodiscard]] const GraphicsPipeline& getGraphicsPipeline(PipelineType pipelineType) const;
   };
