@@ -9,6 +9,13 @@ namespace ge {
     : Pipeline(std::move(logicalDevice))
   {}
 
+  GraphicsPipeline::GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+                                     const GraphicsPipelineOptions& graphicsPipelineOptions)
+    : Pipeline(std::move(logicalDevice))
+  {
+    createPipeline(graphicsPipelineOptions);
+  }
+
   void GraphicsPipeline::bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const
   {
     commandBuffer->bindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);

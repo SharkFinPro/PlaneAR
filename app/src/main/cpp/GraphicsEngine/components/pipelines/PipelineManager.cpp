@@ -12,6 +12,8 @@ namespace ge {
     createCommandPool();
 
     createDescriptorPool();
+
+    createPipelines(renderer, assetManager);
   }
 
   PipelineManager::~PipelineManager()
@@ -86,5 +88,17 @@ namespace ge {
     }
 
     return *it->second;
+  }
+
+  void PipelineManager::createPipelines(const std::shared_ptr<Renderer>& renderer,
+                                        const std::shared_ptr<AssetManager>& assetManager)
+  {
+
+  }
+
+  void PipelineManager::createGraphicsPipeline(PipelineType pipelineType,
+                                               const GraphicsPipelineOptions& graphicsPipelineOptions)
+  {
+    m_graphicsPipelines[pipelineType] = std::make_unique<GraphicsPipeline>(m_logicalDevice, graphicsPipelineOptions);
   }
 } // ge

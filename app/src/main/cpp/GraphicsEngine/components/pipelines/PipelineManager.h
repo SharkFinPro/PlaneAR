@@ -10,6 +10,7 @@ namespace ge {
   class AssetManager;
   class CommandBuffer;
   class GraphicsPipeline;
+  struct GraphicsPipelineOptions;
   class LogicalDevice;
   class Renderer;
 
@@ -51,6 +52,12 @@ namespace ge {
     void createCommandPool();
 
     void createDescriptorPool();
+
+    void createPipelines(const std::shared_ptr<Renderer>& renderer,
+                         const std::shared_ptr<AssetManager>& assetManager);
+
+    void createGraphicsPipeline(PipelineType pipelineType,
+                                const GraphicsPipelineOptions& graphicsPipelineOptions);
 
     [[nodiscard]] const GraphicsPipeline& getGraphicsPipeline(PipelineType pipelineType) const;
   };
