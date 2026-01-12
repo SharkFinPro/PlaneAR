@@ -18,10 +18,6 @@ add_library(${PROJECT_NAME} SHARED
   components/logicalDevice/LogicalDevice.cpp
   components/surface/Surface.cpp
   components/physicalDevice/PhysicalDevice.cpp
-  components/pipelines/implementations/EllipsePipeline.cpp
-  components/pipelines/implementations/FontPipeline.cpp
-  components/pipelines/implementations/RectPipeline.cpp
-  components/pipelines/implementations/TrianglePipeline.cpp
   components/pipelines/GraphicsPipeline.cpp
   components/pipelines/Pipeline.cpp
   components/pipelines/PipelineManager.cpp

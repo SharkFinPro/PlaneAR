@@ -24,11 +24,7 @@ namespace ge {
   class Renderer2D
   {
   public:
-    Renderer2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
-               const std::shared_ptr<Renderer>& renderer,
-               std::shared_ptr<AssetManager> assetManager,
-               VkCommandPool commandPool,
-               VkDescriptorPool descriptorPool);
+    Renderer2D(std::shared_ptr<AssetManager> assetManager);
 
     void createNewFrame();
 

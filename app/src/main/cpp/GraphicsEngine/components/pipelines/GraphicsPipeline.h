@@ -87,7 +87,7 @@ namespace ge {
 
     std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
 
-    std::shared_ptr<RenderPass>& renderPass;
+    const std::shared_ptr<RenderPass>& renderPass;
   };
 
   class GraphicsPipeline : public Pipeline

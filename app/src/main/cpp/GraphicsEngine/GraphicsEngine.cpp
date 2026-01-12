@@ -18,7 +18,7 @@ namespace ge {
 
     initializeVulkan();
 
-    createPools();
+    createCommandPool();
 
     createComponents();
   }
@@ -28,8 +28,6 @@ namespace ge {
     LOGI("Destroying Graphics Engine!");
 
     m_logicalDevice->waitIdle();
-
-    m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
 
     m_logicalDevice->destroyCommandPool(m_commandPool);
   }
@@ -62,13 +60,6 @@ namespace ge {
     m_logicalDevice = std::make_shared<LogicalDevice>(m_physicalDevice);
   }
 
-  void GraphicsEngine::createPools()
-  {
-    createCommandPool();
-
-    createDescriptorPool();
-  }
-
   void GraphicsEngine::createCommandPool()
   {
     const auto queueFamilyIndices = m_physicalDevice->getQueueFamilies();
@@ -82,24 +73,6 @@ namespace ge {
     m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
   }
 
-  void GraphicsEngine::createDescriptorPool()
-  {
-    const std::array<VkDescriptorPoolSize, 3> poolSizes {{
-       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
-       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 50},
-       {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 10}
-     }};
-
-    const VkDescriptorPoolCreateInfo poolCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 30,
-      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-      .pPoolSizes = poolSizes.data()
-    };
-
-    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
-  }
-
   void GraphicsEngine::createComponents()
   {
     m_assetManager = std::make_shared<AssetManager>(
@@ -111,8 +84,7 @@ namespace ge {
       m_logicalDevice,
       m_surface,
       m_assetManager,
-      m_commandPool,
-      m_descriptorPool
+      m_commandPool
     );
 
     m_pipelineManager = std::make_shared<PipelineManager>(

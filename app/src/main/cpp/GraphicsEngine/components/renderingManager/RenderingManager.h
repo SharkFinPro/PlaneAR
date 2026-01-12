@@ -22,8 +22,7 @@ namespace ge {
     RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                      const std::shared_ptr<Surface>& surface,
                      std::shared_ptr<AssetManager> assetManager,
-                     VkCommandPool commandPool,
-                     VkDescriptorPool descriptorPool);
+                     VkCommandPool commandPool);
 
     void doRendering(uint32_t currentFrame);
 

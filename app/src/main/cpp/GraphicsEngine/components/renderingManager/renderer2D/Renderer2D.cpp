@@ -2,29 +2,13 @@
 #include "../../assets/AssetManager.h"
 #include "../../assets/fonts/Font.h"
 #include "../../pipelines/GraphicsPipeline.h"
-#include "../../pipelines/implementations/EllipsePipeline.h"
-#include "../../pipelines/implementations/FontPipeline.h"
-#include "../../pipelines/implementations/RectPipeline.h"
-#include "../../pipelines/implementations/TrianglePipeline.h"
 #include "../../renderingManager/LegacyRenderer.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace ge {
-  Renderer2D::Renderer2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                         const std::shared_ptr<Renderer>& renderer,
-                         std::shared_ptr<AssetManager> assetManager,
-                         VkCommandPool commandPool,
-                         VkDescriptorPool descriptorPool)
+  Renderer2D::Renderer2D(std::shared_ptr<AssetManager> assetManager)
     : m_assetManager(std::move(assetManager))
-  {
-    m_rectPipeline = std::make_shared<RectPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager());
-
-    m_trianglePipeline = std::make_shared<TrianglePipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager());
-
-    m_ellipsePipeline = std::make_shared<EllipsePipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager());
-
-    m_fontPipeline = std::make_shared<FontPipeline>(logicalDevice, renderer->getRenderPass(), m_assetManager->getAAssetManager(), m_assetManager->getFontDescriptorSetLayout());
-  }
+  {}
 
   void Renderer2D::createNewFrame()
   {
@@ -45,13 +29,13 @@ namespace ge {
   {
     normalizeZValues();
 
-    m_rectPipeline->render(renderInfo, &m_rectsToRender);
-
-    m_trianglePipeline->render(renderInfo, &m_trianglesToRender);
-
-    m_ellipsePipeline->render(renderInfo, &m_ellipsesToRender);
-
-    m_fontPipeline->render(renderInfo, &m_glyphsToRender, m_assetManager);
+//    m_rectPipeline->render(renderInfo, &m_rectsToRender);
+//
+//    m_trianglePipeline->render(renderInfo, &m_trianglesToRender);
+//
+//    m_ellipsePipeline->render(renderInfo, &m_ellipsesToRender);
+//
+//    m_fontPipeline->render(renderInfo, &m_glyphsToRender, m_assetManager);
   }
 
   void Renderer2D::fill(const float r,

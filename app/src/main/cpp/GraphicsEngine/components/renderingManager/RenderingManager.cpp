@@ -4,8 +4,6 @@
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../pipelines/GraphicsPipeline.h"
-#include "../pipelines/implementations/FontPipeline.h"
-#include "../pipelines/implementations/RectPipeline.h"
 #include "../surface/Swapchain.h"
 #include <utility>
 
@@ -14,8 +12,7 @@ namespace ge {
   RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                      const std::shared_ptr<Surface>& surface,
                                      std::shared_ptr<AssetManager> assetManager,
-                                     VkCommandPool commandPool,
-                                     VkDescriptorPool descriptorPool)
+                                     VkCommandPool commandPool)
     : m_logicalDevice(logicalDevice), m_surface(surface), m_commandPool(commandPool)
   {
     m_swapchain = std::make_shared<Swapchain>(m_logicalDevice, m_surface);
@@ -25,7 +22,7 @@ namespace ge {
 
     m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapchain, m_commandPool);
 
-    m_renderer2D = std::make_shared<Renderer2D>(m_logicalDevice, m_renderer, std::move(assetManager), m_commandPool, descriptorPool);
+    m_renderer2D = std::make_shared<Renderer2D>(std::move(assetManager));
   }
 
   void RenderingManager::doRendering(uint32_t currentFrame)

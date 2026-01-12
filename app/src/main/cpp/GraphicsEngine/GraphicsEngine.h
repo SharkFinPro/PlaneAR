@@ -39,8 +39,6 @@ namespace ge {
 
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
-    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
-
     std::shared_ptr<RenderingManager> m_renderingManager;
 
     std::shared_ptr<AssetManager> m_assetManager;
@@ -51,11 +49,7 @@ namespace ge {
 
     void initializeVulkan();
 
-    void createPools();
-
     void createCommandPool();
-
-    void createDescriptorPool();
 
     void createComponents();
 

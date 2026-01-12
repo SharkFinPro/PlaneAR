@@ -3,12 +3,13 @@
 
 #include "GraphicsPipeline.h"
 #include "GraphicsPipelineStates.h"
+#include "../renderingManager/renderer2D/Primitives2D.h"
 
 namespace ge::PipelineConfig {
 
   inline GraphicsPipelineOptions createRectPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                            const std::shared_ptr<RenderPass>& renderPass,
-                                                           const AAssetManager* assetManager)
+                                                           AAssetManager* assetManager)
   {
     return {
       .shaders {
@@ -39,7 +40,7 @@ namespace ge::PipelineConfig {
 
   inline GraphicsPipelineOptions createTrianglePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                                const std::shared_ptr<RenderPass>& renderPass,
-                                                               const AAssetManager* assetManager)
+                                                               AAssetManager* assetManager)
   {
     return {
       .shaders {
@@ -70,7 +71,7 @@ namespace ge::PipelineConfig {
 
   inline GraphicsPipelineOptions createEllipsePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                               const std::shared_ptr<RenderPass>& renderPass,
-                                                              const AAssetManager* assetManager)
+                                                              AAssetManager* assetManager)
   {
     return {
       .shaders {
@@ -101,7 +102,7 @@ namespace ge::PipelineConfig {
 
   inline GraphicsPipelineOptions createFontPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                            const std::shared_ptr<RenderPass>& renderPass,
-                                                           const AAssetManager* assetManager,
+                                                           AAssetManager* assetManager,
                                                            VkDescriptorSetLayout fontDescriptorSetLayout)
   {
     return {
