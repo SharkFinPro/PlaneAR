@@ -24,6 +24,7 @@ add_library(${PROJECT_NAME} SHARED
   components/pipelines/implementations/TrianglePipeline.cpp
   components/pipelines/GraphicsPipeline.cpp
   components/pipelines/Pipeline.cpp
+  components/pipelines/PipelineManager.cpp
   components/renderingManager/renderer2D/Renderer2D.cpp
   components/renderingManager/LegacyRenderer.cpp
   components/renderingManager/RenderingManager.cpp
