@@ -5,10 +5,6 @@
 #include "../renderPass/RenderPass.h"
 
 namespace ge {
-  GraphicsPipeline::GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice)
-    : Pipeline(std::move(logicalDevice))
-  {}
-
   GraphicsPipeline::GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                                      const GraphicsPipelineOptions& graphicsPipelineOptions)
     : Pipeline(std::move(logicalDevice))

@@ -93,8 +93,6 @@ namespace ge {
   class GraphicsPipeline : public Pipeline
   {
   public:
-    explicit GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice);
-
     GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
                      const GraphicsPipelineOptions& graphicsPipelineOptions);
 
