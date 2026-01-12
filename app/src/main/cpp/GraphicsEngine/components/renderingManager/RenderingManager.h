@@ -29,6 +29,8 @@ namespace ge {
 
     void createNewFrame();
 
+    [[nodiscard]] std::shared_ptr<Renderer> getRenderer() const;
+
     [[nodiscard]] std::shared_ptr<Renderer2D> getRenderer2D();
 
   private:

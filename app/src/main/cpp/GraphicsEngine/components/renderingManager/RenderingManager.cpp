@@ -60,6 +60,11 @@ namespace ge {
     m_renderer2D->createNewFrame();
   }
 
+  std::shared_ptr<Renderer> RenderingManager::getRenderer() const
+  {
+    return m_renderer;
+  }
+
   std::shared_ptr<Renderer2D> RenderingManager::getRenderer2D()
   {
     return m_renderer2D;

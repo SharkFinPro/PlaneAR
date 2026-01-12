@@ -4,6 +4,7 @@
 #include "components/instance/Instance.h"
 #include "components/logicalDevice/LogicalDevice.h"
 #include "components/physicalDevice/PhysicalDevice.h"
+#include "components/pipelines/PipelineManager.h"
 #include "components/renderingManager/RenderingManager.h"
 #include "components/surface/Surface.h"
 #include <game-activity/native_app_glue/android_native_app_glue.h>
@@ -101,7 +102,10 @@ namespace ge {
 
   void GraphicsEngine::createComponents()
   {
-    m_assetManager = std::make_shared<AssetManager>(m_logicalDevice, m_app->activity->assetManager);
+    m_assetManager = std::make_shared<AssetManager>(
+      m_logicalDevice,
+      m_app->activity->assetManager
+    );
 
     m_renderingManager = std::make_shared<RenderingManager>(
       m_logicalDevice,
@@ -109,6 +113,12 @@ namespace ge {
       m_assetManager,
       m_commandPool,
       m_descriptorPool
+    );
+
+    m_pipelineManager = std::make_shared<PipelineManager>(
+      m_logicalDevice,
+      m_renderingManager->getRenderer(),
+      m_assetManager
     );
   }
 

@@ -12,6 +12,7 @@ namespace ge {
   class Instance;
   class LogicalDevice;
   class PhysicalDevice;
+  class PipelineManager;
   class RenderingManager;
   class Surface;
 
@@ -43,6 +44,8 @@ namespace ge {
     std::shared_ptr<RenderingManager> m_renderingManager;
 
     std::shared_ptr<AssetManager> m_assetManager;
+
+    std::shared_ptr<PipelineManager> m_pipelineManager;
 
     uint32_t m_currentFrame = 0;
 
