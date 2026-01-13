@@ -1,8 +1,8 @@
 #ifndef PLANEAR_GRAPHICSPIPELINESTATES_H
 #define PLANEAR_GRAPHICSPIPELINESTATES_H
 
-#include "../../../logicalDevice/LogicalDevice.h"
-#include "../../../physicalDevice/PhysicalDevice.h"
+#include "../logicalDevice/LogicalDevice.h"
+#include "../physicalDevice/PhysicalDevice.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 

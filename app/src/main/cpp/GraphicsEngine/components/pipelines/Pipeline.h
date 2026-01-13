@@ -6,6 +6,7 @@
 
 namespace ge {
 
+  class CommandBuffer;
   class LogicalDevice;
 
   class Pipeline
@@ -14,6 +15,12 @@ namespace ge {
     explicit Pipeline(std::shared_ptr<LogicalDevice> logicalDevice);
 
     virtual ~Pipeline();
+
+    void pushConstants(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                       VkShaderStageFlags stageFlags,
+                       uint32_t offset,
+                       uint32_t size,
+                       const void* values) const;
 
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;

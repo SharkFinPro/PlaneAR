@@ -1,6 +1,7 @@
 #ifndef PLANEAR_RENDERER2D_H
 #define PLANEAR_RENDERER2D_H
 
+#include "Primitives2D.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <vulkan/vulkan.h>
@@ -15,58 +16,21 @@ namespace ge {
 
   class AssetManager;
   class CommandBuffer;
-  class EllipsePipeline;
   class Font;
-  class FontPipeline;
   class LogicalDevice;
-  class RectPipeline;
+  class PipelineManager;
   class Renderer;
   struct RenderInfo;
-  class TrianglePipeline;
-
-  struct Glyph {
-    glm::vec4 bounds;
-    glm::vec4 color;
-    glm::mat4 transform;
-    glm::vec4 uv;
-    float z;
-  };
-
-  struct Rect {
-    glm::vec4 bounds;
-    glm::vec4 color;
-    glm::mat4 transform;
-    float z;
-  };
-
-  struct Triangle {
-    glm::vec2 p1;
-    glm::vec2 p2;
-    glm::vec2 p3;
-    glm::vec4 color;
-    glm::mat4 transform;
-    float z;
-  };
-
-  struct Ellipse {
-    glm::vec4 bounds;
-    glm::vec4 color;
-    glm::mat4 transform;
-    float z;
-  };
 
   class Renderer2D
   {
   public:
-    Renderer2D(const std::shared_ptr<LogicalDevice>& logicalDevice,
-               const std::shared_ptr<Renderer>& renderer,
-               std::shared_ptr<AssetManager> assetManager,
-               VkCommandPool commandPool,
-               VkDescriptorPool descriptorPool);
+    Renderer2D(std::shared_ptr<AssetManager> assetManager);
 
     void createNewFrame();
 
-    void render(const RenderInfo* renderInfo);
+    void render(const std::shared_ptr<PipelineManager>& pipelineManager,
+                const RenderInfo* renderInfo);
 
     void fill(float r,
               float g,
@@ -118,14 +82,6 @@ namespace ge {
   private:
     std::shared_ptr<AssetManager> m_assetManager;
 
-    std::shared_ptr<RectPipeline> m_rectPipeline;
-
-    std::shared_ptr<TrianglePipeline> m_trianglePipeline;
-
-    std::shared_ptr<EllipsePipeline> m_ellipsePipeline;
-
-    std::shared_ptr<FontPipeline> m_fontPipeline;
-
     glm::vec4 m_currentFill = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
     glm::mat4 m_currentTransform = glm::mat4(1.0f);
@@ -151,6 +107,34 @@ namespace ge {
     void increaseCurrentZ();
 
     void normalizeZValues();
+
+    void renderRects(const std::shared_ptr<PipelineManager>& pipelineManager,
+                     const RenderInfo* renderInfo) const;
+
+    static void renderRect(const std::shared_ptr<PipelineManager>& pipelineManager,
+                           const RenderInfo* renderInfo,
+                           const Rect& rect);
+
+    void renderTriangles(const std::shared_ptr<PipelineManager>& pipelineManager,
+                         const RenderInfo* renderInfo) const;
+
+    static void renderTriangle(const std::shared_ptr<PipelineManager>& pipelineManager,
+                               const RenderInfo* renderInfo,
+                               const Triangle& triangle);
+
+    void renderEllipses(const std::shared_ptr<PipelineManager>& pipelineManager,
+                        const RenderInfo* renderInfo) const;
+
+    static void renderEllipse(const std::shared_ptr<PipelineManager>& pipelineManager,
+                              const RenderInfo* renderInfo,
+                              const Ellipse& ellipse);
+
+    void renderGlyphs(const std::shared_ptr<PipelineManager>& pipelineManager,
+                      const RenderInfo* renderInfo) const;
+
+    static void renderGlyph(const std::shared_ptr<PipelineManager>& pipelineManager,
+                            const RenderInfo* renderInfo,
+                            const Glyph& glyph);
   };
 
 } // ge

@@ -11,6 +11,7 @@ namespace ge {
   class AssetManager;
   class CommandBuffer;
   class LogicalDevice;
+  class PipelineManager;
   class Renderer;
   class Renderer2D;
   class Surface;
@@ -22,12 +23,14 @@ namespace ge {
     RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                      const std::shared_ptr<Surface>& surface,
                      std::shared_ptr<AssetManager> assetManager,
-                     VkCommandPool commandPool,
-                     VkDescriptorPool descriptorPool);
+                     VkCommandPool commandPool);
 
-    void doRendering(uint32_t currentFrame);
+    void doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
+                     uint32_t currentFrame);
 
     void createNewFrame();
+
+    [[nodiscard]] std::shared_ptr<Renderer> getRenderer() const;
 
     [[nodiscard]] std::shared_ptr<Renderer2D> getRenderer2D();
 
@@ -46,7 +49,9 @@ namespace ge {
 
     std::shared_ptr<Renderer2D> m_renderer2D;
 
-    void recordSwapchainCommandBuffer(uint32_t currentFrame, uint32_t imageIndex) const;
+    void recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                      uint32_t currentFrame,
+                                      uint32_t imageIndex) const;
   };
 
 } // ge

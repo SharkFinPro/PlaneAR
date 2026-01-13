@@ -12,6 +12,7 @@ namespace ge {
   class Instance;
   class LogicalDevice;
   class PhysicalDevice;
+  class PipelineManager;
   class RenderingManager;
   class Surface;
 
@@ -38,21 +39,17 @@ namespace ge {
 
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
-    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
-
     std::shared_ptr<RenderingManager> m_renderingManager;
 
     std::shared_ptr<AssetManager> m_assetManager;
+
+    std::shared_ptr<PipelineManager> m_pipelineManager;
 
     uint32_t m_currentFrame = 0;
 
     void initializeVulkan();
 
-    void createPools();
-
     void createCommandPool();
-
-    void createDescriptorPool();
 
     void createComponents();
 

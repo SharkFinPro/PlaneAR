@@ -4,8 +4,6 @@
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../pipelines/GraphicsPipeline.h"
-#include "../pipelines/implementations/FontPipeline.h"
-#include "../pipelines/implementations/RectPipeline.h"
 #include "../surface/Swapchain.h"
 #include <utility>
 
@@ -14,8 +12,7 @@ namespace ge {
   RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                      const std::shared_ptr<Surface>& surface,
                                      std::shared_ptr<AssetManager> assetManager,
-                                     VkCommandPool commandPool,
-                                     VkDescriptorPool descriptorPool)
+                                     VkCommandPool commandPool)
     : m_logicalDevice(logicalDevice), m_surface(surface), m_commandPool(commandPool)
   {
     m_swapchain = std::make_shared<Swapchain>(m_logicalDevice, m_surface);
@@ -25,10 +22,11 @@ namespace ge {
 
     m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapchain, m_commandPool);
 
-    m_renderer2D = std::make_shared<Renderer2D>(m_logicalDevice, m_renderer, std::move(assetManager), m_commandPool, descriptorPool);
+    m_renderer2D = std::make_shared<Renderer2D>(std::move(assetManager));
   }
 
-  void RenderingManager::doRendering(uint32_t currentFrame)
+  void RenderingManager::doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                     uint32_t currentFrame)
   {
     m_logicalDevice->waitForGraphicsFences(currentFrame);
 
@@ -44,7 +42,7 @@ namespace ge {
 
     m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
     m_swapchainCommandBuffer->resetCommandBuffer();
-    recordSwapchainCommandBuffer(currentFrame, imageIndex);
+    recordSwapchainCommandBuffer(pipelineManager, currentFrame, imageIndex);
     m_logicalDevice->submitGraphicsQueue(currentFrame, imageIndex, m_swapchainCommandBuffer);
 
     result = m_logicalDevice->queuePresent(imageIndex, m_swapchain);
@@ -60,14 +58,21 @@ namespace ge {
     m_renderer2D->createNewFrame();
   }
 
+  std::shared_ptr<Renderer> RenderingManager::getRenderer() const
+  {
+    return m_renderer;
+  }
+
   std::shared_ptr<Renderer2D> RenderingManager::getRenderer2D()
   {
     return m_renderer2D;
   }
 
-  void RenderingManager::recordSwapchainCommandBuffer(uint32_t currentFrame, uint32_t imageIndex) const
+  void RenderingManager::recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                      uint32_t currentFrame,
+                                                      uint32_t imageIndex) const
   {
-    m_swapchainCommandBuffer->record([this, currentFrame, imageIndex]()
+    m_swapchainCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]
     {
       RenderInfo renderInfo {
         .commandBuffer = m_swapchainCommandBuffer,
@@ -93,7 +98,7 @@ namespace ge {
       };
       renderInfo.commandBuffer->setScissor(scissor);
 
-      m_renderer2D->render(&renderInfo);
+      m_renderer2D->render(pipelineManager, &renderInfo);
 
       m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapchain);
     });
