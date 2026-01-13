@@ -30,73 +30,184 @@ GraphicsEngine follows a layered architecture with clear separation between:
 - **Asset management** - Centralized resource loading and caching
 - **High-level rendering API** - Simplified interface for draw calls
 
-## File Structure
+## Library Structure
 
-### Entry Point
-- **GraphicsEngine.cpp** - Library initialization and main entry point
+### Entry Point & Core
 
-### Components (`/components`)
+| Directory/File | Purpose |
+|----------------|---------|
+| `GraphicsEngine.cpp/h` | Main library interface and initialization |
+| `main.cpp` | Entry point for testing/standalone execution |
+| `Logger.h` | Logging utilities and debug output |
 
-#### Instance Management (`/instance`)
-- **Instance.h / .cpp** - Vulkan instance creation and lifecycle management
-- **DebugMessenger.h / .cpp** - Validation layers and debug callbacks
+### Shaders
 
-#### Device Management
-- **physicalDevice/** - GPU selection, capability queries, and properties
-- **logicalDevice/** - Logical device creation and queue family management
+| Directory | Purpose |
+|-----------|---------|
+| `shaders/` | GLSL shader source files (`.vert`, `.frag`) compiled to SPIR-V for Vulkan |
 
-#### Surface & Presentation (`/surface`)
-- **Surface.cpp** - Window surface creation and management
-- **Swapchain.cpp** - Image acquisition, presentation, and frame synchronization
+**Included Shaders:**
+- `ellipse` - Ellipse/circle rendering
+- `font` - Text glyph rendering
+- `rect` - Rectangle rendering
+- `triangle` - Triangle primitive rendering
 
-#### Rendering Pipeline (`/pipelines`)
-- **Pipeline.h / .cpp** - Base pipeline abstraction and lifecycle
-- **GraphicsPipeline.h / .cpp** - Complete graphics pipeline implementation
-- **GraphicsPipelineStates.h** - Pipeline state management and configurations
-- **PipelineConfig.h** - Pipeline configuration data structures
-- **PipelineManager.h / .cpp** - Pipeline creation and state management
+### Utilities
 
-#### Render Targets
-- **renderPass/** - Render pass definitions, attachment descriptions, and layout transitions
-- **framebuffers/** - Framebuffer creation and management
-    - Includes swapchain framebuffer specializations
+| Directory | Purpose |
+|-----------|---------|
+| `utilities/` | Helper functions for buffers, images, and common operations |
 
-#### Shader System (`/shaderModule`)
-- **ShaderModule.cpp** - Shader module creation and Vulkan module management
+## Component Overview
 
-#### Command Recording (`/commandBuffer`)
-- **CommandBuffer.cpp** - Command buffer allocation, recording, and submission
+### Core Vulkan Setup
 
-#### Descriptors (`/descriptorSet`)
-- **DescriptorSet.cpp** - Descriptor set pool allocation and binding management
+| Component | Directory | Responsibilities |
+|-----------|-----------|------------------|
+| **Instance** | `instance/` | Vulkan instance initialization, validation layers, and debug messaging |
+| **Physical Device** | `physicalDevice/` | GPU detection, capability queries, and device selection |
+| **Logical Device** | `logicalDevice/` | Device interface creation and queue family management |
+| **Surface** | `surface/` | Window surface creation, swapchain management, and presentation |
 
-### Asset Management (`/assets`)
+### Rendering Pipeline
 
-#### Fonts (`/fonts`)
-- Font loading and glyph management using FreeType
+| Component | Directory | Responsibilities |
+|-----------|-----------|------------------|
+| **Pipelines** | `pipelines/` | Graphics pipeline configuration, state management, and pipeline caching |
+| **Shader Module** | `shaderModule/` | Shader compilation and Vulkan module creation |
+| **Render Pass** | `renderPass/` | Render pass definitions, attachments, and layout transitions |
+| **Framebuffers** | `framebuffers/` | Render target creation and swapchain framebuffer management |
 
-#### Textures (`/textures`)
-- **Texture.cpp** - Image loading and texture resource management
-- **GlyphTexture.cpp** - Specialized texture handling for rendered glyphs
+### Command & Resource Binding
 
-#### Core
-- **AssetManager.h / .cpp** - Centralized asset loading, caching, and lifecycle management
+| Component | Directory | Responsibilities |
+|-----------|-----------|------------------|
+| **Command Buffer** | `commandBuffer/` | Command recording, allocation, and submission to GPU queues |
+| **Descriptor Set** | `descriptorSet/` | Shader resource binding and descriptor pool management |
 
-### Rendering API (`/renderingManager`)
+### Asset Management
 
-#### High-Level Renderers
-- **RenderingManager.h / .cpp** - Primary rendering API and draw call orchestration
-- **Renderer.h** - Abstract renderer interface
-- **LegacyRenderer.h / .cpp** - Legacy rendering path support
+| Component | Directory | Responsibilities |
+|-----------|-----------|------------------|
+| **Asset Manager** | `assets/` | Centralized loading, caching, and lifecycle management for all resources |
+| **Fonts** | `assets/fonts/` | Font loading and glyph management via FreeType |
+| **Textures** | `assets/textures/` | Image loading, texture creation, and glyph texture handling |
 
-#### 2D Rendering (`/renderer2D`)
-- **Renderer2D.cpp** - 2D-specific rendering implementation and utilities
+### High-Level Rendering
 
-### Supporting Directories
+| Component | Directory | Responsibilities |
+|-----------|-----------|------------------|
+| **Rendering Manager** | `renderingManager/` | Primary rendering API and draw call orchestration |
+| **Renderer 2D** | `renderingManager/renderer2D/` | 2D graphics rendering and utilities |
 
-- **`/shaders`** - GLSL shader source files (compiled to SPIR-V)
-- **`/utilities`** - Helper functions, logging, and utility classes
-- **`/includes`** - Public header files and API definitions
+[//]: # (### Entry Point)
+
+[//]: # (- **GraphicsEngine.h / .cpp** - Library initialization and main entry point)
+
+[//]: # (### Components &#40;`/components`&#41;)
+
+[//]: # ()
+[//]: # (#### Instance Management &#40;`/instance`&#41;)
+
+[//]: # (- **Instance.h / .cpp** - Vulkan instance creation and lifecycle management)
+
+[//]: # (- **DebugMessenger.h / .cpp** - Validation layers and debug callbacks)
+
+[//]: # ()
+[//]: # (#### Device Management)
+
+[//]: # (- **physicalDevice/** - GPU selection, capability queries, and properties)
+
+[//]: # (- **logicalDevice/** - Logical device creation and queue family management)
+
+[//]: # ()
+[//]: # (#### Surface & Presentation &#40;`/surface`&#41;)
+
+[//]: # (- **Surface.cpp** - Window surface creation and management)
+
+[//]: # (- **Swapchain.cpp** - Image acquisition, presentation, and frame synchronization)
+
+[//]: # ()
+[//]: # (#### Rendering Pipeline &#40;`/pipelines`&#41;)
+
+[//]: # (- **Pipeline.h / .cpp** - Base pipeline abstraction and lifecycle)
+
+[//]: # (- **GraphicsPipeline.h / .cpp** - Complete graphics pipeline implementation)
+
+[//]: # (- **GraphicsPipelineStates.h** - Pipeline state management and configurations)
+
+[//]: # (- **PipelineConfig.h** - Pipeline configuration data structures)
+
+[//]: # (- **PipelineManager.h / .cpp** - Pipeline creation and state management)
+
+[//]: # ()
+[//]: # (#### Render Targets)
+
+[//]: # (- **renderPass/** - Render pass definitions, attachment descriptions, and layout transitions)
+
+[//]: # (- **framebuffers/** - Framebuffer creation and management)
+
+[//]: # (    - Includes swapchain framebuffer specializations)
+
+[//]: # ()
+[//]: # (#### Shader System &#40;`/shaderModule`&#41;)
+
+[//]: # (- **ShaderModule.cpp** - Shader module creation and Vulkan module management)
+
+[//]: # ()
+[//]: # (#### Command Recording &#40;`/commandBuffer`&#41;)
+
+[//]: # (- **CommandBuffer.cpp** - Command buffer allocation, recording, and submission)
+
+[//]: # ()
+[//]: # (#### Descriptors &#40;`/descriptorSet`&#41;)
+
+[//]: # (- **DescriptorSet.cpp** - Descriptor set pool allocation and binding management)
+
+[//]: # ()
+[//]: # (### Asset Management &#40;`/assets`&#41;)
+
+[//]: # ()
+[//]: # (#### Fonts &#40;`/fonts`&#41;)
+
+[//]: # (- Font loading and glyph management using FreeType)
+
+[//]: # ()
+[//]: # (#### Textures &#40;`/textures`&#41;)
+
+[//]: # (- **Texture.cpp** - Image loading and texture resource management)
+
+[//]: # (- **GlyphTexture.cpp** - Specialized texture handling for rendered glyphs)
+
+[//]: # ()
+[//]: # (#### Core)
+
+[//]: # (- **AssetManager.h / .cpp** - Centralized asset loading, caching, and lifecycle management)
+[//]: # ()
+[//]: # (### Rendering API &#40;`/renderingManager`&#41;)
+
+[//]: # ()
+[//]: # (#### High-Level Renderers)
+
+[//]: # (- **RenderingManager.h / .cpp** - Primary rendering API and draw call orchestration)
+
+[//]: # (- **Renderer.h** - Abstract renderer interface)
+
+[//]: # (- **LegacyRenderer.h / .cpp** - Legacy rendering path support)
+
+[//]: # ()
+[//]: # (#### 2D Rendering &#40;`/renderer2D`&#41;)
+
+[//]: # (- **Renderer2D.cpp** - 2D-specific rendering implementation and utilities)
+
+[//]: # (### Supporting Directories)
+
+[//]: # ()
+[//]: # (- **`/shaders`** - GLSL shader source files &#40;compiled to SPIR-V&#41;)
+
+[//]: # (- **`/utilities`** - Helper functions, logging, and utility classes)
+
+[//]: # (- **`/includes`** - Public header files and API definitions)
 
 ## Dependencies
 
