@@ -2,7 +2,7 @@
 
 ## Overview
 
-GraphicsEngine is a Vulkan-based graphics library for Android games, built as a shared C++ library. It provides a complete rendering pipeline with support for 2D graphics, text rendering, and modern graphics APIs.
+GraphicsEngine is a Vulkan-based graphics library for the AR Plane Tracking App, built as a shared C++ library. It provides a complete rendering pipeline with support for 2D graphics, text rendering, and modern graphics APIs.
 
 ## Architecture
 
@@ -10,51 +10,54 @@ The GraphicsEngine is organized into modular components, each handling specific 
 
 ## File Structure
 
-## Vulkan Core Components (`/components`)
+### Vulkan Core Components (`/components`)
 
-### Instance Management (`/instance`)
+#### Entry Point (`/`)
+- **GraphicsEngine.cpp** - Library entry point
+
+#### Instance Management (`/instance`)
 - **Instance.h / .cpp** - Vulkan instance creation and management
 - **DebugMessenger.h / .cpp** - Debug validation layers and message callbacks
 
-### Physical & Logical Devices
+#### Physical & Logical Devices
 - **physicalDevice/** - Physical device selection and properties
 - **logicalDevice/** - Logical device creation and queue management
 
-### Surface & Swapchain (`/surface`)
+#### Surface & Swapchain (`/surface`)
 - **Surface.cpp** - Window surface creation and management
 - **Swapchain.cpp** - Swapchain image and presentation management
 
-### Rendering Pipeline (`/pipelines`)
+#### Rendering Pipeline (`/pipelines`)
 - **Pipeline.h / .cpp** - Base pipeline abstraction
 - **GraphicsPipeline.h / .cpp** - Graphics pipeline implementation
 - **GraphicsPipelineStates.h** - Pipeline state configurations
 - **PipelineConfig.h** - Pipeline configuration structures
 - **PipelineManager.h / .cpp** - Pipeline lifecycle management
 
-### Render Targets
+#### Render Targets
 - **renderPass/** - Render pass definitions and attachments
 - **framebuffers/** - Framebuffer creation and management
     - Includes specialized swapchain framebuffer handling
 
-### Shader System (`/shaderModule`)
+#### Shader System (`/shaderModule`)
 - **ShaderModule.cpp** - Shader compilation and Vulkan module management
 
-### Command Recording (`/commandBuffer`)
+#### Command Recording (`/commandBuffer`)
 - **CommandBuffer.cpp** - Command buffer allocation and recording
 
-### Descriptors (`/descriptorSet`)
+#### Descriptors (`/descriptorSet`)
 - **DescriptorSet.cpp** - Descriptor set and pool management
 
-## Asset Management (`/assets`)
+### Asset Management (`/assets`)
 
-### Fonts (`/fonts`)
+#### Fonts (`/fonts`)
 - Font loading and rendering support
 
-### Textures (`/textures`)
+#### Textures (`/textures`)
 - **Texture.cpp** - Texture image management
 - **GlyphTexture.cpp** - Specialized glyph texture handling
 
-### Core
+#### Core
 - **AssetManager.h / .cpp** - Unified asset loading and caching system
 
 ## Rendering API (`/renderingManager`)
