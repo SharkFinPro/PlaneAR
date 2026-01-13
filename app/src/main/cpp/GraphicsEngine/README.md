@@ -1,6 +1,6 @@
 # Graphics Engine
 
-A high-performance, Vulkan-based graphics library for the AR Plane Tracking Android App. Provides a complete rendering pipeline with support for 2D graphics, text rendering, and modern graphics APIs.
+A high-performance, Vulkan-based graphics library for the PlaneAR Android App. Provides a complete rendering pipeline with support for 2D graphics, text rendering, and modern graphics APIs.
 
 ## Key Features
 
