@@ -1,121 +1,160 @@
 # Graphics Engine
 
+A high-performance, Vulkan-based graphics library for the AR Plane Tracking Android App. Provides a complete rendering pipeline with support for 2D graphics, text rendering, and modern graphics APIs.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [File Structure](#file-structure)
+- [Dependencies](#dependencies)
+- [Build Information](#build-information)
+
 ## Overview
 
-GraphicsEngine is a Vulkan-based graphics library for the AR Plane Tracking App, built as a shared C++ library. It provides a complete rendering pipeline with support for 2D graphics, text rendering, and modern graphics APIs.
+GraphicsEngine is a shared C++ library designed for the AR Plane Tracking App, built on the Vulkan graphics API. It abstracts complex graphics operations into modular components, enabling efficient rendering of 2D graphics and text while maintaining low-level control for performance-critical applications.
+
+### Key Features
+
+- **Vulkan-based Rendering** - Modern graphics API for optimal performance
+- **Modular Architecture** - Clean separation of concerns across rendering pipeline
+- **2D Graphics & Text Rendering** - Complete support via FreeType font engine
+- **Native Android Integration** - Seamless integration with Android Game Activity
 
 ## Architecture
 
-The GraphicsEngine is organized into modular components, each handling specific aspects of the graphics pipeline. The library integrates with Vulkan for low-level graphics operations and uses FreeType for font rendering.
+GraphicsEngine follows a layered architecture with clear separation between:
+
+- **Low-level Vulkan abstractions** - Device, instance, and command management
+- **Rendering pipeline** - Shaders, render passes, and graphics state management
+- **Asset management** - Centralized resource loading and caching
+- **High-level rendering API** - Simplified interface for draw calls
 
 ## File Structure
 
-### Vulkan Core Components (`/components`)
+### Entry Point
+- **GraphicsEngine.cpp** - Library initialization and main entry point
 
-#### Entry Point (`/`)
-- **GraphicsEngine.cpp** - Library entry point
+### Components (`/components`)
 
 #### Instance Management (`/instance`)
-- **Instance.h / .cpp** - Vulkan instance creation and management
-- **DebugMessenger.h / .cpp** - Debug validation layers and message callbacks
+- **Instance.h / .cpp** - Vulkan instance creation and lifecycle management
+- **DebugMessenger.h / .cpp** - Validation layers and debug callbacks
 
-#### Physical & Logical Devices
-- **physicalDevice/** - Physical device selection and properties
-- **logicalDevice/** - Logical device creation and queue management
+#### Device Management
+- **physicalDevice/** - GPU selection, capability queries, and properties
+- **logicalDevice/** - Logical device creation and queue family management
 
-#### Surface & Swapchain (`/surface`)
+#### Surface & Presentation (`/surface`)
 - **Surface.cpp** - Window surface creation and management
-- **Swapchain.cpp** - Swapchain image and presentation management
+- **Swapchain.cpp** - Image acquisition, presentation, and frame synchronization
 
 #### Rendering Pipeline (`/pipelines`)
-- **Pipeline.h / .cpp** - Base pipeline abstraction
-- **GraphicsPipeline.h / .cpp** - Graphics pipeline implementation
-- **GraphicsPipelineStates.h** - Pipeline state configurations
-- **PipelineConfig.h** - Pipeline configuration structures
-- **PipelineManager.h / .cpp** - Pipeline lifecycle management
+- **Pipeline.h / .cpp** - Base pipeline abstraction and lifecycle
+- **GraphicsPipeline.h / .cpp** - Complete graphics pipeline implementation
+- **GraphicsPipelineStates.h** - Pipeline state management and configurations
+- **PipelineConfig.h** - Pipeline configuration data structures
+- **PipelineManager.h / .cpp** - Pipeline creation and state management
 
 #### Render Targets
-- **renderPass/** - Render pass definitions and attachments
+- **renderPass/** - Render pass definitions, attachment descriptions, and layout transitions
 - **framebuffers/** - Framebuffer creation and management
-    - Includes specialized swapchain framebuffer handling
+    - Includes swapchain framebuffer specializations
 
 #### Shader System (`/shaderModule`)
-- **ShaderModule.cpp** - Shader compilation and Vulkan module management
+- **ShaderModule.cpp** - Shader module creation and Vulkan module management
 
 #### Command Recording (`/commandBuffer`)
-- **CommandBuffer.cpp** - Command buffer allocation and recording
+- **CommandBuffer.cpp** - Command buffer allocation, recording, and submission
 
 #### Descriptors (`/descriptorSet`)
-- **DescriptorSet.cpp** - Descriptor set and pool management
+- **DescriptorSet.cpp** - Descriptor set pool allocation and binding management
 
 ### Asset Management (`/assets`)
 
 #### Fonts (`/fonts`)
-- Font loading and rendering support
+- Font loading and glyph management using FreeType
 
 #### Textures (`/textures`)
-- **Texture.cpp** - Texture image management
-- **GlyphTexture.cpp** - Specialized glyph texture handling
+- **Texture.cpp** - Image loading and texture resource management
+- **GlyphTexture.cpp** - Specialized texture handling for rendered glyphs
 
 #### Core
-- **AssetManager.h / .cpp** - Unified asset loading and caching system
+- **AssetManager.h / .cpp** - Centralized asset loading, caching, and lifecycle management
 
-## Rendering API (`/renderingManager`)
+### Rendering API (`/renderingManager`)
 
-### High-Level Renderers
-- **RenderingManager.h / .cpp** - Main rendering API and orchestration
-- **Renderer.h** - Renderer interface definition
-- **LegacyRenderer.h / .cpp** - Legacy rendering implementation
+#### High-Level Renderers
+- **RenderingManager.h / .cpp** - Primary rendering API and draw call orchestration
+- **Renderer.h** - Abstract renderer interface
+- **LegacyRenderer.h / .cpp** - Legacy rendering path support
 
-### 2D Rendering (`/renderer2D`)
-- **Renderer2D.cpp** - 2D-specific rendering functionality
+#### 2D Rendering (`/renderer2D`)
+- **Renderer2D.cpp** - 2D-specific rendering implementation and utilities
 
-## Additional Directories
+### Supporting Directories
 
-- **`/shaders`** - GLSL shader source files
-- **`/utilities`** - Helper functions and utility classes
-
+- **`/shaders`** - GLSL shader source files (compiled to SPIR-V)
+- **`/utilities`** - Helper functions, logging, and utility classes
+- **`/includes`** - Public header files and API definitions
 
 ## Dependencies
 
 ### External Libraries
 
-- **Vulkan** - Low-level graphics API
-- **GLM** (v1.0.2) - Mathematics library for graphics
-- **FreeType** (v2-14-1) - Font rasterization engine
-- **Android Game Activity** - Android-specific game integration
-- **Android NDK Libraries** - `android`, `log`
+| Library | Version | Purpose |
+|---------|---------|---------|
+| **Vulkan** | 1.0+ | Graphics rendering API |
+| **GLM** | v1.0.2 | Linear algebra and mathematics |
+| **FreeType** | v2-14-1 | Font rasterization and rendering |
+| **Android Game Activity** | Latest | Android game lifecycle integration |
+| **Android NDK** | r25+ | Native development toolkit (`android`, `log` libraries) |
 
-### Build System
+### Build Requirements
 
-- CMake (for native build configuration)
-- Android NDK (for compilation)
+- **CMake** - Build configuration and compilation
+- **Android NDK** - C++ cross-compilation toolchain
+- **Vulkan SDK** - Headers and validation layers (development)
 
-## Component Description
+## Component Overview
 
 | Component | Purpose |
 |-----------|---------|
-| **Assets** | Manages textures, fonts, and other game resources |
-| **Instance** | Initializes Vulkan instance and debug infrastructure |
-| **Physical Device** | Selects appropriate GPU for rendering |
-| **Logical Device** | Creates logical device for GPU communication |
-| **Surface** | Manages window surface and presentation |
-| **Command Buffer** | Records rendering commands |
-| **Descriptor Set** | Manages shader resource bindings |
-| **Render Pass** | Defines rendering operations and attachments |
-| **Framebuffers** | Manages render targets and swapchain buffers |
-| **Shader Module** | Loads and compiles shaders |
-| **Pipelines** | Manages graphics pipeline states |
-| **Rendering Manager** | High-level API for submitting draw calls |
+| **Assets** | Resource loading, caching, and lifecycle management |
+| **Instance** | Vulkan instance initialization and validation setup |
+| **Physical Device** | GPU capability detection and device selection |
+| **Logical Device** | GPU interface creation and queue management |
+| **Surface** | Display integration and window management |
+| **Command Buffer** | Recording and submission of GPU commands |
+| **Descriptor Set** | Shader resource binding and layout management |
+| **Render Pass** | Rendering operations, attachments, and layout transitions |
+| **Framebuffers** | Render target allocation and management |
+| **Shader Module** | Shader compilation and GPU module creation |
+| **Pipelines** | Graphics state management and pipeline configuration |
+| **Rendering Manager** | High-level draw call API and rendering orchestration |
 
 ## Build Information
 
-The library is compiled as a **shared library** (`.so` on Android) including all components and dependencies. It requires:
+### Requirements
 
-- C++17 or later
-- Vulkan 1.0+ support on the target device
-- Android API level compatible with Game Activity
+- **C++ Standard**: C++17 or later
+- **Vulkan Support**: 1.1 or later on target device
+- **Android API Level**: Compatible with Android Game Activity (API 24+)
+- **Target Android SDK**: Version 36
 
----
+### Output
 
-**Note**: This is a native C++ graphics library designed for high-performance Android game development with modern Vulkan rendering capabilities.
+GraphicsEngine is compiled as a **shared library** (`.so` on Android) with all components and dependencies linked.
+
+### Compilation
+
+```bash
+# Configure with CMake (from Android NDK)
+cmake -B build -S . \
+  -DCMAKE_TOOLCHAIN_FILE=$NDK/build/cmake/android.toolchain.cmake \
+  -DANDROID_ABI=arm64-v8a \
+  -DANDROID_PLATFORM=android-24
+
+# Build
+cmake --build build
+```
