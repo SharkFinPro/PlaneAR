@@ -95,5 +95,5 @@ extern "C" JNIEXPORT void JNICALL
 Java_edu_osu_t22_planear_MainActivity_nativeSetArReady(JNIEnv*, jobject, jboolean ready) {
     std::lock_guard<std::mutex> lock(gArState.mtx);
     gArReady = ready;
-} // this is just to prove the arcore session is being created
+} // this is just to prove the arcore session is being created will later make the box green in next step
 

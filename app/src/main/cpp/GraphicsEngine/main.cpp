@@ -59,7 +59,7 @@ void android_main(struct android_app* pApp)
         return;
       }
     }
-
+    //this is what i want to send the graphics engine
    /*if (engine)
    {
     auto rm = engine->getRenderingManager();
@@ -77,33 +77,11 @@ void android_main(struct android_app* pApp)
    }
 
 */
-/*
-    if (engine)
-    {
-      const auto renderingManger = engine->getRenderingManager();
-      static float x = 100;
-      static float y = 100;
-      static float w = 200;
-      static float h = 100;
-
-      renderingManger->renderRect(x, y, w, h, 0, 0, 1);
-
-      renderingManger->renderRect(x, y * 3.0f, w * 3.0f, h, 0, 1, 0);
-
-      renderingManger->renderRect(x, y * 5.0f, w * 2.0f, h, 1, 0, 0);
-
-      float cursorSize = 50.0f;
-      renderingManger->renderRect(mouseX - cursorSize / 2.0f, mouseY - cursorSize / 2.0f,
-                                  cursorSize, cursorSize, 0.529f, 0.086f, 0.91f);
-
-      engine->render();
-    }
-    */
-      if (engine)
+      if (engine) //this is just to check that arcore is sending data and
       {
           const auto renderingManager = engine->getRenderingManager();
 
-          float r = 0, g = 0, b = 1; // Default BLUE
+          float r = 0, g = 0, b = 1; // Default BLUE when session is not created
 
           if (gArReady) {
               r = 0.0f;

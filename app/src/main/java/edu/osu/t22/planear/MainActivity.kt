@@ -274,6 +274,7 @@ class ARSessionManager(
         session.setCameraTextureName(tex)
     }
 
+
     fun onUpdateFrame() {
         // Keep ARCore in sync with display rotation & surface size
         session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
