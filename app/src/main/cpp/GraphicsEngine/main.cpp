@@ -21,7 +21,7 @@ void android_main(struct android_app* pApp)
   float mouseX = 0;
   float mouseY = 0;
 
-    // UI rectangle positions
+    // remove after testing
     static float x = 100;
     static float y = 100;
     static float w = 200;
@@ -59,7 +59,7 @@ void android_main(struct android_app* pApp)
         return;
       }
     }
-    //this is what i want to send the graphics engine
+    //this is what i want to send the graphics engine has not been tested yet this will be next PR
    /*if (engine)
    {
     auto rm = engine->getRenderingManager();
@@ -75,9 +75,10 @@ void android_main(struct android_app* pApp)
 
     engine->render();
    }
-
-*/
-      if (engine) //this is just to check that arcore is sending data and
+   */
+      //this is just to check that arcore is sending data not to be merged just use to test PR
+      //start
+      if (engine)
       {
           const auto renderingManager = engine->getRenderingManager();
 
@@ -86,7 +87,7 @@ void android_main(struct android_app* pApp)
           if (gArReady) {
               r = 0.0f;
               g = 1.0f;
-              b = 0.0f;  // ARCore active → GREEN to prove arcore session is created because i couldnt get it to work on emulator
+              b = 0.0f;
           }
 
           // Top rectangle (status box)
@@ -106,6 +107,7 @@ void android_main(struct android_app* pApp)
 
           engine->render();
       }
+      //end remove after testing PR
   }
 }
 
