@@ -26,6 +26,8 @@ import kotlinx.coroutines.withContext
 import edu.osu.t22.planear.geo.GeoUtils
 import edu.osu.t22.planear.geo.GeoPoint
 import android.view.Surface
+import com.google.ar.core.Frame
+import com.google.ar.core.exceptions.CameraNotAvailableException
 
 
 class MainActivity : GameActivity() {
@@ -214,8 +216,6 @@ class MainActivity : GameActivity() {
                 arSession = Session(this)
                 Log.i("PlaneAR", "ARCore session created")
 
-                nativeSetArReady(true)             // <--  Notify native renderer for top green box
-
                 val config = Config(arSession).apply {
                     planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
                     depthMode =
@@ -224,6 +224,13 @@ class MainActivity : GameActivity() {
                         else Config.DepthMode.DISABLED
                 }
                 arSession!!.configure(config)
+
+                arSessionManager = ARSessionManager(
+                    session = arSession!!,
+                    displayRotation = { display?.rotation ?: Surface.ROTATION_0 }
+                )
+
+                nativeSetArReady(true)
             }
 
             return true
@@ -279,9 +286,15 @@ class ARSessionManager(
         // Keep ARCore in sync with display rotation & surface size
         session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
 
-        val frame = session.update()
-        val camera = frame.camera
+        val frame: Frame
+        try {
+            frame = session.update()
+        } catch (e: CameraNotAvailableException) {
+            nativeOnTrackingStateChanged(TrackingState.STOPPED.ordinal)
+            return
+        }
 
+        val camera = frame.camera
         if (camera.trackingState != TrackingState.TRACKING) {
             // Inform native side that tracking is limited or lost
             nativeOnTrackingStateChanged(camera.trackingState.ordinal)
@@ -290,9 +303,8 @@ class ARSessionManager(
 
 
         // Camera pose -> 4x4 matrix
-        val cameraPose = camera.displayOrientedPose
         val cameraMatrix = FloatArray(16)
-        cameraPose.toMatrix(cameraMatrix, 0)
+        camera.pose.toMatrix(cameraMatrix, 0)
 
         // Send camera pose to native rendering engine
         nativeUpdateCameraPose(cameraMatrix)
@@ -301,16 +313,13 @@ class ARSessionManager(
         val iterator = anchors.iterator()
         while (iterator.hasNext()) {
             val anchor = iterator.next()
-
             if (anchor.trackingState == TrackingState.STOPPED) {
-                anchor.detach()
                 iterator.remove()
                 continue
             }
 
-            val anchorPose = anchor.pose
             val anchorMatrix = FloatArray(16)
-            anchorPose.toMatrix(anchorMatrix, 0)
+            anchor.pose.toMatrix(anchorMatrix, 0)
 
             nativeUpdateAnchorPose(
                 anchor.hashCode(),               // simple ID for demo purposes
