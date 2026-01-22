@@ -98,10 +98,7 @@ static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mou
 void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX, float mouseY)
 {
   const auto r = engine->getRenderingManager()->getRenderer2D();
-
-  r->fill(100, 100, 200);
-  r->rect(100, 100, 100, 100);
-
+  
   r->fill(255, 255, 255);
 
   r->textFont("roboto", 100);

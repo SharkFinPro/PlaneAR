@@ -14,7 +14,7 @@ namespace ge {
 
   void Renderer2D::createNewFrame()
   {
-    m_currentZ = 0.0f;
+    m_currentZ = 0.01f;
 
     m_currentTransform = glm::mat4(1.0f);
 
