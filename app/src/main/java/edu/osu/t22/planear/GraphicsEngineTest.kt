@@ -8,7 +8,7 @@ import com.google.androidgamesdk.GameActivity
 class GraphicsEngineTest : GameActivity() {
     companion object {
         init {
-            System.loadLibrary("GraphicsEngine")
+            System.loadLibrary("graphicsEngineTest")
         }
     }
     override fun onCreate(savedInstanceState: Bundle?) {

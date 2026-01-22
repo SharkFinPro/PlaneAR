@@ -33,7 +33,7 @@ import edu.osu.t22.planear.geo.GeoPoint
 class MainActivity : GameActivity() {
     companion object {
         init {
-            System.loadLibrary("GraphicsEngine")
+            System.loadLibrary("graphicsEngineTest")
         }
 
         private const val CAMERA_PERMISSION_CODE = 0
