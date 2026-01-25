@@ -4,7 +4,7 @@
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../pipelines/GraphicsPipeline.h"
 #include "../../pipelines/PipelineManager.h"
-#include "../../renderingManager/LegacyRenderer.h"
+#include "../LegacyRenderer.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace ge {
@@ -14,7 +14,7 @@ namespace ge {
 
   void Renderer2D::createNewFrame()
   {
-    m_currentZ = 0.0f;
+    m_currentZ = 0.01f;
 
     m_currentTransform = glm::mat4(1.0f);
 

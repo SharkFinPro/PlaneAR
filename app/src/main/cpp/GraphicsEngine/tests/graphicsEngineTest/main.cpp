@@ -1,8 +1,8 @@
-#include "GraphicsEngine.h"
-#include "Logger.h"
-#include "components/assets/AssetManager.h"
-#include "components/renderingManager/RenderingManager.h"
-#include "components/renderingManager/renderer2D/Renderer2D.h"
+#include <source/GraphicsEngine.h>
+#include "../../Logger.h"
+#include <source/components/assets/AssetManager.h>
+#include <source/components/renderingManager/RenderingManager.h>
+#include <source/components/renderingManager/renderer2D/Renderer2D.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 #include <vulkan/vulkan.h>
 #include <stdexcept>

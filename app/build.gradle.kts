@@ -8,7 +8,7 @@ plugins {
 }
 
 val compileShaders by tasks.registering {
-    val shaderSrc = file("src/main/cpp/GraphicsEngine/shaders")
+    val shaderSrc = file("src/main/cpp/GraphicsEngine/source/shaders")
     val shaderDst = file("src/main/assets/shaders")
 
     inputs.dir(shaderSrc)
