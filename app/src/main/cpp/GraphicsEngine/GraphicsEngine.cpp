@@ -1,8 +1,10 @@
 #include "GraphicsEngine.h"
 #include "Logger.h"
+#include "components/assets/AssetManager.h"
 #include "components/instance/Instance.h"
 #include "components/logicalDevice/LogicalDevice.h"
 #include "components/physicalDevice/PhysicalDevice.h"
+#include "components/pipelines/PipelineManager.h"
 #include "components/renderingManager/RenderingManager.h"
 #include "components/surface/Surface.h"
 #include <game-activity/native_app_glue/android_native_app_glue.h>
@@ -16,7 +18,7 @@ namespace ge {
 
     initializeVulkan();
 
-    createPools();
+    createCommandPool();
 
     createComponents();
   }
@@ -27,16 +29,19 @@ namespace ge {
 
     m_logicalDevice->waitIdle();
 
-    m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
-
     m_logicalDevice->destroyCommandPool(m_commandPool);
   }
 
   void GraphicsEngine::render()
   {
-    m_renderingManager->doRendering(m_currentFrame);
+    m_renderingManager->doRendering(m_pipelineManager, m_currentFrame);
 
     createNewFrame();
+  }
+
+  std::shared_ptr<AssetManager> GraphicsEngine::getAssetManager() const
+  {
+    return m_assetManager;
   }
 
   std::shared_ptr<RenderingManager> GraphicsEngine::getRenderingManager() const
@@ -55,13 +60,6 @@ namespace ge {
     m_logicalDevice = std::make_shared<LogicalDevice>(m_physicalDevice);
   }
 
-  void GraphicsEngine::createPools()
-  {
-    createCommandPool();
-
-    createDescriptorPool();
-  }
-
   void GraphicsEngine::createCommandPool()
   {
     const auto queueFamilyIndices = m_physicalDevice->getQueueFamilies();
@@ -75,31 +73,24 @@ namespace ge {
     m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
   }
 
-  void GraphicsEngine::createDescriptorPool()
-  {
-    const std::array<VkDescriptorPoolSize, 3> poolSizes {{
-       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
-       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 50},
-       {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 10}
-     }};
-
-    const VkDescriptorPoolCreateInfo poolCreateInfo {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 30,
-      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-      .pPoolSizes = poolSizes.data()
-    };
-
-    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
-  }
-
   void GraphicsEngine::createComponents()
   {
+    m_assetManager = std::make_shared<AssetManager>(
+      m_logicalDevice,
+      m_app->activity->assetManager
+    );
+
     m_renderingManager = std::make_shared<RenderingManager>(
       m_logicalDevice,
       m_surface,
-      m_commandPool,
-      m_app->activity->assetManager
+      m_assetManager,
+      m_commandPool
+    );
+
+    m_pipelineManager = std::make_shared<PipelineManager>(
+      m_logicalDevice,
+      m_renderingManager->getRenderer(),
+      m_assetManager
     );
   }
 

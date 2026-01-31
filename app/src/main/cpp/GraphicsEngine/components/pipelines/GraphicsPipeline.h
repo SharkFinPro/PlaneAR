@@ -8,7 +8,14 @@
 
 namespace ge {
 
+  class CommandBuffer;
   class RenderPass;
+
+  struct RenderInfo {
+    std::shared_ptr<CommandBuffer> commandBuffer;
+    uint32_t currentFrame;
+    VkExtent2D extent;
+  };
 
   struct GraphicsPipelineOptions {
     struct {
@@ -80,18 +87,27 @@ namespace ge {
 
     std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
 
-    std::shared_ptr<RenderPass>& renderPass;
+    const std::shared_ptr<RenderPass>& renderPass;
   };
 
   class GraphicsPipeline : public Pipeline
   {
   public:
-    explicit GraphicsPipeline(const std::shared_ptr<LogicalDevice>& logicalDevice);
+    GraphicsPipeline(std::shared_ptr<LogicalDevice> logicalDevice,
+                     const GraphicsPipelineOptions& graphicsPipelineOptions);
+
+    void bind(const std::shared_ptr<CommandBuffer>& commandBuffer) const;
+
+    void bindDescriptorSet(const std::shared_ptr<CommandBuffer>& commandBuffer,
+                           VkDescriptorSet descriptorSet,
+                           uint32_t location) const;
 
   protected:
     void createPipelineLayout(const GraphicsPipelineOptions& graphicsPipelineOptions);
 
     void createPipeline(const GraphicsPipelineOptions& graphicsPipelineOptions);
+
+    void bindPipeline(const RenderInfo* renderInfo);
   };
 
 } // ge

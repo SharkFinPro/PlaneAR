@@ -104,6 +104,41 @@ namespace ge {
 
     void destroyShaderModule(VkShaderModule& shaderModule) const;
 
+    [[nodiscard]] VkBuffer createBuffer(const VkBufferCreateInfo& bufferCreateInfo) const;
+
+    void destroyBuffer(VkBuffer& buffer) const;
+
+    [[nodiscard]] VkMemoryRequirements getBufferMemoryRequirements(const VkBuffer& buffer) const;
+
+    void bindBufferMemory(const VkBuffer& buffer,
+                          const VkDeviceMemory& deviceMemory,
+                          VkDeviceSize memoryOffset = 0) const;
+
+    void doMappedMemoryOperation(VkDeviceMemory deviceMemory,
+                                 const std::function<void(void* data)>& operationFunction) const;
+
+    void mapMemory(const VkDeviceMemory& memory,
+                   VkDeviceSize offset,
+                   VkDeviceSize size,
+                   VkMemoryMapFlags flags,
+                   void** data) const;
+
+    void unmapMemory(const VkDeviceMemory& memory) const;
+
+    [[nodiscard]] VkDescriptorSetLayout createDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& descriptorSetLayoutCreateInfo) const;
+
+    void destroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout) const;
+
+    void allocateDescriptorSets(const VkDescriptorSetAllocateInfo& descriptorSetAllocateInfo,
+                                VkDescriptorSet* descriptorSets) const;
+
+    void updateDescriptorSets(uint32_t descriptorWriteCount,
+                              const VkWriteDescriptorSet* descriptorWrites) const;
+
+    [[nodiscard]] VkSampler createSampler(const VkSamplerCreateInfo& samplerCreateInfo) const;
+
+    void destroySampler(VkSampler& sampler) const;
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 

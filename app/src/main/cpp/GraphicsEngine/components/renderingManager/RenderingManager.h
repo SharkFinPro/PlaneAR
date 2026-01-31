@@ -8,10 +8,12 @@ struct AAssetManager;
 
 namespace ge {
 
+  class AssetManager;
   class CommandBuffer;
   class LogicalDevice;
-  class QuadPipeline;
+  class PipelineManager;
   class Renderer;
+  class Renderer2D;
   class Surface;
   class Swapchain;
 
@@ -20,20 +22,17 @@ namespace ge {
   public:
     RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
                      const std::shared_ptr<Surface>& surface,
-                     VkCommandPool commandPool,
-                     AAssetManager* assetManager);
+                     std::shared_ptr<AssetManager> assetManager,
+                     VkCommandPool commandPool);
 
-    void doRendering(uint32_t currentFrame);
-
-    void renderRect(float x,
-                    float y,
-                    float width,
-                    float height,
-                    float r,
-                    float g,
-                    float b);
+    void doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
+                     uint32_t currentFrame);
 
     void createNewFrame();
+
+    [[nodiscard]] std::shared_ptr<Renderer> getRenderer() const;
+
+    [[nodiscard]] std::shared_ptr<Renderer2D> getRenderer2D();
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -48,9 +47,11 @@ namespace ge {
 
     std::shared_ptr<CommandBuffer> m_swapchainCommandBuffer;
 
-    std::shared_ptr<QuadPipeline> m_quadPipeline;
+    std::shared_ptr<Renderer2D> m_renderer2D;
 
-    void recordSwapchainCommandBuffer(uint32_t imageIndex) const;
+    void recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                      uint32_t currentFrame,
+                                      uint32_t imageIndex) const;
   };
 
 } // ge

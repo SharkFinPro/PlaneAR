@@ -1,15 +1,23 @@
+#include "GraphicsEngine.h"
+#include "Logger.h"
+#include "components/assets/AssetManager.h"
+#include "components/renderingManager/RenderingManager.h"
+#include "components/renderingManager/renderer2D/Renderer2D.h"
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 #include <vulkan/vulkan.h>
 #include <stdexcept>
 #include <memory>
 #include "Logger.h"
 #include "GraphicsEngine.h"
-#include "components/renderingManager/RenderingManager.h"
 #include "ArBridge.h"
+#include "components/renderingManager/RenderingManager.h"
+
 extern ArState gArState;
 extern bool gArReady;
 
 static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY);
+
+void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX, float mouseY);
 
 void android_main(struct android_app* pApp)
 {
@@ -45,6 +53,8 @@ void android_main(struct android_app* pApp)
       {
         LOGI("Window initialized, creating graphics engine...");
         engine = std::make_unique<ge::GraphicsEngine>(pApp);
+
+        engine->getAssetManager()->registerFont("roboto", "fonts/Roboto-VariableFont_wdth,wght.ttf");
       }
 
       if (pApp->window == nullptr && engine)
@@ -59,25 +69,7 @@ void android_main(struct android_app* pApp)
         return;
       }
     }
-    //this is what i want to send the graphics engine has not been tested yet this will be next PR
-   /*if (engine)
-   {
-    auto rm = engine->getRenderingManager();
 
-    {
-        std::lock_guard<std::mutex> lock(gArState.mtx);
-
-        if (gArState.hasCamera)
-            rm->setCameraMatrix(gArState.cameraMatrix);
-
-        rm->setAnchors(gArState.anchors);
-    }
-
-    engine->render();
-   }
-   */
-      //this is just to check that arcore is sending data not to be merged just use to test PR
-      //start
       if (engine)
       {
           const auto renderingManager = engine->getRenderingManager();
@@ -107,7 +99,12 @@ void android_main(struct android_app* pApp)
 
           engine->render();
       }
-      //end remove after testing PR
+      /*
+    if (engine)
+    {
+      doRendering(engine, mouseX, mouseY);
+    }
+       */
   }
 }
 
@@ -141,4 +138,56 @@ static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mou
   }
 
   android_app_clear_motion_events(inputBuffer);
+}
+
+void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX, float mouseY)
+{
+  const auto r = engine->getRenderingManager()->getRenderer2D();
+  static float x = 100;
+  static float y = 100;
+  static float w = 200;
+  static float h = 100;
+
+  r->fill(200, 200, 200);
+  r->pushMatrix();
+    r->translate(400, 1200);
+    r->rotate(45.0f);
+    r->scale(3.0f, 0.8f);
+    r->rect(-50, -50, 100, 100);
+  r->popMatrix();
+
+  r->fill(0, 0, 255);
+  r->rect(x, y, w, h);
+
+  r->fill(0, 255, 0);
+  r->rect(x, y * 3.0f, w * 3.0f, h);
+
+  float cursorSize = 50.0f;
+  r->fill(135, 22, 232);
+  r->rect(mouseX - cursorSize / 2.0f, mouseY - cursorSize / 2.0f, cursorSize, cursorSize);
+
+  r->fill(255, 0, 0, 200);
+  r->rect(x, y * 5.0f, w * 2.0f, h);
+
+  r->pushMatrix();
+    r->translate(800, 1200);
+    r->rotate(15.0f);
+    r->scale(2.0f);
+    r->fill(255, 255, 255, 150);
+    r->textFont("roboto", 42);
+    r->text("Hello, world!", -400, -200);
+    r->textSize(64);
+    r->text("Bigger Text!", -400, -100);
+  r->popMatrix();
+
+  r->fill(100, 200, 100);
+  r->triangle(100, 1200, 200, 1100, 200, 1300);
+
+  r->fill(100, 100, 200);
+  r->ellipse(800, 1500, 400, 200);
+
+  r->fill(200, 50, 50);
+  r->ellipse(800, 1500, 50, 50);
+
+  engine->render();
 }
