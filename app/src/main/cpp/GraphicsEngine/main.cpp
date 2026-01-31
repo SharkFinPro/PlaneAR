@@ -70,41 +70,11 @@ void android_main(struct android_app* pApp)
       }
     }
 
-      if (engine)
-      {
-          const auto renderingManager = engine->getRenderingManager();
-
-          float r = 0, g = 0, b = 1; // Default BLUE when session is not created
-
-          if (gArReady) {
-              r = 0.0f;
-              g = 1.0f;
-              b = 0.0f;
-          }
-
-          // Top rectangle (status box)
-          renderingManager->renderRect(x, y, w, h, r, g, b);
-
-          // Other demo rectangles
-          renderingManager->renderRect(x, y * 3.0f, w * 3.0f, h, 0, 1, 0);
-          renderingManager->renderRect(x, y * 5.0f, w * 2.0f, h, 1, 0, 0);
-
-          // Mouse cursor box
-          float cursorSize = 50.0f;
-          renderingManager->renderRect(
-                  mouseX - cursorSize / 2.0f,
-                  mouseY - cursorSize / 2.0f,
-                  cursorSize, cursorSize,
-                  0.529f, 0.086f, 0.91f);
-
-          engine->render();
-      }
-      /*
     if (engine)
     {
       doRendering(engine, mouseX, mouseY);
     }
-       */
+
   }
 }
 
@@ -148,6 +118,12 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   static float w = 200;
   static float h = 100;
 
+  bool arReady = false;
+  {
+      std::lock_guard<std::mutex> lock(gArState.mtx);
+      arReady = gArReady;
+  }
+
   r->fill(200, 200, 200);
   r->pushMatrix();
     r->translate(400, 1200);
@@ -188,6 +164,14 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
 
   r->fill(200, 50, 50);
   r->ellipse(800, 1500, 50, 50);
+
+  if (arReady) {
+      r->fill(120, 255, 0, 220);
+  } else {
+      r->fill(255, 0, 0, 220);
+  }
+
+  r->ellipse(1000, 20, 40, 40);
 
   engine->render();
 }
