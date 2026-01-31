@@ -3,7 +3,6 @@ project(GraphicsEngine)
 include(FetchContent)
 
 add_library(${PROJECT_NAME} SHARED
-  main.cpp
   GraphicsEngine.cpp
   components/assets/AssetManager.cpp
   components/assets/fonts/Font.cpp
@@ -33,7 +32,7 @@ find_package(game-activity REQUIRED CONFIG)
 
 find_library(VULKAN_LIBRARY vulkan)
 
-set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../_deps)
+set(FETCHCONTENT_BASE_DIR ${CMAKE_SOURCE_DIR}/_deps)
 
 # GLM
 FetchContent_Declare(
@@ -53,9 +52,6 @@ FetchContent_MakeAvailable(
   glm
   freetype
 )
-
-set(CMAKE_SHARED_LINKER_FLAGS
-  "${CMAKE_SHARED_LINKER_FLAGS} -u Java_com_google_androidgamesdk_GameActivity_initializeNativeCode")
 
 target_link_libraries(${PROJECT_NAME}
   ${VULKAN_LIBRARY}

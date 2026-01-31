@@ -39,7 +39,7 @@ import com.google.ar.core.exceptions.CameraNotAvailableException
 class MainActivity : GameActivity() {
     companion object {
         init {
-            System.loadLibrary("GraphicsEngine")
+            System.loadLibrary("planeARApp")
         }
 
         private const val CAMERA_PERMISSION_CODE = 0

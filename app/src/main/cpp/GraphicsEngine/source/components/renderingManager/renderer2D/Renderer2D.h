@@ -100,7 +100,7 @@ namespace ge {
     std::string m_currentFontName;
     uint32_t m_currentFontSize = 12;
 
-    float m_currentZ = 0.0f;
+    float m_currentZ = 0.01f;
 
     void updateCurrentFont();
 

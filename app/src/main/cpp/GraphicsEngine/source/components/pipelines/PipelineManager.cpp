@@ -4,7 +4,7 @@
 #include "../assets/AssetManager.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
-#include "../pipelines/PipelineManager.h"
+#include "PipelineManager.h"
 #include "../renderingManager/Renderer.h"
 
 namespace ge {

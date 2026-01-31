@@ -5,3 +5,5 @@ project(PlaneAR)
 set(CMAKE_CXX_STANDARD 23)
 
 add_subdirectory(GraphicsEngine)
+
+add_subdirectory(source)
