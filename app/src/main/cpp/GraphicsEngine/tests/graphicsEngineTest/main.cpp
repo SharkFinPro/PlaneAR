@@ -7,13 +7,6 @@
 #include <vulkan/vulkan.h>
 #include <stdexcept>
 #include <memory>
-#include "Logger.h"
-#include "GraphicsEngine.h"
-#include "ArBridge.h"
-#include "components/renderingManager/RenderingManager.h"
-
-extern ArState gArState;
-extern bool gArReady;
 
 static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY);
 
@@ -29,14 +22,7 @@ void android_main(struct android_app* pApp)
   float mouseX = 0;
   float mouseY = 0;
 
-    // remove after testing
-    static float x = 100;
-    static float y = 100;
-    static float w = 200;
-    static float h = 100;
-
-
-    while (true)
+  while (true)
   {
     int result = ALooper_pollOnce(0, nullptr, &events, (void**)&source);
 
@@ -74,7 +60,6 @@ void android_main(struct android_app* pApp)
     {
       doRendering(engine, mouseX, mouseY);
     }
-
   }
 }
 
@@ -118,18 +103,12 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   static float w = 200;
   static float h = 100;
 
-  bool arReady = false;
-  {
-      std::lock_guard<std::mutex> lock(gArState.mtx);
-      arReady = gArReady;
-  }
-
   r->fill(200, 200, 200);
   r->pushMatrix();
-    r->translate(400, 1200);
-    r->rotate(45.0f);
-    r->scale(3.0f, 0.8f);
-    r->rect(-50, -50, 100, 100);
+  r->translate(400, 1200);
+  r->rotate(45.0f);
+  r->scale(3.0f, 0.8f);
+  r->rect(-50, -50, 100, 100);
   r->popMatrix();
 
   r->fill(0, 0, 255);
@@ -146,14 +125,14 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   r->rect(x, y * 5.0f, w * 2.0f, h);
 
   r->pushMatrix();
-    r->translate(800, 1200);
-    r->rotate(15.0f);
-    r->scale(2.0f);
-    r->fill(255, 255, 255, 150);
-    r->textFont("roboto", 42);
-    r->text("Hello, world!", -400, -200);
-    r->textSize(64);
-    r->text("Bigger Text!", -400, -100);
+  r->translate(800, 1200);
+  r->rotate(15.0f);
+  r->scale(2.0f);
+  r->fill(255, 255, 255, 150);
+  r->textFont("roboto", 42);
+  r->text("Hello, world!", -400, -200);
+  r->textSize(64);
+  r->text("Bigger Text!", -400, -100);
   r->popMatrix();
 
   r->fill(100, 200, 100);
@@ -164,14 +143,6 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
 
   r->fill(200, 50, 50);
   r->ellipse(800, 1500, 50, 50);
-
-  if (arReady) {
-      r->fill(120, 255, 0, 220);
-  } else {
-      r->fill(255, 0, 0, 220);
-  }
-
-  r->ellipse(1000, 20, 40, 40);
 
   engine->render();
 }
