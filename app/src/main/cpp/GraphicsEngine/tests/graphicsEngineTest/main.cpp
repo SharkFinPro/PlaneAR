@@ -104,11 +104,11 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   static float h = 100;
 
   r->fill(200, 200, 200);
-  r->pushMatrix();
-  r->translate(400, 1200);
-  r->rotate(45.0f);
-  r->scale(3.0f, 0.8f);
-  r->rect(-50, -50, 100, 100);
+    r->pushMatrix();
+    r->translate(400, 1200);
+    r->rotate(45.0f);
+    r->scale(3.0f, 0.8f);
+    r->rect(-50, -50, 100, 100);
   r->popMatrix();
 
   r->fill(0, 0, 255);
@@ -125,14 +125,14 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   r->rect(x, y * 5.0f, w * 2.0f, h);
 
   r->pushMatrix();
-  r->translate(800, 1200);
-  r->rotate(15.0f);
-  r->scale(2.0f);
-  r->fill(255, 255, 255, 150);
-  r->textFont("roboto", 42);
-  r->text("Hello, world!", -400, -200);
-  r->textSize(64);
-  r->text("Bigger Text!", -400, -100);
+    r->translate(800, 1200);
+    r->rotate(15.0f);
+    r->scale(2.0f);
+    r->fill(255, 255, 255, 150);
+    r->textFont("roboto", 42);
+    r->text("Hello, world!", -400, -200);
+    r->textSize(64);
+    r->text("Bigger Text!", -400, -100);
   r->popMatrix();
 
   r->fill(100, 200, 100);
