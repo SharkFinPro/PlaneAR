@@ -3,7 +3,6 @@
 #include <mutex>
 #include <algorithm>
 #include "ArBridge.h"
-#include "GraphicsEngine.h"
 
 
 ArState gArState;
