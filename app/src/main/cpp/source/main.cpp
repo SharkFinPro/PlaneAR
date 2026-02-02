@@ -12,9 +12,15 @@
 extern ArState gArState;
 extern bool gArReady;
 
-static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY);
+struct NavButton {
+  float x, y, size;
+};
 
-void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX, float mouseY);
+static int activeNavIndex = 1;
+
+static bool handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY);
+
+void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, struct android_app* pApp, float mouseX, float mouseY, bool tapOccurred);
 
 void android_main(struct android_app* pApp)
 {
@@ -37,7 +43,7 @@ void android_main(struct android_app* pApp)
         source->process(pApp, source);
       }
 
-      handleTouchInput(pApp, &mouseX, &mouseY);
+      bool tapOccurred = handleTouchInput(pApp, &mouseX, &mouseY);
 
       if (pApp->window != nullptr && !engine)
       {
@@ -58,20 +64,21 @@ void android_main(struct android_app* pApp)
         LOGI("App destroy requested, exiting...");
         return;
       }
-    }
 
-    if (engine)
-    {
-      doRendering(engine, mouseX, mouseY);
+      if (engine)
+      {
+        doRendering(engine, pApp, mouseX, mouseY, tapOccurred);
+      }
     }
   }
 }
 
-static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY)
+static bool handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY)
 {
   android_input_buffer* inputBuffer = android_app_swap_input_buffers(pApp);
-  if (!inputBuffer) return;
+  if (!inputBuffer) return false;
 
+  bool tapDetected = false;
   for (uint64_t i = 0; i < inputBuffer->motionEventsCount; i++)
   {
     GameActivityMotionEvent* motionEvent = &inputBuffer->motionEvents[i];
@@ -85,6 +92,7 @@ static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mou
 
       *mouseX = x;
       *mouseY = y;
+      tapDetected = true;
     }
     else if (actionMasked == AMOTION_EVENT_ACTION_MOVE)
     {
@@ -97,9 +105,10 @@ static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mou
   }
 
   android_app_clear_motion_events(inputBuffer);
+  return tapDetected;
 }
 
-void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX, float mouseY)
+void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, struct android_app* pApp, float mouseX, float mouseY, bool tapOccurred)
 {
   const auto r = engine->getRenderingManager()->getRenderer2D();
   
@@ -128,6 +137,43 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   }
 
   r->ellipse(1000, 20, 40, 40);
+
+  float screenWidth = (float)ANativeWindow_getWidth(pApp->window);
+  float screenHeight = (float)ANativeWindow_getHeight(pApp->window);
+  float spacing = 100.0f;
+  float navY = screenHeight - 150.0f;
+  float dotSize = 80.0f;
+  float totalNavWidth = (5 * dotSize) + (4 * spacing);
+  float navStartX = (screenWidth - totalNavWidth) / 2.0f;
+  NavButton navButtons[5];
+
+  for (int i = 0; i < 5; ++i) {
+    float dotX = navStartX + (i * (dotSize + spacing));
+    navButtons[i] = {dotX, navY, dotSize};
+
+    if (i == activeNavIndex) {
+      r->fill(102, 178, 102);
+    } else {
+      r->fill(204, 204, 204);
+    }
+    r->rect(dotX, navY, dotSize, dotSize);
+  }
+
+  if (tapOccurred) {
+    for (int i = 0; i < 5; ++i) {
+      const auto &button = navButtons[i];
+      if (mouseX >= button.x && mouseX <= (button.x + button.size) &&
+          mouseY >= button.y && mouseY <= (button.y + button.size)) {
+        LOGI("Button %d clicked!", i);
+        activeNavIndex = i;
+        break;
+      }
+    }
+  }
+
+  float cursorSize = 50.0f;
+  r->fill(135, 22, 232);
+  r->rect(mouseX - cursorSize / 2.0f, mouseY - cursorSize / 2.0f, cursorSize, cursorSize);
 
   engine->render();
 }
