@@ -1,3 +1,4 @@
+#include "ArBridge.h"
 #include <source/GraphicsEngine.h>
 #include <Logger.h>
 #include <source/components/assets/AssetManager.h>
@@ -7,6 +8,9 @@
 #include <vulkan/vulkan.h>
 #include <stdexcept>
 #include <memory>
+
+extern ArState gArState;
+extern bool gArReady;
 
 static void handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY);
 
@@ -106,6 +110,24 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
 
   r->textSize(64);
   r->text("An AR Plane Tracking App", 400, 450);
+
+  bool arReady = false;
+  {
+    std::lock_guard<std::mutex> lock(gArState.mtx);
+
+    arReady = gArReady;
+  }
+
+  if (arReady)
+  {
+    r->fill(120, 255, 0, 220);
+  }
+  else
+  {
+    r->fill(255, 0, 0, 220);
+  }
+
+  r->ellipse(1000, 20, 40, 40);
 
   engine->render();
 }

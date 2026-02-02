@@ -1,6 +1,9 @@
 project(planeARApp)
 
-add_library(${PROJECT_NAME} SHARED main.cpp)
+add_library(${PROJECT_NAME} SHARED
+  main.cpp
+  ArBridge.cpp
+)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE GraphicsEngine)
 

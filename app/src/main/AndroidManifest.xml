@@ -19,7 +19,7 @@
 
     <uses-feature
         android:name="android.hardware.camera.ar"
-        android:required="false" />
+        android:required="true" />
 
     <!-- permissions -->
     <uses-permission android:name="android.permission.CAMERA" />
