@@ -2,11 +2,14 @@
 #include <vector>
 #include <mutex>
 #include <algorithm>
+
+#include <android/hardware_buffer.h>
+#include <android/hardware_buffer_jni.h>
+
 #include "ArBridge.h"
 
 
 ArState gArState;
-
 
 extern "C" {
 
@@ -85,6 +88,31 @@ extern "C" {
 
         std::lock_guard<std::mutex> lock(gArState.mtx);
         gArState.trackingState = trackingState;
+    }
+
+    JNIEXPORT void JNICALL
+    Java_edu_osu_t22_planear_ARSessionManager_nativeUpdateCameraHardwareBuffer(
+            JNIEnv* env,
+            jobject /*thiz*/,
+            jobject hardwareBuffer) {
+
+        std::lock_guard<std::mutex> lock(gArState.mtx);
+        //Release previous buffer if present
+        if (gArState.cameraHwBuffer) {
+            AHardwareBuffer_release(gArState.cameraHwBuffer);
+            gArState.cameraHwBuffer = nullptr;
+            gArState.hasCameraBuffer = false;
+        }
+        //null means no camera buffer this frame
+        if (!hardwareBuffer) return;
+
+        AHardwareBuffer* ahb = AHardwareBuffer_fromHardwareBuffer(env, hardwareBuffer);
+        if (!ahb) return;
+        //hold referance so kotlin can hb.close() safely
+        AHardwareBuffer_acquire(ahb);
+
+        gArState.cameraHwBuffer = ahb;
+        gArState.hasCameraBuffer = true;
     }
 }
 //just for testing to ensure successful session creation

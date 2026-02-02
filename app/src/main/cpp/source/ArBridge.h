@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <mutex>
+#include <android/hardware_buffer.h>
 
 struct ArAnchor {
     int id;
@@ -11,10 +12,11 @@ struct ArAnchor {
 struct ArState {
     float cameraMatrix[16];
     bool hasCamera = false;
-
-    std::vector<ArAnchor> anchors;
     int trackingState = 0;
+    std::vector<ArAnchor> anchors;
 
+    AHardwareBuffer* cameraHwBuffer = nullptr;
+    bool hasCameraBuffer = false;
     std::mutex mtx;
 };
 

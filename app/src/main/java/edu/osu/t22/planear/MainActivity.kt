@@ -34,6 +34,7 @@ import edu.osu.t22.planear.geo.GeoPoint
 import android.view.Surface
 import com.google.ar.core.Frame
 import com.google.ar.core.exceptions.CameraNotAvailableException
+import android.hardware.HardwareBuffer
 
 
 class MainActivity : GameActivity() {
@@ -341,6 +342,8 @@ class MainActivity : GameActivity() {
                         if (arSession!!.isDepthModeSupported(Config.DepthMode.AUTOMATIC))
                             Config.DepthMode.AUTOMATIC
                         else Config.DepthMode.DISABLED
+
+                    textureUpdateMode = Config.TextureUpdateMode.EXPOSE_HARDWARE_BUFFER
                 }
                 arSession!!.configure(config)
 
@@ -405,11 +408,11 @@ class ARSessionManager(
         // Keep ARCore in sync with display rotation & surface size
         session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
 
-        val frame: Frame
-        try {
-            frame = session.update()
+        val frame: Frame = try {
+            session.update()
         } catch (e: CameraNotAvailableException) {
             nativeOnTrackingStateChanged(TrackingState.STOPPED.ordinal)
+            nativeUpdateCameraHardwareBuffer(null)
             return
         }
 
@@ -417,9 +420,25 @@ class ARSessionManager(
         if (camera.trackingState != TrackingState.TRACKING) {
             // Inform native side that tracking is limited or lost
             nativeOnTrackingStateChanged(camera.trackingState.ordinal)
+            nativeUpdateCameraHardwareBuffer(null)
             return
         }
 
+        val hb: HardwareBuffer? = try {
+            frame.hardwareBuffer
+        } catch (t: Throwable) {
+            null
+        }
+
+        if (hb != null) {
+            try {
+                nativeUpdateCameraHardwareBuffer(hb)
+            } finally {
+                hb.close()
+            }
+        } else {
+            nativeUpdateCameraHardwareBuffer(null)
+        }
 
         // Camera pose -> 4x4 matrix
         val cameraMatrix = FloatArray(16)
@@ -471,4 +490,6 @@ class ARSessionManager(
     private external fun nativeOnTrackingStateChanged(
         trackingState: Int
     )
+
+    private external fun nativeUpdateCameraHardwareBuffer(buffer: HardwareBuffer?)
 }
