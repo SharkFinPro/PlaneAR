@@ -1,0 +1,11 @@
+#ifndef PLANEAR_SCENESWITCHER_H
+#define PLANEAR_SCENESWITCHER_H
+
+
+class SceneSwitcher
+{
+
+};
+
+
+#endif //PLANEAR_SCENESWITCHER_H
