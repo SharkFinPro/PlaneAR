@@ -17,7 +17,7 @@ struct NavButton {
   float x, y, size;
 };
 
-static int activeNavIndex = 1;
+static int activeNavIndex = 0;
 
 static bool handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY);
 
