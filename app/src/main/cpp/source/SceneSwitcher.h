@@ -26,6 +26,8 @@ public:
 
   void setCurrentScene(uint32_t id);
 
+  [[nodiscard]] uint32_t getCurrentScene() const;
+
 private:
   std::unordered_map<uint32_t, SceneCallback> m_scenes;
 

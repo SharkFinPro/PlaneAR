@@ -48,3 +48,8 @@ void SceneSwitcher::setCurrentScene(uint32_t id)
 
   m_currentScene = id;
 }
+
+uint32_t SceneSwitcher::getCurrentScene() const
+{
+  return m_currentScene;
+}
