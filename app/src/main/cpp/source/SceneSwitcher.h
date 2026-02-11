@@ -32,6 +32,12 @@ private:
   std::unordered_map<uint32_t, SceneCallback> m_scenes;
 
   uint32_t m_currentScene = 0;
+
+  void validateSceneId(uint32_t id) const;
+
+  void validateSceneExists(uint32_t id) const;
+
+  void validateSceneDoesNotExist(uint32_t id) const;
 };
 
 

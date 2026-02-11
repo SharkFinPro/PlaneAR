@@ -3,10 +3,7 @@
 
 void SceneSwitcher::renderCurrentScene(const SceneInfo& sceneInfo)
 {
-  if (!m_scenes.contains(m_currentScene))
-  {
-    throw std::runtime_error("Scene with ID " + std::to_string(m_currentScene) + " does not exist!");
-  }
+  validateSceneExists(m_currentScene);
 
   m_scenes.at(m_currentScene)(sceneInfo, this);
 
@@ -16,15 +13,9 @@ void SceneSwitcher::renderCurrentScene(const SceneInfo& sceneInfo)
 void SceneSwitcher::loadScene(uint32_t id,
                               SceneCallback scene)
 {
-  if (id == 0)
-  {
-    throw std::runtime_error("A scene's ID must be > 0!");
-  }
+  validateSceneId(id);
 
-  if (m_scenes.contains(id))
-  {
-    throw std::runtime_error("Scene with ID " + std::to_string(id) + " already exists!");
-  }
+  validateSceneDoesNotExist(id);
 
   m_scenes.emplace(id, std::move(scene));
 
@@ -36,15 +27,9 @@ void SceneSwitcher::loadScene(uint32_t id,
 
 void SceneSwitcher::setCurrentScene(uint32_t id)
 {
-  if (id == 0)
-  {
-    throw std::runtime_error("A scene's ID must be > 0!");
-  }
+  validateSceneId(id);
 
-  if (!m_scenes.contains(id))
-  {
-    throw std::runtime_error("Scene with ID " + std::to_string(id) + " does not exist!");
-  }
+  validateSceneExists(id);
 
   m_currentScene = id;
 }
@@ -52,4 +37,28 @@ void SceneSwitcher::setCurrentScene(uint32_t id)
 uint32_t SceneSwitcher::getCurrentScene() const
 {
   return m_currentScene;
+}
+
+void SceneSwitcher::validateSceneId(uint32_t id) const
+{
+  if (id == 0)
+  {
+    throw std::runtime_error("A scene's ID must be > 0!");
+  }
+}
+
+void SceneSwitcher::validateSceneExists(uint32_t id) const
+{
+  if (!m_scenes.contains(id))
+  {
+    throw std::runtime_error("Scene with ID " + std::to_string(id) + " does not exist!");
+  }
+}
+
+void SceneSwitcher::validateSceneDoesNotExist(uint32_t id) const
+{
+  if (m_scenes.contains(id))
+  {
+    throw std::runtime_error("Scene with ID " + std::to_string(id) + " already exists!");
+  }
 }
