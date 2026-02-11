@@ -17,7 +17,7 @@ struct SceneInfo {
 class SceneSwitcher
 {
 public:
-  using SceneCallback = std::function<void(const SceneInfo&)>;
+  using SceneCallback = std::function<void(const SceneInfo&, SceneSwitcher*)>;
 
   void renderCurrentScene(const SceneInfo& sceneInfo);
 

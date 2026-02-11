@@ -8,7 +8,7 @@ void SceneSwitcher::renderCurrentScene(const SceneInfo& sceneInfo)
     throw std::runtime_error("Scene with ID " + std::to_string(m_currentScene) + " does not exist!");
   }
 
-  m_scenes.at(m_currentScene)(sceneInfo);
+  m_scenes.at(m_currentScene)(sceneInfo, this);
 
   sceneInfo.engine->render();
 }
