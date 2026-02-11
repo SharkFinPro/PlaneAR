@@ -1,4 +1,5 @@
 #include "ArBridge.h"
+#include "SceneSwitcher.h"
 #include <source/GraphicsEngine.h>
 #include <Logger.h>
 #include <source/components/assets/AssetManager.h>
@@ -20,10 +21,13 @@ static int activeNavIndex = 1;
 
 static bool handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY);
 
-void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, struct android_app* pApp, float mouseX, float mouseY, bool tapOccurred);
+void scene1(const SceneInfo& sceneInfo);
 
 void android_main(struct android_app* pApp)
 {
+  SceneSwitcher sceneSwitcher;
+  sceneSwitcher.loadScene(1, scene1);
+
   std::unique_ptr<ge::GraphicsEngine> engine;
 
   int events;
@@ -67,7 +71,15 @@ void android_main(struct android_app* pApp)
 
       if (engine)
       {
-        doRendering(engine, pApp, mouseX, mouseY, tapOccurred);
+        SceneInfo sceneInfo {
+          .engine = engine,
+          .pApp = pApp,
+          .mouseX = mouseX,
+          .mouseY = mouseY,
+          .tapOccurred = tapOccurred
+        };
+
+        sceneSwitcher.renderCurrentScene(sceneInfo);
       }
     }
   }
@@ -108,10 +120,10 @@ static bool handleTouchInput(struct android_app* pApp, float* mouseX, float* mou
   return tapDetected;
 }
 
-void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, struct android_app* pApp, float mouseX, float mouseY, bool tapOccurred)
+void scene1(const SceneInfo& sceneInfo)
 {
-  const auto r = engine->getRenderingManager()->getRenderer2D();
-  
+  const auto r = sceneInfo.engine->getRenderingManager()->getRenderer2D();
+
   r->fill(255, 255, 255);
 
   r->textFont("roboto", 100);
@@ -138,8 +150,8 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, struct andro
 
   r->ellipse(1000, 20, 40, 40);
 
-  float screenWidth = (float)ANativeWindow_getWidth(pApp->window);
-  float screenHeight = (float)ANativeWindow_getHeight(pApp->window);
+  float screenWidth = (float)ANativeWindow_getWidth(sceneInfo.pApp->window);
+  float screenHeight = (float)ANativeWindow_getHeight(sceneInfo.pApp->window);
   float spacing = 100.0f;
   float navY = screenHeight - 150.0f;
   float dotSize = 80.0f;
@@ -159,11 +171,11 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, struct andro
     r->rect(dotX, navY, dotSize, dotSize);
   }
 
-  if (tapOccurred) {
+  if (sceneInfo.tapOccurred) {
     for (int i = 0; i < 5; ++i) {
       const auto &button = navButtons[i];
-      if (mouseX >= button.x && mouseX <= (button.x + button.size) &&
-          mouseY >= button.y && mouseY <= (button.y + button.size)) {
+      if (sceneInfo.mouseX >= button.x && sceneInfo.mouseX <= (button.x + button.size) &&
+          sceneInfo.mouseY >= button.y && sceneInfo.mouseY <= (button.y + button.size)) {
         LOGI("Button %d clicked!", i);
         activeNavIndex = i;
         break;
@@ -173,7 +185,5 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, struct andro
 
   float cursorSize = 50.0f;
   r->fill(135, 22, 232);
-  r->rect(mouseX - cursorSize / 2.0f, mouseY - cursorSize / 2.0f, cursorSize, cursorSize);
-
-  engine->render();
+  r->rect(sceneInfo.mouseX - cursorSize / 2.0f, sceneInfo.mouseY - cursorSize / 2.0f, cursorSize, cursorSize);
 }

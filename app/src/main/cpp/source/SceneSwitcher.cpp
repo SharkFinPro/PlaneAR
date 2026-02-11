@@ -1,14 +1,16 @@
 #include "SceneSwitcher.h"
 #include <stdexcept>
 
-void SceneSwitcher::renderCurrentScene(const std::unique_ptr<ge::GraphicsEngine>& engine)
+void SceneSwitcher::renderCurrentScene(const SceneInfo& sceneInfo)
 {
   if (!m_scenes.contains(m_currentScene))
   {
     throw std::runtime_error("Scene with ID " + std::to_string(m_currentScene) + " does not exist!");
   }
 
-  m_scenes.at(m_currentScene)(engine);
+  m_scenes.at(m_currentScene)(sceneInfo);
+
+  sceneInfo.engine->render();
 }
 
 void SceneSwitcher::loadScene(uint32_t id,

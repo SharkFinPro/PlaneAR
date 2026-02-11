@@ -6,12 +6,20 @@
 #include <memory>
 #include <unordered_map>
 
+struct SceneInfo {
+  const std::unique_ptr<ge::GraphicsEngine>& engine;
+  struct android_app* pApp;
+  float mouseX;
+  float mouseY;
+  bool tapOccurred;
+};
+
 class SceneSwitcher
 {
 public:
-  using SceneCallback = std::function<void(const std::unique_ptr<ge::GraphicsEngine>& engine)>;
+  using SceneCallback = std::function<void(const SceneInfo&)>;
 
-  void renderCurrentScene(const std::unique_ptr<ge::GraphicsEngine>& engine);
+  void renderCurrentScene(const SceneInfo& sceneInfo);
 
   void loadScene(uint32_t id,
                  SceneCallback scene);
