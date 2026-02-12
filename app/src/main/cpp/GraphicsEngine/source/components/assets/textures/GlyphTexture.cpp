@@ -3,12 +3,12 @@
 #include "../../../utilities/Images.h"
 
 namespace ge {
-  GlyphTexture::GlyphTexture(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  GlyphTexture::GlyphTexture(std::shared_ptr<LogicalDevice> logicalDevice,
                              const VkCommandPool& commandPool,
                              const unsigned char* pixelData,
                              uint32_t width,
                              uint32_t height)
-    : Texture(logicalDevice, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
+    : Texture(std::move(logicalDevice), VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
   {
     createTextureImage(commandPool, pixelData, width, height);
 
