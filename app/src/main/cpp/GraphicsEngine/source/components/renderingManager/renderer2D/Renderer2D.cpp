@@ -166,9 +166,9 @@ namespace ge {
 
     float currentX = x;
 
-    for (const auto& character : text)
+    for (const auto codepoint : decodeUTF8(text))
     {
-      if (const auto glyphInfo = m_currentFont->getGlyphInfo(character))
+      if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
       {
         m_glyphsToRender[m_currentFontName][m_currentFontSize].push_back({
           .bounds = glm::vec4(
