@@ -11,7 +11,8 @@ namespace ge {
   class Texture
   {
   public:
-    Texture(const std::shared_ptr<LogicalDevice>& logicalDevice, VkSamplerAddressMode samplerAddressMode);
+    Texture(std::shared_ptr<LogicalDevice> logicalDevice,
+            VkSamplerAddressMode samplerAddressMode);
 
     virtual ~Texture();
 

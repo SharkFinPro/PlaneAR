@@ -3,9 +3,9 @@
 #include "../../physicalDevice/PhysicalDevice.h"
 
 namespace ge {
-  Texture::Texture(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  Texture::Texture(std::shared_ptr<LogicalDevice> logicalDevice,
                    VkSamplerAddressMode samplerAddressMode)
-    : m_logicalDevice(logicalDevice)
+    : m_logicalDevice(std::move(logicalDevice))
   {
     createTextureSampler(samplerAddressMode);
 
