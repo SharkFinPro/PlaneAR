@@ -7,7 +7,6 @@
 #endif
 #include <stb_image.h>
 #include <stdexcept>
-#include <vector>
 
 namespace ge {
   ImageTexture::ImageTexture(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -18,22 +17,8 @@ namespace ge {
                              VkDescriptorSetLayout descriptorSetLayout)
     : Texture(std::move(logicalDevice), VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
   {
-    /* Load Image Buffer */
-    AAsset* asset = AAssetManager_open(assetManager, fileName.c_str(), AASSET_MODE_BUFFER);
-    if (!asset)
-    {
-      throw std::runtime_error(std::string("Failed to open asset: ") + fileName);
-    }
+    const auto imageBuffer = loadImageFromFile(assetManager, fileName);
 
-    const off_t imageBufferSize = AAsset_getLength(asset);
-    const void* imageBufferPtr = AAsset_getBuffer(asset);
-
-    std::vector<uint8_t> imageBuffer(imageBufferSize);
-    std::memcpy(imageBuffer.data(), imageBufferPtr, imageBufferSize);
-
-    AAsset_close(asset);
-
-    /* Load Image Data */
     int texWidth, texHeight, texChannels;
 
     stbi_uc* pixels = stbi_load_from_memory(
@@ -68,7 +53,6 @@ namespace ge {
 
     stbi_image_free(pixels);
 
-    /* Create Vulkan Image */
     Images::createImage(
       m_logicalDevice,
       0,
@@ -98,36 +82,7 @@ namespace ge {
       1
     );
 
-    // Begin copy
-
-    VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, commandPool);
-
-    VkBufferImageCopy region {
-      .bufferOffset = 0,
-      .bufferRowLength = 0,
-      .bufferImageHeight = 0,
-      .imageSubresource = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .mipLevel = 0,
-        .baseArrayLayer = 0,
-        .layerCount = 1,
-      },
-      .imageOffset = {0, 0, 0},
-      .imageExtent = {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1}
-    };
-
-    vkCmdCopyBufferToImage(
-      commandBuffer,
-      stagingBuffer,
-      m_textureImage,
-      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-      1,
-      &region
-    );
-
-    Buffers::endSingleTimeCommands(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
-
-    // End Copy
+    copyBufferToImage(commandPool, texWidth, texHeight, stagingBuffer);
 
     Images::transitionImageLayout(
       m_logicalDevice,
@@ -156,5 +111,58 @@ namespace ge {
     );
 
     m_imageInfo.imageView = m_textureImageView;
+  }
+
+  std::vector<uint8_t> ImageTexture::loadImageFromFile(AAssetManager* assetManager,
+                                                       const std::string& fileName)
+  {
+    AAsset* asset = AAssetManager_open(assetManager, fileName.c_str(), AASSET_MODE_BUFFER);
+    if (!asset)
+    {
+      throw std::runtime_error(std::string("Failed to open asset: ") + fileName);
+    }
+
+    const off_t imageBufferSize = AAsset_getLength(asset);
+    const void* imageBufferPtr = AAsset_getBuffer(asset);
+
+    std::vector<uint8_t> imageBuffer(imageBufferSize);
+    std::memcpy(imageBuffer.data(), imageBufferPtr, imageBufferSize);
+
+    AAsset_close(asset);
+
+    return imageBuffer;
+  }
+
+  void ImageTexture::copyBufferToImage(const VkCommandPool& commandPool,
+                                       uint32_t width,
+                                       uint32_t height,
+                                       VkBuffer& stagingBuffer)
+  {
+    VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, commandPool);
+
+    VkBufferImageCopy region {
+      .bufferOffset = 0,
+      .bufferRowLength = 0,
+      .bufferImageHeight = 0,
+      .imageSubresource = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .mipLevel = 0,
+        .baseArrayLayer = 0,
+        .layerCount = 1,
+      },
+      .imageOffset = {0, 0, 0},
+      .imageExtent = { width, height, 1}
+    };
+
+    vkCmdCopyBufferToImage(
+      commandBuffer,
+      stagingBuffer,
+      m_textureImage,
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      1,
+      &region
+    );
+
+    Buffers::endSingleTimeCommands(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
   }
 } // ge

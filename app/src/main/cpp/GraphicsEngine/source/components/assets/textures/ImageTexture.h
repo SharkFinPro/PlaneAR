@@ -3,6 +3,7 @@
 
 #include "Texture.h"
 #include <memory>
+#include <vector>
 
 struct AAssetManager;
 
@@ -22,6 +23,14 @@ namespace ge {
 
   private:
     std::shared_ptr<DescriptorSet> m_descriptorSet;
+
+    static std::vector<uint8_t> loadImageFromFile(AAssetManager* assetManager,
+                                                  const std::string& fileName);
+
+    void copyBufferToImage(const VkCommandPool& commandPool,
+                           uint32_t width,
+                           uint32_t height,
+                           VkBuffer& stagingBuffer);
 
     void createImageView() override;
   };
