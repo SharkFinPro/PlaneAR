@@ -41,6 +41,7 @@ void android_main(struct android_app* pApp)
         engine = std::make_unique<ge::GraphicsEngine>(pApp);
 
         engine->getAssetManager()->registerFont("roboto", "fonts/Roboto-VariableFont_wdth,wght.ttf");
+        engine->getAssetManager()->registerFont("emoji", "fonts/NotoEmoji-VariableFont_wght.ttf");
       }
 
       if (pApp->window == nullptr && engine)
@@ -134,6 +135,10 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
     r->textSize(64);
     r->text("Bigger Text!", -400, -100);
   r->popMatrix();
+
+  r->fill(255, 255, 255);
+  r->textFont("emoji", 50);
+  r->text("✈", 300, 300);
 
   r->fill(100, 200, 100);
   r->triangle(100, 1200, 200, 1100, 200, 1300);
