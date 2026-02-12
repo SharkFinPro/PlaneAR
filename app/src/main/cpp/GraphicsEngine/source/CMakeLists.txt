@@ -7,6 +7,7 @@ add_library(${PROJECT_NAME} SHARED
   components/assets/AssetManager.cpp
   components/assets/fonts/Font.cpp
   components/assets/textures/GlyphTexture.cpp
+  components/assets/textures/ImageTexture.cpp
   components/assets/textures/Texture.cpp
   components/commandBuffer/CommandBuffer.cpp
   components/descriptorSet/DescriptorSet.cpp
