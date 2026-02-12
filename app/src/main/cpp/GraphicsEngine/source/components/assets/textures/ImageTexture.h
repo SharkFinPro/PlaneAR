@@ -22,6 +22,8 @@ namespace ge {
 
   private:
     std::shared_ptr<DescriptorSet> m_descriptorSet;
+
+    void createImageView() override;
   };
 
 } // ge

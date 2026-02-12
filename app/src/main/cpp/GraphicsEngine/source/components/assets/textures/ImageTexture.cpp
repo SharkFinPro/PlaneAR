@@ -33,4 +33,9 @@ namespace ge {
 
     /* Load Image */
   }
+
+  void ImageTexture::createImageView()
+  {
+
+  }
 } // ge
