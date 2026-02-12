@@ -1,4 +1,6 @@
 #include "ImageTexture.h"
+#include "../../../utilities/Buffers.h"
+#include "../../../utilities/Images.h"
 #include <android/asset_manager.h>
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -23,15 +25,122 @@ namespace ge {
       throw std::runtime_error(std::string("Failed to open asset: ") + fileName);
     }
 
-    off_t fontBufferSize = AAsset_getLength(asset);
-    const void* fontBufferPtr = AAsset_getBuffer(asset);
+    const off_t imageBufferSize = AAsset_getLength(asset);
+    const void* imageBufferPtr = AAsset_getBuffer(asset);
 
-    std::vector<uint8_t> fontBuffer(fontBufferSize);
-    std::memcpy(fontBuffer.data(), fontBufferPtr, fontBufferSize);
+    std::vector<uint8_t> imageBuffer(imageBufferSize);
+    std::memcpy(imageBuffer.data(), imageBufferPtr, imageBufferSize);
 
     AAsset_close(asset);
 
-    /* Load Image */
+    /* Load Image Data */
+    int texWidth, texHeight, texChannels;
+
+    stbi_uc* pixels = stbi_load_from_memory(
+      imageBuffer.data(),
+      static_cast<int>(imageBuffer.size()),
+      &texWidth,
+      &texHeight,
+      &texChannels,
+      STBI_rgb_alpha
+    );
+    if (!pixels)
+    {
+      throw std::runtime_error("failed to load texture image!");
+    }
+
+    const VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    Buffers::createBuffer(
+      m_logicalDevice,
+      imageSize,
+      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+      stagingBuffer,
+      stagingBufferMemory
+    );
+
+    m_logicalDevice->doMappedMemoryOperation(stagingBufferMemory, [pixels, imageSize](void* data) {
+      memcpy(data, pixels, imageSize);
+    });
+
+    stbi_image_free(pixels);
+
+    /* Create Vulkan Image */
+    Images::createImage(
+      m_logicalDevice,
+      0,
+      texWidth,
+      texHeight,
+      1,
+      m_mipLevels,
+      VK_SAMPLE_COUNT_1_BIT,
+      VK_FORMAT_R8G8B8A8_UNORM,
+      VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      m_textureImage,
+      m_textureImageMemory,
+      VK_IMAGE_TYPE_2D,
+      1
+    );
+
+    Images::transitionImageLayout(
+      m_logicalDevice,
+      commandPool,
+      m_textureImage,
+      VK_FORMAT_R8G8B8A8_UNORM,
+      VK_IMAGE_LAYOUT_UNDEFINED,
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      m_mipLevels,
+      1
+    );
+
+    // Begin copy
+
+    VkCommandBuffer commandBuffer = Buffers::beginSingleTimeCommands(m_logicalDevice, commandPool);
+
+    VkBufferImageCopy region {
+      .bufferOffset = 0,
+      .bufferRowLength = 0,
+      .bufferImageHeight = 0,
+      .imageSubresource = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .mipLevel = 0,
+        .baseArrayLayer = 0,
+        .layerCount = 1,
+      },
+      .imageOffset = {0, 0, 0},
+      .imageExtent = {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1}
+    };
+
+    vkCmdCopyBufferToImage(
+      commandBuffer,
+      stagingBuffer,
+      m_textureImage,
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      1,
+      &region
+    );
+
+    Buffers::endSingleTimeCommands(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
+
+    // End Copy
+
+    Images::transitionImageLayout(
+      m_logicalDevice,
+      commandPool,
+      m_textureImage,
+      VK_FORMAT_R8_UNORM,
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+      m_mipLevels,
+      1
+    );
+
+    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
   }
 
   void ImageTexture::createImageView()
