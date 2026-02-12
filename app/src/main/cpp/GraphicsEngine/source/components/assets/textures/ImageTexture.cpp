@@ -133,7 +133,7 @@ namespace ge {
       m_logicalDevice,
       commandPool,
       m_textureImage,
-      VK_FORMAT_R8_UNORM,
+      VK_FORMAT_R8G8B8A8_UNORM,
       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
       m_mipLevels,
@@ -145,6 +145,16 @@ namespace ge {
 
   void ImageTexture::createImageView()
   {
+    m_textureImageView = Images::createImageView(
+      m_logicalDevice,
+      m_textureImage,
+      VK_FORMAT_R8G8B8A8_UNORM,
+      VK_IMAGE_ASPECT_COLOR_BIT,
+      m_mipLevels,
+      VK_IMAGE_VIEW_TYPE_2D,
+      1
+    );
 
+    m_imageInfo.imageView = m_textureImageView;
   }
 } // ge
