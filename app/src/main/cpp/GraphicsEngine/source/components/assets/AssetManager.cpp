@@ -139,4 +139,9 @@ namespace ge {
   {
     m_imageNames.insert({ std::move(imageName), std::move(imagePath) });
   }
+
+  VkDescriptorSetLayout AssetManager::getImageDescriptorSetLayout() const
+  {
+    return m_imageDescriptorSetLayout;
+  }
 } // ge
