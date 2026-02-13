@@ -27,6 +27,7 @@ add_library(${PROJECT_NAME} SHARED
   components/renderPass/RenderPass.cpp
   components/shaderModule/ShaderModule.cpp
   components/surface/Swapchain.cpp
+  components/ui/Button.cpp
 )
 
 find_package(game-activity REQUIRED CONFIG)
