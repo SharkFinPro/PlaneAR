@@ -41,6 +41,8 @@ void android_main(struct android_app* pApp)
         engine = std::make_unique<ge::GraphicsEngine>(pApp);
 
         engine->getAssetManager()->registerFont("roboto", "fonts/Roboto-VariableFont_wdth,wght.ttf");
+
+        engine->getAssetManager()->registerImage("plane", "images/plane.jpg");
       }
 
       if (pApp->window == nullptr && engine)
@@ -143,6 +145,8 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
 
   r->fill(200, 50, 50);
   r->ellipse(800, 1500, 50, 50);
+
+  r->image("plane", 600, 600, 600, 375);
 
   engine->render();
 }
