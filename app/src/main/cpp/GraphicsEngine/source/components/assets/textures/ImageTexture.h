@@ -29,10 +29,16 @@ namespace ge {
     static std::vector<uint8_t> loadImageFromFile(AAssetManager* assetManager,
                                                   const std::string& fileName);
 
+    void createAndPrepareImage(const VkCommandPool& commandPool,
+                               uint32_t width,
+                               uint32_t height);
+
     void copyBufferToImage(const VkCommandPool& commandPool,
                            uint32_t width,
                            uint32_t height,
                            VkBuffer& stagingBuffer);
+
+    void transitionImageToShaderReadable(const VkCommandPool& commandPool);
 
     void createImageView() override;
 

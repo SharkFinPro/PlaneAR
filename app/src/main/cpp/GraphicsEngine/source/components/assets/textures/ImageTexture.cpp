@@ -54,11 +54,53 @@ namespace ge {
 
     stbi_image_free(pixels);
 
+    createAndPrepareImage(commandPool, texWidth, texHeight);
+
+    copyBufferToImage(commandPool, texWidth, texHeight, stagingBuffer);
+
+    transitionImageToShaderReadable(commandPool);
+
+    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+
+    createImageView();
+
+    createDescriptorSet(descriptorPool, descriptorSetLayout);
+  }
+
+  VkDescriptorSet ImageTexture::getDescriptorSet(const uint32_t currentFrame) const
+  {
+    return m_descriptorSet->getDescriptorSet(currentFrame);
+  }
+
+  std::vector<uint8_t> ImageTexture::loadImageFromFile(AAssetManager* assetManager,
+                                                       const std::string& fileName)
+  {
+    AAsset* asset = AAssetManager_open(assetManager, fileName.c_str(), AASSET_MODE_BUFFER);
+    if (!asset)
+    {
+      throw std::runtime_error(std::string("Failed to open asset: ") + fileName);
+    }
+
+    const off_t imageBufferSize = AAsset_getLength(asset);
+    const void* imageBufferPtr = AAsset_getBuffer(asset);
+
+    std::vector<uint8_t> imageBuffer(imageBufferSize);
+    std::memcpy(imageBuffer.data(), imageBufferPtr, imageBufferSize);
+
+    AAsset_close(asset);
+
+    return imageBuffer;
+  }
+
+  void ImageTexture::createAndPrepareImage(const VkCommandPool& commandPool,
+                                           const uint32_t width,
+                                           const uint32_t height)
+  {
     Images::createImage(
       m_logicalDevice,
       0,
-      texWidth,
-      texHeight,
+      width,
+      height,
       1,
       m_mipLevels,
       VK_SAMPLE_COUNT_1_BIT,
@@ -82,65 +124,6 @@ namespace ge {
       m_mipLevels,
       1
     );
-
-    copyBufferToImage(commandPool, texWidth, texHeight, stagingBuffer);
-
-    Images::transitionImageLayout(
-      m_logicalDevice,
-      commandPool,
-      m_textureImage,
-      VK_FORMAT_R8G8B8A8_UNORM,
-      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-      m_mipLevels,
-      1
-    );
-
-    Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
-
-    createImageView();
-
-    createDescriptorSet(descriptorPool, descriptorSetLayout);
-  }
-
-  VkDescriptorSet ImageTexture::getDescriptorSet(const uint32_t currentFrame) const
-  {
-    return m_descriptorSet->getDescriptorSet(currentFrame);
-  }
-
-  void ImageTexture::createImageView()
-  {
-    m_textureImageView = Images::createImageView(
-      m_logicalDevice,
-      m_textureImage,
-      VK_FORMAT_R8G8B8A8_UNORM,
-      VK_IMAGE_ASPECT_COLOR_BIT,
-      m_mipLevels,
-      VK_IMAGE_VIEW_TYPE_2D,
-      1
-    );
-
-    m_imageInfo.imageView = m_textureImageView;
-  }
-
-  std::vector<uint8_t> ImageTexture::loadImageFromFile(AAssetManager* assetManager,
-                                                       const std::string& fileName)
-  {
-    AAsset* asset = AAssetManager_open(assetManager, fileName.c_str(), AASSET_MODE_BUFFER);
-    if (!asset)
-    {
-      throw std::runtime_error(std::string("Failed to open asset: ") + fileName);
-    }
-
-    const off_t imageBufferSize = AAsset_getLength(asset);
-    const void* imageBufferPtr = AAsset_getBuffer(asset);
-
-    std::vector<uint8_t> imageBuffer(imageBufferSize);
-    std::memcpy(imageBuffer.data(), imageBufferPtr, imageBufferSize);
-
-    AAsset_close(asset);
-
-    return imageBuffer;
   }
 
   void ImageTexture::copyBufferToImage(const VkCommandPool& commandPool,
@@ -174,6 +157,35 @@ namespace ge {
     );
 
     Buffers::endSingleTimeCommands(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
+  }
+
+  void ImageTexture::transitionImageToShaderReadable(const VkCommandPool& commandPool)
+  {
+    Images::transitionImageLayout(
+      m_logicalDevice,
+      commandPool,
+      m_textureImage,
+      VK_FORMAT_R8G8B8A8_UNORM,
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+      m_mipLevels,
+      1
+    );
+  }
+
+  void ImageTexture::createImageView()
+  {
+    m_textureImageView = Images::createImageView(
+      m_logicalDevice,
+      m_textureImage,
+      VK_FORMAT_R8G8B8A8_UNORM,
+      VK_IMAGE_ASPECT_COLOR_BIT,
+      m_mipLevels,
+      VK_IMAGE_VIEW_TYPE_2D,
+      1
+    );
+
+    m_imageInfo.imageView = m_textureImageView;
   }
 
   void ImageTexture::createDescriptorSet(VkDescriptorPool descriptorPool,
