@@ -25,6 +25,8 @@ namespace ge {
     m_ellipsesToRender.clear();
 
     m_glyphsToRender.clear();
+
+    m_imagesToRender.clear();
   }
 
   void Renderer2D::render(const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -39,6 +41,8 @@ namespace ge {
     renderEllipses(pipelineManager, renderInfo);
 
     renderGlyphs(pipelineManager, renderInfo);
+
+    renderImages(pipelineManager, renderInfo);
   }
 
   void Renderer2D::fill(const float r,
@@ -191,6 +195,21 @@ namespace ge {
         currentX += glyphInfo->advance;
       }
     }
+
+    increaseCurrentZ();
+  }
+
+  void Renderer2D::image(const std::string& image,
+                         float x,
+                         float y,
+                         float width,
+                         float height)
+  {
+    m_imagesToRender.push_back({
+      .bounds = glm::vec4(x, y, width, height),
+      .transform = m_currentTransform,
+      .z = m_currentZ
+    });
 
     increaseCurrentZ();
   }
@@ -367,5 +386,36 @@ namespace ge {
     );
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
+  }
+
+  void Renderer2D::renderImages(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                const RenderInfo* renderInfo) const
+  {
+    // TODO: Uncomment after image pipeline is implemented
+//    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::image);
+
+    for (const auto& image : m_imagesToRender)
+    {
+      renderImage(pipelineManager, renderInfo, image);
+    }
+  }
+
+  void Renderer2D::renderImage(const std::shared_ptr<PipelineManager>& pipelineManager,
+                               const RenderInfo* renderInfo,
+                               const Image& image)
+  {
+    // TODO: Uncomment after image pipeline is implemented and image PC is implemented
+//    const auto imagePC = image.createPushConstant(renderInfo->extent);
+//
+//    pipelineManager->pushGraphicsPipelineConstants(
+//      renderInfo->commandBuffer,
+//      PipelineType::image,
+//      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+//      0,
+//      sizeof(imagePC),
+//      &imagePC
+//    );
+//
+//    renderInfo->commandBuffer->draw(4, 1, 0, 0);
   }
 } // ge

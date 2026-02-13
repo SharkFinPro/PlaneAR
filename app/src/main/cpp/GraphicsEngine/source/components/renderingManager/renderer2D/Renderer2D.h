@@ -79,6 +79,12 @@ namespace ge {
               float x,
               float y);
 
+    void image(const std::string& image,
+               float x,
+               float y,
+               float width,
+               float height);
+
   private:
     std::shared_ptr<AssetManager> m_assetManager;
 
@@ -99,6 +105,8 @@ namespace ge {
     std::shared_ptr<Font> m_currentFont;
     std::string m_currentFontName;
     uint32_t m_currentFontSize = 12;
+
+    std::vector<Image> m_imagesToRender;
 
     float m_currentZ = 0.01f;
 
@@ -135,6 +143,13 @@ namespace ge {
     static void renderGlyph(const std::shared_ptr<PipelineManager>& pipelineManager,
                             const RenderInfo* renderInfo,
                             const Glyph& glyph);
+
+    void renderImages(const std::shared_ptr<PipelineManager>& pipelineManager,
+                      const RenderInfo* renderInfo) const;
+
+    static void renderImage(const std::shared_ptr<PipelineManager>& pipelineManager,
+                            const RenderInfo* renderInfo,
+                            const Image& image);
   };
 
 } // ge

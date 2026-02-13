@@ -179,6 +179,12 @@ namespace ge {
     }
   };
 
+  struct Image {
+    glm::vec4 bounds;
+    glm::mat4 transform;
+    float z;
+  };
+
 }
 
 #endif //PLANEAR_PRIMITIVES2D_H
