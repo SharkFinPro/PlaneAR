@@ -1,5 +1,6 @@
 #include "AssetManager.h"
 #include "fonts/Font.h"
+#include "textures/ImageTexture.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
 
@@ -57,6 +58,31 @@ namespace ge {
   VkDescriptorSetLayout AssetManager::getFontDescriptorSetLayout() const
   {
     return m_fontDescriptorSetLayout;
+  }
+
+  void AssetManager::registerImage(std::string imageName,
+                                   std::string imagePath)
+  {
+    m_imageNames.insert({ std::move(imageName), std::move(imagePath) });
+  }
+
+  std::shared_ptr<ImageTexture> AssetManager::getImage(const std::string& imageName)
+  {
+    auto image = m_images.find(imageName);
+
+    if (image == m_images.end())
+    {
+      loadImage(imageName);
+
+      image = m_images.find(imageName);
+    }
+
+    return image->second;
+  }
+
+  VkDescriptorSetLayout AssetManager::getImageDescriptorSetLayout() const
+  {
+    return m_imageDescriptorSetLayout;
   }
 
   void AssetManager::createDescriptorSetLayouts()
@@ -133,6 +159,27 @@ namespace ge {
     m_fonts.emplace(FontKey{ fontName, fontSize }, std::move(font));
   }
 
+  void AssetManager::loadImage(const std::string& imageName)
+  {
+    const auto imagePath = m_imageNames.find(imageName);
+
+    if (imagePath == m_fontNames.end())
+    {
+      throw std::runtime_error("Image not found: " + imageName);
+    }
+
+    auto image = std::make_shared<ImageTexture>(
+      m_logicalDevice,
+      m_aassetManager,
+      imagePath->second,
+      m_commandPool,
+      m_descriptorPool,
+      m_fontDescriptorSetLayout
+    );
+
+    m_images.emplace(imageName, std::move(image));
+  }
+
   void AssetManager::createCommandPool()
   {
     const VkCommandPoolCreateInfo poolInfo {
@@ -158,16 +205,5 @@ namespace ge {
     };
 
     m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
-  }
-
-  void AssetManager::registerImage(std::string imageName,
-                                   std::string imagePath)
-  {
-    m_imageNames.insert({ std::move(imageName), std::move(imagePath) });
-  }
-
-  VkDescriptorSetLayout AssetManager::getImageDescriptorSetLayout() const
-  {
-    return m_imageDescriptorSetLayout;
   }
 } // ge
