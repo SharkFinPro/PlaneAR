@@ -391,8 +391,7 @@ namespace ge {
   void Renderer2D::renderImages(const std::shared_ptr<PipelineManager>& pipelineManager,
                                 const RenderInfo* renderInfo) const
   {
-    // TODO: Uncomment after image pipeline is implemented
-//    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::image);
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::image);
 
     for (const auto& image : m_imagesToRender)
     {
