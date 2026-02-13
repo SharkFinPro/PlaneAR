@@ -1,4 +1,5 @@
 #include "ImageTexture.h"
+#include "../../descriptorSet/DescriptorSet.h"
 #include "../../../utilities/Buffers.h"
 #include "../../../utilities/Images.h"
 #include <android/asset_manager.h>
@@ -96,6 +97,13 @@ namespace ge {
     );
 
     Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+
+    createDescriptorSet(descriptorPool, descriptorSetLayout);
+  }
+
+  VkDescriptorSet ImageTexture::getDescriptorSet(const uint32_t currentFrame) const
+  {
+    return m_descriptorSet->getDescriptorSet(currentFrame);
   }
 
   void ImageTexture::createImageView()
@@ -164,5 +172,19 @@ namespace ge {
     );
 
     Buffers::endSingleTimeCommands(m_logicalDevice, commandPool, m_logicalDevice->getGraphicsQueue(), commandBuffer);
+  }
+
+  void ImageTexture::createDescriptorSet(VkDescriptorPool descriptorPool,
+                                         VkDescriptorSetLayout descriptorSetLayout)
+  {
+    m_descriptorSet = std::make_shared<DescriptorSet>(m_logicalDevice, descriptorPool, descriptorSetLayout);
+    m_descriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
+    {
+      std::vector<VkWriteDescriptorSet> descriptorWrites{{
+        getWriteDescriptorSet(0, descriptorSet)
+      }};
+
+      return descriptorWrites;
+    });
   }
 } // ge

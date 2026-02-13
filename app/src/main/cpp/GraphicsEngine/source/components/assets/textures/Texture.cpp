@@ -32,8 +32,8 @@ namespace ge {
     return poolSize;
   }
 
-  VkWriteDescriptorSet Texture::getDescriptorSet(uint32_t binding,
-                                                 const VkDescriptorSet& dstSet) const
+  VkWriteDescriptorSet Texture::getWriteDescriptorSet(uint32_t binding,
+                                                      const VkDescriptorSet& dstSet) const
   {
     const VkWriteDescriptorSet descriptorSet {
       .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,

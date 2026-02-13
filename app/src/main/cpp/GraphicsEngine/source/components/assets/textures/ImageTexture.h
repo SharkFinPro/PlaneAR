@@ -21,6 +21,8 @@ namespace ge {
                  VkDescriptorPool descriptorPool,
                  VkDescriptorSetLayout descriptorSetLayout);
 
+    [[nodiscard]] VkDescriptorSet getDescriptorSet(uint32_t currentFrame) const;
+
   private:
     std::shared_ptr<DescriptorSet> m_descriptorSet;
 
@@ -33,6 +35,9 @@ namespace ge {
                            VkBuffer& stagingBuffer);
 
     void createImageView() override;
+
+    void createDescriptorSet(VkDescriptorPool descriptorPool,
+                             VkDescriptorSetLayout descriptorSetLayout);
   };
 
 } // ge

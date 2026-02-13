@@ -18,8 +18,8 @@ namespace ge {
 
     [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize() const;
 
-    [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding,
-                                                        const VkDescriptorSet& dstSet) const;
+    [[nodiscard]] VkWriteDescriptorSet getWriteDescriptorSet(uint32_t binding,
+                                                             const VkDescriptorSet& dstSet) const;
 
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
