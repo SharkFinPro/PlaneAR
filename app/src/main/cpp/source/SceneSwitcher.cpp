@@ -1,9 +1,13 @@
 #include "SceneSwitcher.h"
+#include <source/components/renderingManager/RenderingManager.h>
+#include <source/components/renderingManager/renderer2D/Renderer2D.h>
 #include <stdexcept>
 
 void SceneSwitcher::renderCurrentScene(const SceneInfo& sceneInfo)
 {
   validateSceneExists(m_currentScene);
+
+  sceneInfo.engine->getRenderingManager()->getRenderer2D()->createNewFrame();
 
   m_scenes.at(m_currentScene)(sceneInfo, this);
 
@@ -14,7 +18,6 @@ void SceneSwitcher::loadScene(uint32_t id,
                               SceneCallback scene)
 {
   validateSceneId(id);
-
   validateSceneDoesNotExist(id);
 
   m_scenes.emplace(id, std::move(scene));
@@ -28,9 +31,7 @@ void SceneSwitcher::loadScene(uint32_t id,
 void SceneSwitcher::setCurrentScene(uint32_t id)
 {
   validateSceneId(id);
-
   validateSceneExists(id);
-
   m_currentScene = id;
 }
 

@@ -2,9 +2,6 @@
 #include "AppScenes.h"
 #include "InputUtils.h"
 #include <source/GraphicsEngine.h>
-#include <source/components/assets/AssetManager.h> // For font registration
-#include <source/components/renderingManager/RenderingManager.h>
-#include <source/components/renderingManager/renderer2D/Renderer2D.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 #include <memory>
 
@@ -36,18 +33,18 @@ void android_main(struct android_app* pApp)
       if (pApp->window != nullptr && !engine)
       {
         engine = std::make_unique<ge::GraphicsEngine>(pApp);
-        engine->getAssetManager()->registerFont("roboto", "fonts/Roboto-VariableFont_wdth,wght.ttf");
 
-        AppScenes::initUI(pApp);
+        // Assets and UI are setup once here
+        AppScenes::initialize(engine, pApp);
 
         if (!scenesLoaded) {
-            switcher.loadScene(1, AppScenes::homeScene);
-            switcher.loadScene(2, AppScenes::arScene);
-            switcher.loadScene(3, AppScenes::filesScene);
-            switcher.loadScene(4, AppScenes::mapScene);
-            switcher.loadScene(5, AppScenes::settingsScene);
-            switcher.setCurrentScene(1);
-            scenesLoaded = true;
+          switcher.loadScene(1, AppScenes::homeScene);
+          switcher.loadScene(2, AppScenes::arScene);
+          switcher.loadScene(3, AppScenes::filesScene);
+          switcher.loadScene(4, AppScenes::mapScene);
+          switcher.loadScene(5, AppScenes::settingsScene);
+          switcher.setCurrentScene(1);
+          scenesLoaded = true;
         }
       }
 
@@ -63,7 +60,7 @@ void android_main(struct android_app* pApp)
 
       if (engine)
       {
-        engine->getRenderingManager()->getRenderer2D()->createNewFrame();
+        // SceneSwitcher now handles createNewFrame and engine->render internally
         SceneInfo info{engine, pApp, mouseX, mouseY, tapOccurred};
         switcher.renderCurrentScene(info);
       }
