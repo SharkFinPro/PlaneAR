@@ -158,9 +158,9 @@ namespace ge::PipelineConfig {
       },
       .pushConstantRanges {
         {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
           .offset = 0,
-          .size = sizeof(Glyph::PushConstant)
+          .size = sizeof(Image::PushConstant)
         }
       },
       .descriptorSetLayouts {
