@@ -7,6 +7,7 @@ add_library(${PROJECT_NAME} SHARED
   components/assets/AssetManager.cpp
   components/assets/fonts/Font.cpp
   components/assets/textures/GlyphTexture.cpp
+  components/assets/textures/ImageTexture.cpp
   components/assets/textures/Texture.cpp
   components/commandBuffer/CommandBuffer.cpp
   components/descriptorSet/DescriptorSet.cpp
@@ -48,9 +49,17 @@ FetchContent_Declare(
   GIT_TAG VER-2-14-1
 )
 
+# STB
+FetchContent_Declare(
+  stb
+  GIT_REPOSITORY https://github.com/nothings/stb
+  GIT_TAG master
+)
+
 FetchContent_MakeAvailable(
   glm
   freetype
+  stb
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -63,4 +72,5 @@ target_link_libraries(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   ${glm_SOURCE_DIR}
+  ${stb_SOURCE_DIR}
 )

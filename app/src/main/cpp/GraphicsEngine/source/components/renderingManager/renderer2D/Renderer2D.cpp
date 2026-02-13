@@ -1,6 +1,7 @@
 #include "Renderer2D.h"
 #include "../../assets/AssetManager.h"
 #include "../../assets/fonts/Font.h"
+#include "../../assets/textures/ImageTexture.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../pipelines/GraphicsPipeline.h"
 #include "../../pipelines/PipelineManager.h"
@@ -25,6 +26,8 @@ namespace ge {
     m_ellipsesToRender.clear();
 
     m_glyphsToRender.clear();
+
+    m_imagesToRender.clear();
   }
 
   void Renderer2D::render(const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -39,6 +42,8 @@ namespace ge {
     renderEllipses(pipelineManager, renderInfo);
 
     renderGlyphs(pipelineManager, renderInfo);
+
+    renderImages(pipelineManager, renderInfo);
   }
 
   void Renderer2D::fill(const float r,
@@ -195,6 +200,22 @@ namespace ge {
     increaseCurrentZ();
   }
 
+  void Renderer2D::image(std::string image,
+                         float x,
+                         float y,
+                         float width,
+                         float height)
+  {
+    m_imagesToRender.push_back({
+      .imageName = std::move(image),
+      .bounds = glm::vec4(x, y, width, height),
+      .transform = m_currentTransform,
+      .z = m_currentZ
+    });
+
+    increaseCurrentZ();
+  }
+
   void Renderer2D::updateCurrentFont()
   {
     m_currentFont = m_assetManager->getFont(m_currentFontName, m_currentFontSize);
@@ -235,6 +256,12 @@ namespace ge {
           glyph.z = 1.0f - glyph.z;
         }
       }
+    }
+
+    for (auto& image : m_imagesToRender)
+    {
+      image.z /= m_currentZ;
+      image.z = 1.0f - image.z;
     }
   }
 
@@ -364,6 +391,44 @@ namespace ge {
       0,
       sizeof(glyphPC),
       &glyphPC
+    );
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
+  }
+
+  void Renderer2D::renderImages(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                const RenderInfo* renderInfo) const
+  {
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::image);
+
+    for (const auto& image : m_imagesToRender)
+    {
+      renderImage(pipelineManager, renderInfo, image);
+    }
+  }
+
+  void Renderer2D::renderImage(const std::shared_ptr<PipelineManager>& pipelineManager,
+                               const RenderInfo* renderInfo,
+                               const Image& image) const
+  {
+    auto imageTexture = m_assetManager->getImage(image.imageName);
+
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      PipelineType::image,
+      imageTexture->getDescriptorSet(renderInfo->currentFrame),
+      0
+    );
+
+    const auto imagePC = image.createPushConstant(renderInfo->extent);
+
+    pipelineManager->pushGraphicsPipelineConstants(
+      renderInfo->commandBuffer,
+      PipelineType::image,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(imagePC),
+      &imagePC
     );
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);

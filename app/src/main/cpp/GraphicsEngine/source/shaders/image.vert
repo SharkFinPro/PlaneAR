@@ -1,6 +1,6 @@
 #version 450
 
-layout(push_constant) uniform RectPC {
+layout(push_constant) uniform ImagePC {
   mat4 transformation;
   int screenWidth;
   int screenHeight;
@@ -10,6 +10,8 @@ layout(push_constant) uniform RectPC {
   float width;
   float height;
 } pc;
+
+layout(location = 0) out vec2 fragUV;
 
 void main()
 {
@@ -24,4 +26,6 @@ void main()
   ndc.y = 2.0 * pos.y / float(pc.screenHeight) - 1.0;
 
   gl_Position = vec4(ndc, pc.z, 1.0);
+
+  fragUV = corner;
 }

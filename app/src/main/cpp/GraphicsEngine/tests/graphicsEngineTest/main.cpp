@@ -42,6 +42,8 @@ void android_main(struct android_app* pApp)
 
         engine->getAssetManager()->registerFont("roboto", "fonts/Roboto-VariableFont_wdth,wght.ttf");
         engine->getAssetManager()->registerFont("emoji", "fonts/NotoEmoji-VariableFont_wght.ttf");
+        
+        engine->getAssetManager()->registerImage("plane", "images/plane.jpg");
       }
 
       if (pApp->window == nullptr && engine)
@@ -145,6 +147,8 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   r->fill(200, 50, 50);
   r->ellipse(800, 1500, 50, 50);
 
+  r->image("plane", 650, 600, 600, 375);
+  
   r->fill(255, 255, 255);
   r->textFont("emoji", 150);
   r->text("✈🥳", 800, 200);

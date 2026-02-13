@@ -8,7 +8,7 @@ namespace ge {
   class GlyphTexture final : public Texture
   {
   public:
-    GlyphTexture(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    GlyphTexture(std::shared_ptr<LogicalDevice> logicalDevice,
                  const VkCommandPool& commandPool,
                  const unsigned char* pixelData,
                  uint32_t width,

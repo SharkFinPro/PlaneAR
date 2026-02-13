@@ -3,9 +3,9 @@
 #include "../../physicalDevice/PhysicalDevice.h"
 
 namespace ge {
-  Texture::Texture(const std::shared_ptr<LogicalDevice>& logicalDevice,
+  Texture::Texture(std::shared_ptr<LogicalDevice> logicalDevice,
                    VkSamplerAddressMode samplerAddressMode)
-    : m_logicalDevice(logicalDevice)
+    : m_logicalDevice(std::move(logicalDevice))
   {
     createTextureSampler(samplerAddressMode);
 
@@ -32,8 +32,8 @@ namespace ge {
     return poolSize;
   }
 
-  VkWriteDescriptorSet Texture::getDescriptorSet(uint32_t binding,
-                                                 const VkDescriptorSet& dstSet) const
+  VkWriteDescriptorSet Texture::getWriteDescriptorSet(uint32_t binding,
+                                                      const VkDescriptorSet& dstSet) const
   {
     const VkWriteDescriptorSet descriptorSet {
       .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,

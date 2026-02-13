@@ -215,7 +215,7 @@ namespace ge {
     m_descriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
       std::vector<VkWriteDescriptorSet> descriptorWrites{{
-        m_glyphTexture->getDescriptorSet(0, descriptorSet)
+        m_glyphTexture->getWriteDescriptorSet(0, descriptorSet)
       }};
 
       return descriptorWrites;

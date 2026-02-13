@@ -18,7 +18,8 @@ namespace ge {
     rect,
     triangle,
     ellipse,
-    font
+    font,
+    image
   };
 
   class PipelineManager

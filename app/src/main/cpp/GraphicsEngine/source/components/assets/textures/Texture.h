@@ -11,14 +11,15 @@ namespace ge {
   class Texture
   {
   public:
-    Texture(const std::shared_ptr<LogicalDevice>& logicalDevice, VkSamplerAddressMode samplerAddressMode);
+    Texture(std::shared_ptr<LogicalDevice> logicalDevice,
+            VkSamplerAddressMode samplerAddressMode);
 
     virtual ~Texture();
 
     [[nodiscard]] VkDescriptorPoolSize getDescriptorPoolSize() const;
 
-    [[nodiscard]] VkWriteDescriptorSet getDescriptorSet(uint32_t binding,
-                                                        const VkDescriptorSet& dstSet) const;
+    [[nodiscard]] VkWriteDescriptorSet getWriteDescriptorSet(uint32_t binding,
+                                                             const VkDescriptorSet& dstSet) const;
 
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
