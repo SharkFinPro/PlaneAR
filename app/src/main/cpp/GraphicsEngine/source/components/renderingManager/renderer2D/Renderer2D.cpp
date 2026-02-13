@@ -257,6 +257,12 @@ namespace ge {
         }
       }
     }
+
+    for (auto& image : m_imagesToRender)
+    {
+      image.z /= m_currentZ;
+      image.z = 1.0f - image.z;
+    }
   }
 
   void Renderer2D::renderRects(const std::shared_ptr<PipelineManager>& pipelineManager,
