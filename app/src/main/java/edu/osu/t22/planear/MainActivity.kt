@@ -50,6 +50,8 @@ class MainActivity : GameActivity() {
         external fun nativeSetArReady(ready: Boolean)
     }
 
+    private lateinit var sceneManager: SceneManager
+
     private var arSession: Session? = null
     private var arSessionManager: ARSessionManager? = null
 
@@ -61,6 +63,12 @@ class MainActivity : GameActivity() {
     @Suppress("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize the scene manager
+        sceneManager = SceneManager.initialize()
+
+        // Register Kotlin scenes
+        registerScenes()
 
         // get a new instance of the Retrofit API provider
         val api = AdsbModule.provideApi()
@@ -178,6 +186,14 @@ class MainActivity : GameActivity() {
         }
     }
     @Suppress("MissingPermission")
+
+    private fun registerScenes() {
+        // Register scenes with unique IDs
+        sceneManager.registerScene(1, Scene1())
+
+        // Set the initial scene
+        sceneManager.setCurrentScene(1)
+    }
 
 
     override fun onResume() {
