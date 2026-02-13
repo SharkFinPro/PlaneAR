@@ -403,18 +403,17 @@ namespace ge {
                                const RenderInfo* renderInfo,
                                const Image& image)
   {
-    // TODO: Uncomment after image pipeline is implemented and image PC is implemented
-//    const auto imagePC = image.createPushConstant(renderInfo->extent);
-//
-//    pipelineManager->pushGraphicsPipelineConstants(
-//      renderInfo->commandBuffer,
-//      PipelineType::image,
-//      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-//      0,
-//      sizeof(imagePC),
-//      &imagePC
-//    );
-//
-//    renderInfo->commandBuffer->draw(4, 1, 0, 0);
+    const auto imagePC = image.createPushConstant(renderInfo->extent);
+
+    pipelineManager->pushGraphicsPipelineConstants(
+      renderInfo->commandBuffer,
+      PipelineType::image,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(imagePC),
+      &imagePC
+    );
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
   }
 } // ge
