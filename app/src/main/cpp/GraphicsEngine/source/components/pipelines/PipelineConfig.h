@@ -135,6 +135,41 @@ namespace ge::PipelineConfig {
     };
   }
 
+  inline GraphicsPipelineOptions createImagePipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                            const std::shared_ptr<RenderPass>& renderPass,
+                                                            AAssetManager* assetManager,
+                                                            VkDescriptorSetLayout imageDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .assetManager = assetManager,
+        .vertexShader = "shaders/image.vert.spv",
+        .fragmentShader = "shaders/image.frag.spv"
+      },
+      .states {
+        .colorBlendState = gps::colorBlendStateTransparent,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(Glyph::PushConstant)
+        }
+      },
+      .descriptorSetLayouts {
+        imageDescriptorSetLayout
+      },
+      .renderPass = renderPass
+    };
+  }
+
 }
 
 #endif //PLANEAR_PIPELINECONFIG_H
