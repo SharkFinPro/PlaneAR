@@ -147,7 +147,7 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   r->fill(200, 50, 50);
   r->ellipse(800, 1500, 50, 50);
 
-  r->image("plane", 600, 600, 600, 375);
+  r->image("plane", 650, 600, 600, 375);
   
   r->fill(255, 255, 255);
   r->textFont("emoji", 150);
