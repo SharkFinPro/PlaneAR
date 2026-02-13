@@ -41,6 +41,7 @@ void android_main(struct android_app* pApp)
         engine = std::make_unique<ge::GraphicsEngine>(pApp);
 
         engine->getAssetManager()->registerFont("roboto", "fonts/Roboto-VariableFont_wdth,wght.ttf");
+        engine->getAssetManager()->registerFont("emoji", "fonts/NotoEmoji-VariableFont_wght.ttf");
       }
 
       if (pApp->window == nullptr && engine)
@@ -130,9 +131,9 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
     r->scale(2.0f);
     r->fill(255, 255, 255, 150);
     r->textFont("roboto", 42);
-    r->text("Hello, world!", -400, -200);
+    r->text("Hello, world! ⅝", -400, -200);
     r->textSize(64);
-    r->text("Bigger Text!", -400, -100);
+    r->text("Bigger Text! √", -400, -100);
   r->popMatrix();
 
   r->fill(100, 200, 100);
@@ -143,6 +144,10 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
 
   r->fill(200, 50, 50);
   r->ellipse(800, 1500, 50, 50);
+
+  r->fill(255, 255, 255);
+  r->textFont("emoji", 150);
+  r->text("✈🥳", 800, 200);
 
   engine->render();
 }
