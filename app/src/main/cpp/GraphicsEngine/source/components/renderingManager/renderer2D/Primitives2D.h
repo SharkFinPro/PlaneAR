@@ -180,7 +180,7 @@ namespace ge {
   };
 
   struct Image {
-    std::string image;
+    std::string imageName;
     glm::vec4 bounds;
     glm::mat4 transform;
     float z;

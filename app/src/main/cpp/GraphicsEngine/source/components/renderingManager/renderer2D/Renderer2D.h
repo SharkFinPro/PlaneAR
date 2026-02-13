@@ -79,7 +79,7 @@ namespace ge {
               float x,
               float y);
 
-    void image(const std::string& image,
+    void image(std::string image,
                float x,
                float y,
                float width,
@@ -147,9 +147,9 @@ namespace ge {
     void renderImages(const std::shared_ptr<PipelineManager>& pipelineManager,
                       const RenderInfo* renderInfo) const;
 
-    static void renderImage(const std::shared_ptr<PipelineManager>& pipelineManager,
-                            const RenderInfo* renderInfo,
-                            const Image& image);
+    void renderImage(const std::shared_ptr<PipelineManager>& pipelineManager,
+                     const RenderInfo* renderInfo,
+                     const Image& image) const;
   };
 
 } // ge

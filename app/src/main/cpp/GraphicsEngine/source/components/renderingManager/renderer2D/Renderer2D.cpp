@@ -1,6 +1,7 @@
 #include "Renderer2D.h"
 #include "../../assets/AssetManager.h"
 #include "../../assets/fonts/Font.h"
+#include "../../assets/textures/ImageTexture.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../pipelines/GraphicsPipeline.h"
 #include "../../pipelines/PipelineManager.h"
@@ -199,13 +200,14 @@ namespace ge {
     increaseCurrentZ();
   }
 
-  void Renderer2D::image(const std::string& image,
+  void Renderer2D::image(std::string image,
                          float x,
                          float y,
                          float width,
                          float height)
   {
     m_imagesToRender.push_back({
+      .imageName = std::move(image),
       .bounds = glm::vec4(x, y, width, height),
       .transform = m_currentTransform,
       .z = m_currentZ
@@ -401,8 +403,17 @@ namespace ge {
 
   void Renderer2D::renderImage(const std::shared_ptr<PipelineManager>& pipelineManager,
                                const RenderInfo* renderInfo,
-                               const Image& image)
+                               const Image& image) const
   {
+    auto imageTexture = m_assetManager->getImage(image.imageName);
+
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      PipelineType::image,
+      imageTexture->getDescriptorSet(renderInfo->currentFrame),
+      0
+    );
+
     const auto imagePC = image.createPushConstant(renderInfo->extent);
 
     pipelineManager->pushGraphicsPipelineConstants(
