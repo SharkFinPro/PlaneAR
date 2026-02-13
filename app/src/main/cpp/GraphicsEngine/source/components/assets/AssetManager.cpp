@@ -163,7 +163,7 @@ namespace ge {
   {
     const auto imagePath = m_imageNames.find(imageName);
 
-    if (imagePath == m_fontNames.end())
+    if (imagePath == m_imageNames.end())
     {
       throw std::runtime_error("Image not found: " + imageName);
     }
@@ -174,7 +174,7 @@ namespace ge {
       imagePath->second,
       m_commandPool,
       m_descriptorPool,
-      m_fontDescriptorSetLayout
+      m_imageDescriptorSetLayout
     );
 
     m_images.emplace(imageName, std::move(image));
