@@ -98,6 +98,8 @@ namespace ge {
 
     Buffers::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
 
+    createImageView();
+
     createDescriptorSet(descriptorPool, descriptorSetLayout);
   }
 
@@ -119,8 +121,6 @@ namespace ge {
     );
 
     m_imageInfo.imageView = m_textureImageView;
-
-    createImageView();
   }
 
   std::vector<uint8_t> ImageTexture::loadImageFromFile(AAssetManager* assetManager,
