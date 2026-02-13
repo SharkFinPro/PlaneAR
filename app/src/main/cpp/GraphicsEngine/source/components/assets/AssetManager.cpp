@@ -17,6 +17,8 @@ namespace ge {
 
   AssetManager::~AssetManager()
   {
+    m_logicalDevice->destroyDescriptorSetLayout(m_imageDescriptorSetLayout);
+
     m_logicalDevice->destroyDescriptorSetLayout(m_fontDescriptorSetLayout);
 
     m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
@@ -60,6 +62,8 @@ namespace ge {
   void AssetManager::createDescriptorSetLayouts()
   {
     createFontDescriptorSetLayout();
+
+    createImageDescriptorSetLayout();
   }
 
   void AssetManager::createFontDescriptorSetLayout()
@@ -82,6 +86,28 @@ namespace ge {
     };
 
     m_fontDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
+  }
+
+  void AssetManager::createImageDescriptorSetLayout()
+  {
+    constexpr VkDescriptorSetLayoutBinding imageDescriptorSetLayoutBinding {
+      .binding = 0,
+      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    };
+
+    constexpr std::array descriptorSetLayoutBindings {
+      imageDescriptorSetLayoutBinding
+    };
+
+    const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+      .bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size()),
+      .pBindings = descriptorSetLayoutBindings.data()
+    };
+
+    m_imageDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
   }
 
   void AssetManager::loadFont(const std::string& fontName,

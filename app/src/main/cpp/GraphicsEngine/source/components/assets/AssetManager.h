@@ -78,6 +78,8 @@ namespace ge {
 
     void createFontDescriptorSetLayout();
 
+    void createImageDescriptorSetLayout();
+
     void loadFont(const std::string& fontName,
                   uint32_t fontSize);
 
