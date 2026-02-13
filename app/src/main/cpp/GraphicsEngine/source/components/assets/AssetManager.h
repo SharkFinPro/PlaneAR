@@ -51,6 +51,9 @@ namespace ge {
 
     [[nodiscard]] VkDescriptorSetLayout getFontDescriptorSetLayout() const;
 
+    void registerImage(std::string imageName,
+                       std::string imagePath);
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -64,6 +67,8 @@ namespace ge {
 
     std::unordered_map<std::string, std::string> m_fontNames;
     std::unordered_map<FontKey, std::shared_ptr<Font>, FontKeyHash> m_fonts;
+
+    std::unordered_map<std::string, std::string> m_imageNames;
 
     void createDescriptorSetLayouts();
 

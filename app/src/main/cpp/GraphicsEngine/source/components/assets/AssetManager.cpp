@@ -133,4 +133,10 @@ namespace ge {
 
     m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
   }
+
+  void AssetManager::registerImage(std::string imageName,
+                                   std::string imagePath)
+  {
+    m_imageNames.insert({ std::move(imageName), std::move(imagePath) });
+  }
 } // ge
