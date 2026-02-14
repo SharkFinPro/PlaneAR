@@ -8,7 +8,7 @@
 #include <mutex>
 
 namespace {
-  std::mutex g_jniBridgeMutex;
+  std::recursive_mutex g_jniBridgeMutex;
   SceneSwitcher* g_sceneSwitcher = nullptr;
   JavaVM* g_javaVM = nullptr;
   jclass g_sceneManagerClass = nullptr;
@@ -16,7 +16,7 @@ namespace {
 
   inline void renderKotlinScene(uint32_t sceneId, const SceneInfo& sceneInfo)
   {
-    std::lock_guard<std::mutex> lock(g_jniBridgeMutex);
+    std::lock_guard<std::recursive_mutex> lock(g_jniBridgeMutex);
 
     if (!g_javaVM || !g_sceneManagerClass || !g_renderSceneMethod)
     {
@@ -78,7 +78,7 @@ namespace {
 
   void nativeInit(JNIEnv* env, jclass, jobject sceneManager)
   {
-    std::lock_guard<std::mutex> lock(g_jniBridgeMutex);
+    std::lock_guard<std::recursive_mutex> lock(g_jniBridgeMutex);
 
     if (g_javaVM)
     {
@@ -112,7 +112,7 @@ namespace {
 
   void nativeRegisterSceneCallback(JNIEnv* env, jclass, jint sceneId)
   {
-    std::lock_guard<std::mutex> lock(g_jniBridgeMutex);
+    std::lock_guard<std::recursive_mutex> lock(g_jniBridgeMutex);
 
     LOGI("Registered Kotlin scene with ID: %d", sceneId);
 
@@ -132,7 +132,7 @@ namespace {
 
   void nativeSetCurrentScene(JNIEnv* env, jclass, jint sceneId)
   {
-    std::lock_guard<std::mutex> lock(g_jniBridgeMutex);
+    std::lock_guard<std::recursive_mutex> lock(g_jniBridgeMutex);
 
     if (g_sceneSwitcher)
     {
@@ -146,7 +146,7 @@ namespace {
 
   jboolean nativeCheckIfSceneExists(JNIEnv* env, jclass, jint sceneId)
   {
-    std::lock_guard<std::mutex> lock(g_jniBridgeMutex);
+    std::lock_guard<std::recursive_mutex> lock(g_jniBridgeMutex);
 
     if (g_sceneSwitcher)
     {
@@ -159,7 +159,7 @@ namespace {
 
   void nativeSetSceneSwitcher(JNIEnv* env, jclass, jlong switcherPtr)
   {
-    std::lock_guard<std::mutex> lock(g_jniBridgeMutex);
+    std::lock_guard<std::recursive_mutex> lock(g_jniBridgeMutex);
 
     g_sceneSwitcher = reinterpret_cast<SceneSwitcher*>(switcherPtr);
   }
@@ -178,7 +178,7 @@ namespace {
 namespace JNISceneBridge {
   void setSceneSwitcher(SceneSwitcher* switcher)
   {
-    std::lock_guard<std::mutex> lock(g_jniBridgeMutex);
+    std::lock_guard<std::recursive_mutex> lock(g_jniBridgeMutex);
 
     g_sceneSwitcher = switcher;
   }
