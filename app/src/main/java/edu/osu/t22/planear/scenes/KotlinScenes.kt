@@ -1,4 +1,4 @@
-package edu.osu.t22.planear
+package edu.osu.t22.planear.scenes
 
 import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
 import edu.osu.t22.planear.graphicsEngine.Renderer2D

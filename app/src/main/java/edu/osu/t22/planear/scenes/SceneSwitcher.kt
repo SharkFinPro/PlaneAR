@@ -1,4 +1,4 @@
-package edu.osu.t22.planear
+package edu.osu.t22.planear.scenes
 
 interface Scene {
     fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher)

@@ -165,7 +165,7 @@ namespace {
   }
 
   const JNINativeMethod sceneSwitcherMethods[] = {
-    {"nativeInit", "(Ledu/osu/t22/planear/SceneSwitcher;)V", (void*)nativeInit},
+    {"nativeInit", "(Ledu/osu/t22/planear/scenes/SceneSwitcher;)V", (void*)nativeInit},
     {"nativeRegisterSceneCallback", "(I)V", (void*)nativeRegisterSceneCallback},
     {"nativeSetCurrentScene", "(I)V", (void*)nativeSetCurrentScene},
     {"nativeCheckIfSceneExists", "(I)Z", (void*)nativeCheckIfSceneExists}//,
@@ -194,7 +194,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
     return JNI_ERR;
   }
 
-  jclass sceneSwitcherClass = env->FindClass("edu/osu/t22/planear/SceneSwitcher");
+  jclass sceneSwitcherClass = env->FindClass("edu/osu/t22/planear/scenes/SceneSwitcher");
   if (sceneSwitcherClass == nullptr)
   {
     return JNI_ERR;

@@ -26,14 +26,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import kotlinx.coroutines.withContext
 import edu.osu.t22.planear.geo.GeoUtils
 import edu.osu.t22.planear.geo.GeoPoint
 import android.view.Surface
 import com.google.ar.core.Frame
 import com.google.ar.core.exceptions.CameraNotAvailableException
+import edu.osu.t22.planear.scenes.Scene3
+import edu.osu.t22.planear.scenes.SceneSwitcher
 
 
 class MainActivity : GameActivity() {
