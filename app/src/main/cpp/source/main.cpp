@@ -1,5 +1,6 @@
 #include "ArBridge.h"
 #include "SceneSwitcher.h"
+#include "JNISceneBridge.h"
 #include <source/GraphicsEngine.h>
 #include <Logger.h>
 #include <source/components/assets/AssetManager.h>
@@ -17,8 +18,6 @@ struct NavButton {
   float x, y, size;
 };
 
-static int activeNavIndex = 0;
-
 static bool handleTouchInput(struct android_app* pApp, float* mouseX, float* mouseY);
 
 void displayNavButtons(const SceneInfo& sceneInfo,
@@ -35,6 +34,8 @@ void scene2(const SceneInfo& sceneInfo,
 void android_main(struct android_app* pApp)
 {
   SceneSwitcher sceneSwitcher;
+  JNISceneBridge::setSceneSwitcher(&sceneSwitcher);
+
   sceneSwitcher.loadScene(1, scene1);
   sceneSwitcher.loadScene(2, scene2);
 
@@ -76,6 +77,7 @@ void android_main(struct android_app* pApp)
       if (pApp->destroyRequested != 0)
       {
         LOGI("App destroy requested, exiting...");
+        JNISceneBridge::setSceneSwitcher(nullptr);
         return;
       }
 
@@ -133,6 +135,8 @@ static bool handleTouchInput(struct android_app* pApp, float* mouseX, float* mou
 void displayNavButtons(const SceneInfo& sceneInfo,
                        SceneSwitcher* sceneSwitcher)
 {
+  static int activeNavIndex = 0;
+
   const auto r = sceneInfo.engine->getRenderingManager()->getRenderer2D();
 
   float screenWidth = (float)ANativeWindow_getWidth(sceneInfo.pApp->window);
@@ -173,6 +177,12 @@ void displayNavButtons(const SceneInfo& sceneInfo,
         {
           sceneSwitcher->setCurrentScene(2);
         }
+
+        if (i == 2)
+        {
+          sceneSwitcher->setCurrentScene(3);
+        }
+        
         break;
       }
     }
