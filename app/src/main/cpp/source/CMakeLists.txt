@@ -4,6 +4,7 @@ add_library(${PROJECT_NAME} SHARED
   main.cpp
   ArBridge.cpp
   SceneSwitcher.cpp
+  JNISceneBridge.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE GraphicsEngine)
