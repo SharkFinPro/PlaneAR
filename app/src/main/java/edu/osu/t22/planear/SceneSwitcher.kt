@@ -45,8 +45,6 @@ class SceneSwitcher {
 
             return instance!!
         }
-
-        fun getInstance(): SceneSwitcher? = instance
     }
 
     fun registerScene(sceneId: Int, scene: Scene) {
