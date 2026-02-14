@@ -77,5 +77,5 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-  JNI_PACKAGE_PATH="edu/osu/t22/planear"
+  JNI_PACKAGE_PATH="edu/osu/t22/planear/graphicsEngine"
 )

@@ -1,5 +1,8 @@
 package edu.osu.t22.planear
 
+import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
+import edu.osu.t22.planear.graphicsEngine.Renderer2D
+
 class Scene3 : Scene {
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val engine = GraphicsEngineWrapper(sceneInfo.enginePtr)

@@ -1,4 +1,4 @@
-package edu.osu.t22.planear
+package edu.osu.t22.planear.graphicsEngine
 
 class Renderer2D(private val ptr: Long) {
     external fun fill(r: Int, g: Int, b: Int, a: Int = 255)
