@@ -1,7 +1,7 @@
 package edu.osu.t22.planear
 
 class Scene3 : Scene {
-    override fun render(sceneInfo: SceneInfo) {
+    override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val engine = GraphicsEngineWrapper(sceneInfo.enginePtr)
         val r = engine.getRenderer2D()
 
@@ -16,6 +16,21 @@ class Scene3 : Scene {
 
         r.textSize(64)
         r.text("An AR Plane Tracking App", 100f, 450f)
+
+        r.fill(100, 100, 200);
+        r.rect(sceneInfo.screenWidth / 4, sceneInfo.screenHeight - 200, sceneInfo.screenWidth / 2, 150f);
+
+        r.fill(255, 255, 255);
+        r.textSize(70);
+        r.text("Go to C++", sceneInfo.screenWidth / 3, sceneInfo.screenHeight - 200);
+
+        if (sceneInfo.tapOccurred &&
+            sceneInfo.mouseX > sceneInfo.screenWidth / 4 &&
+            sceneInfo.mouseX < sceneInfo.screenWidth / 4 + sceneInfo.screenWidth / 2 &&
+            sceneInfo.mouseY > sceneInfo.screenHeight - 200 &&
+            sceneInfo.mouseY < sceneInfo.screenHeight - 200 + 150) {
+            sceneSwitcher.setCurrentScene(1);
+        }
 
         renderTapEffect(r, sceneInfo)
     }

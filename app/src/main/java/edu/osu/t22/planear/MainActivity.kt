@@ -51,7 +51,7 @@ class MainActivity : GameActivity() {
         external fun nativeSetArReady(ready: Boolean)
     }
 
-    private lateinit var sceneManager: SceneManager
+    private lateinit var sceneSwitcher: SceneSwitcher
 
     private var arSession: Session? = null
     private var arSessionManager: ARSessionManager? = null
@@ -66,7 +66,7 @@ class MainActivity : GameActivity() {
         super.onCreate(savedInstanceState)
 
         // Initialize the scene manager
-        sceneManager = SceneManager.initialize()
+        sceneSwitcher = SceneSwitcher.initialize()
 
         // Register Kotlin scenes
         registerScenes()
@@ -190,10 +190,10 @@ class MainActivity : GameActivity() {
 
     private fun registerScenes() {
         // Register scenes with unique IDs
-        sceneManager.registerScene(3, Scene3())
+        sceneSwitcher.registerScene(3, Scene3())
 
         // Set the initial scene
-        sceneManager.setCurrentScene(3)
+        sceneSwitcher.setCurrentScene(3)
     }
 
 

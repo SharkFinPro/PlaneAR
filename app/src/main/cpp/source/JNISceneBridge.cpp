@@ -11,14 +11,14 @@ namespace {
   std::recursive_mutex g_jniBridgeMutex;
   SceneSwitcher* g_sceneSwitcher = nullptr;
   JavaVM* g_javaVM = nullptr;
-  jclass g_sceneManagerClass = nullptr;
+  jclass g_sceneSwitcherClass = nullptr;
   jmethodID g_renderSceneMethod = nullptr;
 
   inline void renderKotlinScene(uint32_t sceneId, const SceneInfo& sceneInfo)
   {
     std::lock_guard<std::recursive_mutex> lock(g_jniBridgeMutex);
 
-    if (!g_javaVM || !g_sceneManagerClass || !g_renderSceneMethod)
+    if (!g_javaVM || !g_sceneSwitcherClass || !g_renderSceneMethod)
     {
       LOGE("JNI bridge not initialized!");
       return;
@@ -53,7 +53,7 @@ namespace {
     const auto screenHeight = (jfloat)ANativeWindow_getHeight(sceneInfo.pApp->window);
 
     env->CallStaticVoidMethod(
-      g_sceneManagerClass,
+      g_sceneSwitcherClass,
       g_renderSceneMethod,
       (jint)sceneId,
       enginePtr,
@@ -76,7 +76,7 @@ namespace {
     }
   }
 
-  void nativeInit(JNIEnv* env, jclass, jobject sceneManager)
+  void nativeInit(JNIEnv* env, jclass, jobject sceneSwitcher)
   {
     std::lock_guard<std::recursive_mutex> lock(g_jniBridgeMutex);
 
@@ -87,12 +87,12 @@ namespace {
 
     env->GetJavaVM(&g_javaVM);
 
-    jclass localClass = env->GetObjectClass(sceneManager);
-    g_sceneManagerClass = (jclass)env->NewGlobalRef(localClass);
+    jclass localClass = env->GetObjectClass(sceneSwitcher);
+    g_sceneSwitcherClass = (jclass)env->NewGlobalRef(localClass);
     env->DeleteLocalRef(localClass);
 
     g_renderSceneMethod = env->GetStaticMethodID(
-      g_sceneManagerClass,
+      g_sceneSwitcherClass,
       "renderScene",
       "(IJFFZFF)V"
     );
@@ -101,8 +101,8 @@ namespace {
     {
       LOGE("Failed to find renderScene method!");
 
-      env->DeleteGlobalRef(g_sceneManagerClass);
-      g_sceneManagerClass = nullptr;
+      env->DeleteGlobalRef(g_sceneSwitcherClass);
+      g_sceneSwitcherClass = nullptr;
       g_javaVM = nullptr;
       return;
     }
@@ -164,8 +164,8 @@ namespace {
     g_sceneSwitcher = reinterpret_cast<SceneSwitcher*>(switcherPtr);
   }
 
-  const JNINativeMethod sceneManagerMethods[] = {
-    {"nativeInit", "(Ledu/osu/t22/planear/SceneManager;)V", (void*)nativeInit},
+  const JNINativeMethod sceneSwitcherMethods[] = {
+    {"nativeInit", "(Ledu/osu/t22/planear/SceneSwitcher;)V", (void*)nativeInit},
     {"nativeRegisterSceneCallback", "(I)V", (void*)nativeRegisterSceneCallback},
     {"nativeSetCurrentScene", "(I)V", (void*)nativeSetCurrentScene},
     {"nativeCheckIfSceneExists", "(I)Z", (void*)nativeCheckIfSceneExists}//,
@@ -194,19 +194,19 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
     return JNI_ERR;
   }
 
-  jclass sceneManagerClass = env->FindClass("edu/osu/t22/planear/SceneManager");
-  if (sceneManagerClass == nullptr)
+  jclass sceneSwitcherClass = env->FindClass("edu/osu/t22/planear/SceneSwitcher");
+  if (sceneSwitcherClass == nullptr)
   {
     return JNI_ERR;
   }
 
   jint result = env->RegisterNatives(
-    sceneManagerClass,
-    sceneManagerMethods,
-    sizeof(sceneManagerMethods) / sizeof(sceneManagerMethods[0])
+    sceneSwitcherClass,
+    sceneSwitcherMethods,
+    sizeof(sceneSwitcherMethods) / sizeof(sceneSwitcherMethods[0])
   );
 
-  env->DeleteLocalRef(sceneManagerClass);
+  env->DeleteLocalRef(sceneSwitcherClass);
 
   if (result != 0)
   {

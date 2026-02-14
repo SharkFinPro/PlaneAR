@@ -1,7 +1,7 @@
 package edu.osu.t22.planear
 
 interface Scene {
-    fun render(sceneInfo: SceneInfo)
+    fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher)
 }
 
 data class SceneInfo(
@@ -13,12 +13,12 @@ data class SceneInfo(
     val screenHeight: Float
 )
 
-class SceneManager {
+class SceneSwitcher {
     private val scenes = mutableMapOf<Int, Scene>()
 
     companion object {
         @JvmStatic
-        private external fun nativeInit(sceneManager: SceneManager)
+        private external fun nativeInit(sceneSwitcher: SceneSwitcher)
 
         @JvmStatic
         private external fun nativeRegisterSceneCallback(sceneId: Int)
@@ -35,18 +35,18 @@ class SceneManager {
             instance?.renderSceneInternal(sceneId, enginePtr, mouseX, mouseY, tapOccurred, screenWidth, screenHeight)
         }
 
-        private var instance: SceneManager? = null
+        private var instance: SceneSwitcher? = null
 
-        fun initialize(): SceneManager {
+        fun initialize(): SceneSwitcher {
             if (instance == null) {
-                instance = SceneManager()
+                instance = SceneSwitcher()
                 nativeInit(instance!!)
             }
 
             return instance!!
         }
 
-        fun getInstance(): SceneManager? = instance
+        fun getInstance(): SceneSwitcher? = instance
     }
 
     fun registerScene(sceneId: Int, scene: Scene) {
@@ -64,6 +64,6 @@ class SceneManager {
     private fun renderSceneInternal(sceneId: Int, enginePtr: Long, mouseX: Float, mouseY: Float, tapOccurred: Boolean, screenWidth: Float, screenHeight: Float) {
         val scene = scenes[sceneId] ?: return
         val sceneInfo = SceneInfo(enginePtr, mouseX, mouseY, tapOccurred, screenWidth, screenHeight)
-        scene.render(sceneInfo)
+        scene.render(sceneInfo, this)
     }
 }
