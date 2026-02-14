@@ -39,6 +39,7 @@ import com.google.ar.core.exceptions.CameraNotAvailableException
 class MainActivity : GameActivity() {
     companion object {
         init {
+            System.loadLibrary("GraphicsEngine")
             System.loadLibrary("planeARApp")
         }
 
@@ -189,10 +190,10 @@ class MainActivity : GameActivity() {
 
     private fun registerScenes() {
         // Register scenes with unique IDs
-        sceneManager.registerScene(1, Scene1())
+        sceneManager.registerScene(3, Scene3())
 
         // Set the initial scene
-        sceneManager.setCurrentScene(1)
+        sceneManager.setCurrentScene(3)
     }
 
 

@@ -33,10 +33,10 @@ namespace {
 
   void nativeFill(JNIEnv* env,
                   jobject thiz,
-                  jfloat r,
-                  jfloat g,
-                  jfloat b,
-                  jfloat a)
+                  jint r,
+                  jint g,
+                  jint b,
+                  jint a)
   {
     ge::Renderer2D* renderer = getRenderer(env, thiz);
     if (renderer == nullptr)
@@ -180,7 +180,7 @@ namespace {
   }
 
   const JNINativeMethod renderer2DMethods[] = {
-    {"fill", "(FFFF)V", (void*)nativeFill},
+    {"fill", "(IIII)V", (void*)nativeFill},
     {"rect", "(FFFF)V", (void*)nativeRect},
     {"ellipse", "(FFFF)V", (void*)nativeEllipse},
     {"textFont", "(Ljava/lang/String;I)V", (void*)nativeTextFont},

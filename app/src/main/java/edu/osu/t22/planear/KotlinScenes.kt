@@ -1,6 +1,6 @@
 package edu.osu.t22.planear
 
-class Scene1 : Scene {
+class Scene3 : Scene {
     override fun render(sceneInfo: SceneInfo) {
         val engine = GraphicsEngineWrapper(sceneInfo.enginePtr)
         val r = engine.getRenderer2D()

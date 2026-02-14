@@ -1,7 +1,7 @@
 package edu.osu.t22.planear
 
 class Renderer2D(private val ptr: Long) {
-    external fun fill(r: Float, g: Float, b: Float, a: Float = 255.0f)
+    external fun fill(r: Int, g: Int, b: Int, a: Int = 255)
     external fun rect(x: Float, y: Float, width: Float, height: Float)
     external fun ellipse(x: Float, y: Float, width: Float, height: Float)
     external fun textFont(fontName: String, size: Int)
