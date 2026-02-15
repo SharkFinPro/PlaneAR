@@ -1,6 +1,8 @@
+#include "ArBridge.h"
 #include "SceneSwitcher.h"
 #include "AppScenes.h"
 #include "InputUtils.h"
+#include "JNISceneBridge.h"
 #include <source/GraphicsEngine.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 #include <memory>
@@ -8,9 +10,12 @@
 void android_main(struct android_app* pApp)
 {
   std::unique_ptr<ge::GraphicsEngine> engine;
-  SceneSwitcher switcher;
-  bool scenesLoaded = false;
+  SceneSwitcher switcher; // Using 'switcher' consistently
 
+  // Register the switcher with the JNI bridge
+  JNISceneBridge::setSceneSwitcher(&switcher);
+
+  bool scenesLoaded = false; // Declaring the missing flag
   int events;
   struct android_poll_source* source;
 
@@ -28,13 +33,14 @@ void android_main(struct android_app* pApp)
         source->process(pApp, source);
       }
 
+      // Input processing
       bool tapOccurred = InputUtils::handleTouchInput(pApp, &mouseX, &mouseY);
 
       if (pApp->window != nullptr && !engine)
       {
         engine = std::make_unique<ge::GraphicsEngine>(pApp);
 
-        // Assets and UI are setup once here
+        // Assets and UI are setup once here via AppScenes
         AppScenes::initialize(engine, pApp);
 
         if (!scenesLoaded) {
@@ -46,7 +52,7 @@ void android_main(struct android_app* pApp)
           switcher.setCurrentScene(1);
           scenesLoaded = true;
         }
-        }
+      }
 
       if (pApp->window == nullptr && engine)
       {

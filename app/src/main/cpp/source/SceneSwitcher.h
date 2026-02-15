@@ -28,6 +28,8 @@ public:
 
   [[nodiscard]] uint32_t getCurrentScene() const;
 
+  [[nodiscard]] bool doesSceneExist(uint32_t id) const;
+
 private:
   std::unordered_map<uint32_t, SceneCallback> m_scenes;
 

@@ -1,5 +1,5 @@
 #include "Label.h"
-#include <components/renderingManager/renderer2D/Renderer2D.h>
+#include "../../components/renderingManager/renderer2D/Renderer2D.h"
 
 namespace ge::ui {
 

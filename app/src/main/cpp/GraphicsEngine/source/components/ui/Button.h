@@ -16,7 +16,7 @@ namespace ge::ui {
 
     bool update(float mouseX, float mouseY, bool tapOccurred) override;
 
-    void draw(Renderer2D& renderer) const;
+    void draw(ge::Renderer2D& renderer) const override;
 
     void setActive(bool active) { m_isActive = active; }
 

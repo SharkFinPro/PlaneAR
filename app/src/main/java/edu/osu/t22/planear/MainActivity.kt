@@ -26,19 +26,19 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import kotlinx.coroutines.withContext
 import edu.osu.t22.planear.geo.GeoUtils
 import edu.osu.t22.planear.geo.GeoPoint
 import android.view.Surface
 import com.google.ar.core.Frame
 import com.google.ar.core.exceptions.CameraNotAvailableException
+import edu.osu.t22.planear.scenes.Scene3
+import edu.osu.t22.planear.scenes.SceneSwitcher
 
 
 class MainActivity : GameActivity() {
     companion object {
         init {
+            System.loadLibrary("GraphicsEngine")
             System.loadLibrary("planeARApp")
         }
 
@@ -49,6 +49,8 @@ class MainActivity : GameActivity() {
         @JvmStatic
         external fun nativeSetArReady(ready: Boolean)
     }
+
+    private lateinit var sceneSwitcher: SceneSwitcher
 
     private var arSession: Session? = null
     private var arSessionManager: ARSessionManager? = null
@@ -61,6 +63,12 @@ class MainActivity : GameActivity() {
     @Suppress("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize the scene manager
+        sceneSwitcher = SceneSwitcher.initialize()
+
+        // Register Kotlin scenes
+        registerScenes()
 
         // get a new instance of the Retrofit API provider
         val api = AdsbModule.provideApi()
@@ -178,6 +186,14 @@ class MainActivity : GameActivity() {
         }
     }
     @Suppress("MissingPermission")
+
+    private fun registerScenes() {
+        // Register scenes with unique IDs
+        sceneSwitcher.registerScene(3, Scene3())
+
+        // Set the initial scene
+        sceneSwitcher.setCurrentScene(3)
+    }
 
 
     override fun onResume() {

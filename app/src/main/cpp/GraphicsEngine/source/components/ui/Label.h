@@ -5,6 +5,10 @@
 #include <string>
 #include <glm/vec4.hpp>
 
+namespace ge {
+  class Renderer2D;
+}
+
 namespace ge::ui {
 
   class Label : public Widget {

@@ -63,3 +63,8 @@ void SceneSwitcher::validateSceneDoesNotExist(uint32_t id) const
     throw std::runtime_error("Scene with ID " + std::to_string(id) + " already exists!");
   }
 }
+
+bool SceneSwitcher::doesSceneExist(uint32_t id) const
+{
+  return m_scenes.contains(id);
+}

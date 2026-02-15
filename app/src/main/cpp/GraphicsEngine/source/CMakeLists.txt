@@ -4,6 +4,7 @@ include(FetchContent)
 
 add_library(${PROJECT_NAME} SHARED
   GraphicsEngine.cpp
+  JNIGraphicsBridge.cpp
   components/assets/AssetManager.cpp
   components/assets/fonts/Font.cpp
   components/assets/textures/GlyphTexture.cpp
@@ -75,4 +76,8 @@ target_link_libraries(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PUBLIC
   ${glm_SOURCE_DIR}
   ${stb_SOURCE_DIR}
+)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+  JNI_PACKAGE_PATH="edu/osu/t22/planear/graphicsEngine"
 )

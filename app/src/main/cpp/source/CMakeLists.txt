@@ -6,6 +6,7 @@ add_library(${PROJECT_NAME} SHARED
   SceneSwitcher.cpp
   InputUtils.cpp
   AppScenes.cpp
+  JNISceneBridge.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE GraphicsEngine)
