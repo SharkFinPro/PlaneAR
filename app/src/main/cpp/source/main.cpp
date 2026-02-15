@@ -46,7 +46,7 @@ void android_main(struct android_app* pApp)
           switcher.setCurrentScene(1);
           scenesLoaded = true;
         }
-      }
+        }
 
       if (pApp->window == nullptr && engine)
       {
