@@ -10,12 +10,12 @@
 void android_main(struct android_app* pApp)
 {
   std::unique_ptr<ge::GraphicsEngine> engine;
-  SceneSwitcher switcher; // Using 'switcher' consistently
+  SceneSwitcher switcher;
 
   // Register the switcher with the JNI bridge
   JNISceneBridge::setSceneSwitcher(&switcher);
 
-  bool scenesLoaded = false; // Declaring the missing flag
+  bool scenesLoaded = false;
   int events;
   struct android_poll_source* source;
 
@@ -40,16 +40,17 @@ void android_main(struct android_app* pApp)
       {
         engine = std::make_unique<ge::GraphicsEngine>(pApp);
 
-        // Assets and UI are setup once here via AppScenes
+        // Assets and UI setup
         AppScenes::initialize(engine, pApp);
 
         if (!scenesLoaded) {
+          // IDs 1, 2, 4, 5, 6 (Leaving 3 for Kotlin Scene3)
           switcher.loadScene(1, AppScenes::homeScene);
           switcher.loadScene(2, AppScenes::arScene);
-          switcher.loadScene(3, AppScenes::filesScene);
-          switcher.loadScene(4, AppScenes::mapScene);
-          switcher.loadScene(5, AppScenes::settingsScene);
-          switcher.setCurrentScene(1);
+          switcher.loadScene(4, AppScenes::filesScene);
+          switcher.loadScene(5, AppScenes::mapScene);
+          switcher.loadScene(6, AppScenes::settingsScene);
+          
           scenesLoaded = true;
         }
       }
@@ -66,7 +67,6 @@ void android_main(struct android_app* pApp)
 
       if (engine)
       {
-        // SceneSwitcher now handles createNewFrame and engine->render internally
         SceneInfo info{engine, pApp, mouseX, mouseY, tapOccurred};
         switcher.renderCurrentScene(info);
       }

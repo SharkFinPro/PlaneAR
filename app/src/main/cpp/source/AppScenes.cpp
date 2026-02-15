@@ -18,11 +18,27 @@ extern bool gArReady;
 static int activeNavIndex = 0;
 static std::vector<std::unique_ptr<ge::ui::Button>> navButtons;
 
-// --- Private Helper Functions ---
+// Mapping buttons to Scene IDs
+// Index 0 -> ID 1 (Home)
+// Index 1 -> ID 2 (AR)
+// Index 2 -> ID 3 (Kotlin)
+// Index 3 -> ID 4 (Files)
+// Index 4 -> ID 5 (Map)
+// Index 5 -> ID 6 (Set)
+static const int sceneIdMap[] = {1, 2, 3, 4, 5, 6};
+
 
 void drawCommonUI(const SceneInfo& info, SceneSwitcher* switcher) {
   const auto r = info.engine->getRenderingManager()->getRenderer2D();
-  
+
+  uint32_t currentSceneId = switcher->getCurrentScene();
+  for (int i = 0; i < 6; ++i) {
+    if (sceneIdMap[i] == (int)currentSceneId) {
+      activeNavIndex = i;
+      break;
+    }
+  }
+
   // AR Status
   bool arReady = false;
   {
@@ -36,9 +52,9 @@ void drawCommonUI(const SceneInfo& info, SceneSwitcher* switcher) {
   // Update and draw buttons
   for (int i = 0; i < navButtons.size(); ++i) {
     if (navButtons[i]->update(info.mouseX, info.mouseY, info.tapOccurred)) {
-      activeNavIndex = i;
-      switcher->setCurrentScene(i + 1);
-      LOGI("Button %d clicked! Switching to scene %d", i, i + 1);
+      int targetId = sceneIdMap[i];
+      switcher->setCurrentScene(targetId);
+      LOGI("Button %d clicked! Switching to scene %d", i, targetId);
     }
     navButtons[i]->setActive(i == activeNavIndex);
     navButtons[i]->draw(*r);
@@ -50,8 +66,6 @@ void drawCommonUI(const SceneInfo& info, SceneSwitcher* switcher) {
   r->rect(info.mouseX - cursorSize / 2.0f, info.mouseY - cursorSize / 2.0f, cursorSize, cursorSize);
 }
 
-// --- Public Scene Definitions ---
-
 namespace AppScenes {
     void initialize(const std::unique_ptr<ge::GraphicsEngine>& engine, struct android_app* pApp) {
         auto am = engine->getAssetManager();
@@ -62,14 +76,14 @@ namespace AppScenes {
         if (navButtons.empty()) {
             float screenWidth = (float)ANativeWindow_getWidth(pApp->window);
             float screenHeight = (float)ANativeWindow_getHeight(pApp->window);
-            float spacing = 100.0f;
+            float spacing = 80.0f;
             float navY = screenHeight - 150.0f;
             float dotSize = 80.0f;
-            float totalNavWidth = (5 * dotSize) + (4 * spacing);
+            float totalNavWidth = (6 * dotSize) + (5 * spacing);
             float navStartX = (screenWidth - totalNavWidth) / 2.0f;
 
-            const char* labels[] = {"Home", "AR", "Files", "Map", "Set"};
-            for (int i = 0; i < 5; ++i) {
+            const char* labels[] = {"Home", "AR", "Kot", "Files", "Map", "Set"};
+            for (int i = 0; i < 6; ++i) {
                 float dotX = navStartX + (i * (dotSize + spacing));
                 navButtons.push_back(std::make_unique<ge::ui::Button>(labels[i], dotX, navY, dotSize, dotSize));
             }
@@ -80,7 +94,6 @@ namespace AppScenes {
         const auto r = info.engine->getRenderingManager()->getRenderer2D();
         r->fill(255, 255, 255);
         
-        // Using the new Label component for much cleaner code
         static ge::ui::Label title("PlaneAR", 100, 300, "roboto", 100);
         static ge::ui::Label subTitle("An AR Plane Tracking App", 100, 450, "roboto", 64);
         static ge::ui::Label emojis("✈🥳", 800, 200, "emoji", 150);
