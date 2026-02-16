@@ -3,6 +3,7 @@
 
 #include "Widget.h"
 #include <string>
+#include <memory>
 
 namespace ge {
   class Renderer2D;
@@ -16,7 +17,7 @@ namespace ge::ui {
 
     bool update(float mouseX, float mouseY, bool tapOccurred) override;
 
-    void draw(ge::Renderer2D& renderer) const override;
+    void draw(const std::shared_ptr<Renderer2D>& renderer) const override;
 
     void setActive(bool active) { m_isActive = active; }
 

@@ -1,5 +1,6 @@
 #include "AppScenes.h"
 #include "ArBridge.h"
+#include "SceneIds.h"
 #include <Logger.h>
 #include <source/components/assets/AssetManager.h>
 #include <source/components/renderingManager/RenderingManager.h>
@@ -10,6 +11,7 @@
 #include <vector>
 #include <memory>
 #include <mutex>
+#include <array>
 
 // --- Global State for UI and Scenes ---
 extern ArState gArState;
@@ -18,23 +20,25 @@ extern bool gArReady;
 static int activeNavIndex = 0;
 static std::vector<std::unique_ptr<ge::ui::Button>> navButtons;
 
-// Mapping buttons to Scene IDs
-// Index 0 -> ID 1 (Home)
-// Index 1 -> ID 2 (AR)
-// Index 2 -> ID 3 (Kotlin)
-// Index 3 -> ID 4 (Files)
-// Index 4 -> ID 5 (Map)
-// Index 5 -> ID 6 (Set)
-static const int sceneIdMap[] = {1, 2, 3, 4, 5, 6};
+// Mapping buttons to Scene IDs using the new Enum Class
+static constexpr std::array<SceneId, 6> sceneIdMap = {
+    SceneId::Home,
+    SceneId::AR,
+    SceneId::Kotlin,
+    SceneId::Files,
+    SceneId::Map,
+    SceneId::Settings
+};
 
+// --- Private Helper Functions ---
 
 void drawCommonUI(const SceneInfo& info, SceneSwitcher* switcher) {
   const auto r = info.engine->getRenderingManager()->getRenderer2D();
-
+  
   uint32_t currentSceneId = switcher->getCurrentScene();
-  for (int i = 0; i < 6; ++i) {
-    if (sceneIdMap[i] == (int)currentSceneId) {
-      activeNavIndex = i;
+  for (size_t i = 0; i < sceneIdMap.size(); ++i) {
+    if (static_cast<uint32_t>(sceneIdMap[i]) == currentSceneId) {
+      activeNavIndex = static_cast<int>(i);
       break;
     }
   }
@@ -52,12 +56,12 @@ void drawCommonUI(const SceneInfo& info, SceneSwitcher* switcher) {
   // Update and draw buttons
   for (int i = 0; i < navButtons.size(); ++i) {
     if (navButtons[i]->update(info.mouseX, info.mouseY, info.tapOccurred)) {
-      int targetId = sceneIdMap[i];
-      switcher->setCurrentScene(targetId);
-      LOGI("Button %d clicked! Switching to scene %d", i, targetId);
+      SceneId targetId = sceneIdMap[i];
+      switcher->setCurrentScene(static_cast<uint32_t>(targetId));
+      LOGI("Button %d clicked! Switching to scene %u", i, static_cast<uint32_t>(targetId));
     }
     navButtons[i]->setActive(i == activeNavIndex);
-    navButtons[i]->draw(*r);
+    navButtons[i]->draw(r);
   }
 
   // Render cursor
@@ -65,6 +69,8 @@ void drawCommonUI(const SceneInfo& info, SceneSwitcher* switcher) {
   r->fill(135, 22, 232);
   r->rect(info.mouseX - cursorSize / 2.0f, info.mouseY - cursorSize / 2.0f, cursorSize, cursorSize);
 }
+
+// --- Public Scene Definitions ---
 
 namespace AppScenes {
     void initialize(const std::unique_ptr<ge::GraphicsEngine>& engine, struct android_app* pApp) {
@@ -98,9 +104,9 @@ namespace AppScenes {
         static ge::ui::Label subTitle("An AR Plane Tracking App", 100, 450, "roboto", 64);
         static ge::ui::Label emojis("✈🥳", 800, 200, "emoji", 150);
 
-        title.draw(*r);
-        subTitle.draw(*r);
-        emojis.draw(*r);
+        title.draw(r);
+        subTitle.draw(r);
+        emojis.draw(r);
 
         r->image("plane", 350, 300, 600, 400);
 
@@ -110,28 +116,28 @@ namespace AppScenes {
     void arScene(const SceneInfo& info, SceneSwitcher* switcher) {
         const auto r = info.engine->getRenderingManager()->getRenderer2D();
         static ge::ui::Label title("AR Scene", 100, 300, "roboto", 100);
-        title.draw(*r);
+        title.draw(r);
         drawCommonUI(info, switcher);
     }
 
     void filesScene(const SceneInfo& info, SceneSwitcher* switcher) {
         const auto r = info.engine->getRenderingManager()->getRenderer2D();
         static ge::ui::Label title("Files Scene", 100, 300, "roboto", 100);
-        title.draw(*r);
+        title.draw(r);
         drawCommonUI(info, switcher);
     }
 
     void mapScene(const SceneInfo& info, SceneSwitcher* switcher) {
         const auto r = info.engine->getRenderingManager()->getRenderer2D();
         static ge::ui::Label title("Map Scene", 100, 300, "roboto", 100);
-        title.draw(*r);
+        title.draw(r);
         drawCommonUI(info, switcher);
     }
 
     void settingsScene(const SceneInfo& info, SceneSwitcher* switcher) {
         const auto r = info.engine->getRenderingManager()->getRenderer2D();
         static ge::ui::Label title("Settings Scene", 100, 300, "roboto", 100);
-        title.draw(*r);
+        title.draw(r);
         drawCommonUI(info, switcher);
     }
 } // namespace AppScenes

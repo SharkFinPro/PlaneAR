@@ -1,13 +1,9 @@
 #include "SceneSwitcher.h"
-#include <source/components/renderingManager/RenderingManager.h>
-#include <source/components/renderingManager/renderer2D/Renderer2D.h>
 #include <stdexcept>
 
 void SceneSwitcher::renderCurrentScene(const SceneInfo& sceneInfo)
 {
   validateSceneExists(m_currentScene);
-
-  sceneInfo.engine->getRenderingManager()->getRenderer2D()->createNewFrame();
 
   m_scenes.at(m_currentScene)(sceneInfo, this);
 

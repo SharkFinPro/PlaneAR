@@ -1,6 +1,8 @@
 #ifndef PLANEAR_WIDGET_H
 #define PLANEAR_WIDGET_H
 
+#include <memory>
+
 namespace ge {
   class Renderer2D;
 }
@@ -14,13 +16,13 @@ namespace ge::ui {
 
     virtual ~Widget() = default;
 
-    [[nodiscard]] bool contains(float mx, float my) const {
-      return mx >= m_x && mx <= (m_x + m_w) && my >= m_y && my <= (m_y + m_h);
+    [[nodiscard]] bool contains(float mouseX, float mouseY) const {
+      return mouseX >= m_x && mouseX <= (m_x + m_w) && mouseY >= m_y && mouseY <= (m_y + m_h);
     }
 
     virtual bool update(float mouseX, float mouseY, bool tapOccurred) = 0;
 
-    virtual void draw(ge::Renderer2D& renderer) const = 0;
+    virtual void draw(const std::shared_ptr<Renderer2D>& renderer) const = 0;
 
   protected:
     float m_x, m_y, m_w, m_h;

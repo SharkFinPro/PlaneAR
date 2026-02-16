@@ -3,6 +3,7 @@
 #include "AppScenes.h"
 #include "InputUtils.h"
 #include "JNISceneBridge.h"
+#include "SceneIds.h"
 #include <source/GraphicsEngine.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 #include <memory>
@@ -44,12 +45,11 @@ void android_main(struct android_app* pApp)
         AppScenes::initialize(engine, pApp);
 
         if (!scenesLoaded) {
-          // IDs 1, 2, 4, 5, 6 (Leaving 3 for Kotlin Scene3)
-          switcher.loadScene(1, AppScenes::homeScene);
-          switcher.loadScene(2, AppScenes::arScene);
-          switcher.loadScene(4, AppScenes::filesScene);
-          switcher.loadScene(5, AppScenes::mapScene);
-          switcher.loadScene(6, AppScenes::settingsScene);
+          switcher.loadScene(static_cast<uint32_t>(SceneId::Home),     AppScenes::homeScene);
+          switcher.loadScene(static_cast<uint32_t>(SceneId::AR),       AppScenes::arScene);
+          switcher.loadScene(static_cast<uint32_t>(SceneId::Files),    AppScenes::filesScene);
+          switcher.loadScene(static_cast<uint32_t>(SceneId::Map),      AppScenes::mapScene);
+          switcher.loadScene(static_cast<uint32_t>(SceneId::Settings), AppScenes::settingsScene);
           
           scenesLoaded = true;
         }

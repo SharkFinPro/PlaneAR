@@ -3,6 +3,7 @@
 
 #include "Widget.h"
 #include <string>
+#include <memory>
 #include <glm/vec4.hpp>
 
 namespace ge {
@@ -18,7 +19,7 @@ namespace ge::ui {
     // Labels don't usually respond to touch, but we implement update to satisfy the base class
     bool update(float mouseX, float mouseY, bool tapOccurred) override { return false; }
 
-    void draw(ge::Renderer2D& renderer) const override;
+    void draw(const std::shared_ptr<Renderer2D>& renderer) const override;
 
     void setText(std::string text) { m_text = std::move(text); }
     void setSize(uint32_t size) { m_size = size; }
