@@ -4,9 +4,11 @@ include(FetchContent)
 
 add_library(${PROJECT_NAME} SHARED
   GraphicsEngine.cpp
+  JNIGraphicsBridge.cpp
   components/assets/AssetManager.cpp
   components/assets/fonts/Font.cpp
   components/assets/textures/GlyphTexture.cpp
+  components/assets/textures/ImageTexture.cpp
   components/assets/textures/Texture.cpp
   components/commandBuffer/CommandBuffer.cpp
   components/descriptorSet/DescriptorSet.cpp
@@ -26,6 +28,8 @@ add_library(${PROJECT_NAME} SHARED
   components/renderPass/RenderPass.cpp
   components/shaderModule/ShaderModule.cpp
   components/surface/Swapchain.cpp
+  components/ui/Button.cpp
+  components/ui/Label.cpp
 )
 
 find_package(game-activity REQUIRED CONFIG)
@@ -48,9 +52,17 @@ FetchContent_Declare(
   GIT_TAG VER-2-14-1
 )
 
+# STB
+FetchContent_Declare(
+  stb
+  GIT_REPOSITORY https://github.com/nothings/stb
+  GIT_TAG master
+)
+
 FetchContent_MakeAvailable(
   glm
   freetype
+  stb
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -63,4 +75,9 @@ target_link_libraries(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   ${glm_SOURCE_DIR}
+  ${stb_SOURCE_DIR}
+)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+  JNI_PACKAGE_PATH="edu/osu/t22/planear/graphicsEngine"
 )

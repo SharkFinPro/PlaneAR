@@ -11,6 +11,7 @@ struct AAssetManager;
 namespace ge {
 
   class Font;
+  class ImageTexture;
   class LogicalDevice;
 
   struct FontKey {
@@ -51,6 +52,13 @@ namespace ge {
 
     [[nodiscard]] VkDescriptorSetLayout getFontDescriptorSetLayout() const;
 
+    void registerImage(std::string imageName,
+                       std::string imagePath);
+
+    [[nodiscard]] std::shared_ptr<ImageTexture> getImage(const std::string& imageName);
+
+    [[nodiscard]] VkDescriptorSetLayout getImageDescriptorSetLayout() const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -65,12 +73,21 @@ namespace ge {
     std::unordered_map<std::string, std::string> m_fontNames;
     std::unordered_map<FontKey, std::shared_ptr<Font>, FontKeyHash> m_fonts;
 
+    VkDescriptorSetLayout m_imageDescriptorSetLayout = VK_NULL_HANDLE;
+
+    std::unordered_map<std::string, std::string> m_imageNames;
+    std::unordered_map<std::string, std::shared_ptr<ImageTexture>> m_images;
+
     void createDescriptorSetLayouts();
 
     void createFontDescriptorSetLayout();
 
+    void createImageDescriptorSetLayout();
+
     void loadFont(const std::string& fontName,
                   uint32_t fontSize);
+
+    void loadImage(const std::string& imageName);
 
     void createCommandPool();
 

@@ -8,8 +8,6 @@
 #include <stdexcept>
 #include <utility>
 
-constexpr uint32_t MAX_ASCII_CODE = 255;
-
 namespace ge {
 
   Font::Font(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -28,9 +26,9 @@ namespace ge {
     createDescriptorSet(descriptorPool, descriptorSetLayout);
   }
 
-  GlyphInfo* Font::getGlyphInfo(const char character)
+  GlyphInfo* Font::getGlyphInfo(const uint32_t codepoint)
   {
-    const auto it = m_glyphMap.find(character);
+    const auto it = m_glyphMap.find(codepoint);
 
     return it != m_glyphMap.end() ? &it->second : nullptr;
   }
@@ -104,6 +102,9 @@ namespace ge {
     );
 
     m_maxGlyphHeight = static_cast<float>(maxGlyphHeight);
+
+    FT_Done_Face(face);
+    FT_Done_FreeType(ft);
   }
 
   std::vector<FT_ULong> Font::getCharset(FT_Face face)
@@ -114,10 +115,7 @@ namespace ge {
     FT_ULong charcode = FT_Get_First_Char(face, &gindex);
     while (gindex != 0)
     {
-      if (charcode <= MAX_ASCII_CODE)
-      {
-        charset.push_back(charcode);
-      }
+      charset.push_back(charcode);
       charcode = FT_Get_Next_Char(face, charcode, &gindex);
     }
 
@@ -187,7 +185,7 @@ namespace ge {
         }
       }
 
-      m_glyphMap[static_cast<char>(charcode)] = {
+      m_glyphMap.emplace(charcode, GlyphInfo {
         .u0 = static_cast<float>(x) / static_cast<float>(atlasWidth),
         .v0 = static_cast<float>(y) / static_cast<float>(atlasHeight),
         .u1 = static_cast<float>(x + bitmap.width) / static_cast<float>(atlasWidth),
@@ -197,7 +195,7 @@ namespace ge {
         .bearingX = static_cast<float>(face->glyph->bitmap_left),
         .bearingY = static_cast<float>(face->glyph->bitmap_top),
         .advance = static_cast<float>(face->glyph->advance.x >> 6)
-      };
+      });
 
       x += maxGlyphWidth;
       currentGlyph++;
@@ -217,7 +215,7 @@ namespace ge {
     m_descriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, [[maybe_unused]] const size_t frame)
     {
       std::vector<VkWriteDescriptorSet> descriptorWrites{{
-        m_glyphTexture->getDescriptorSet(0, descriptorSet)
+        m_glyphTexture->getWriteDescriptorSet(0, descriptorSet)
       }};
 
       return descriptorWrites;

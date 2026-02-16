@@ -24,6 +24,53 @@ namespace ge {
     float advance;
   };
 
+  inline std::vector<uint32_t> decodeUTF8(const std::string& utf8String)
+  {
+    std::vector<uint32_t> codepoints;
+    size_t i = 0;
+
+    while (i < utf8String.length())
+    {
+      uint32_t codepoint = 0;
+      uint8_t byte = utf8String[i];
+
+      if (byte <= 0x7F) // 1-byte (ASCII)
+      {
+        codepoint = byte;
+        i += 1;
+      }
+      else if ((byte & 0xE0) == 0xC0 && i + 1 < utf8String.length()) // 2-byte
+      {
+        codepoint = ((byte & 0x1F) << 6) | (utf8String[i + 1] & 0x3F);
+        i += 2;
+      }
+      else if ((byte & 0xF0) == 0xE0) // 3-byte
+      {
+        codepoint = ((byte & 0x0F) << 12) |
+                    ((utf8String[i + 1] & 0x3F) << 6) |
+                    (utf8String[i + 2] & 0x3F);
+        i += 3;
+      }
+      else if ((byte & 0xF8) == 0xF0) // 4-byte (emoji range)
+      {
+        codepoint = ((byte & 0x07) << 18) |
+                    ((utf8String[i + 1] & 0x3F) << 12) |
+                    ((utf8String[i + 2] & 0x3F) << 6) |
+                    (utf8String[i + 3] & 0x3F);
+        i += 4;
+      }
+      else
+      {
+        i += 1; // Skip invalid byte
+        continue;
+      }
+
+      codepoints.push_back(codepoint);
+    }
+
+    return codepoints;
+  }
+
   class Font
   {
   public:
@@ -35,7 +82,7 @@ namespace ge {
          VkDescriptorPool descriptorPool,
          VkDescriptorSetLayout descriptorSetLayout);
 
-    [[nodiscard]] GlyphInfo* getGlyphInfo(char character);
+    [[nodiscard]] GlyphInfo* getGlyphInfo(uint32_t codepoint);
 
     [[nodiscard]] float getMaxGlyphHeight() const;
 
@@ -46,7 +93,7 @@ namespace ge {
 
     std::shared_ptr<GlyphTexture> m_glyphTexture;
 
-    std::unordered_map<char, GlyphInfo> m_glyphMap;
+    std::unordered_map<uint32_t, GlyphInfo> m_glyphMap;
 
     float m_maxGlyphHeight = 0.0f;
 

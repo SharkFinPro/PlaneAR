@@ -14,7 +14,6 @@ void SceneSwitcher::loadScene(uint32_t id,
                               SceneCallback scene)
 {
   validateSceneId(id);
-
   validateSceneDoesNotExist(id);
 
   m_scenes.emplace(id, std::move(scene));
@@ -28,9 +27,7 @@ void SceneSwitcher::loadScene(uint32_t id,
 void SceneSwitcher::setCurrentScene(uint32_t id)
 {
   validateSceneId(id);
-
   validateSceneExists(id);
-
   m_currentScene = id;
 }
 
@@ -61,4 +58,9 @@ void SceneSwitcher::validateSceneDoesNotExist(uint32_t id) const
   {
     throw std::runtime_error("Scene with ID " + std::to_string(id) + " already exists!");
   }
+}
+
+bool SceneSwitcher::doesSceneExist(uint32_t id) const
+{
+  return m_scenes.contains(id);
 }
