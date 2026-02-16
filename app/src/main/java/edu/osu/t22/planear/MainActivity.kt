@@ -1,12 +1,16 @@
 package edu.osu.t22.planear
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import android.util.Log
 import androidx.annotation.RequiresPermission
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.androidgamesdk.GameActivity
@@ -26,12 +30,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import kotlinx.coroutines.withContext
 import edu.osu.t22.planear.geo.GeoUtils
 import edu.osu.t22.planear.geo.GeoPoint
 import android.view.Surface
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import com.google.ar.core.Frame
 import com.google.ar.core.exceptions.CameraNotAvailableException
 
@@ -41,10 +44,6 @@ class MainActivity : GameActivity() {
         init {
             System.loadLibrary("planeARApp")
         }
-
-        private const val CAMERA_PERMISSION_CODE = 0
-        private const val LOCATION_PERMISSION_CODE = 1
-
 
         @JvmStatic
         external fun nativeSetArReady(ready: Boolean)
@@ -58,9 +57,36 @@ class MainActivity : GameActivity() {
     private var locationCallback: LocationCallback? = null
     @Volatile private var lastKnownLocation: Location? = null
 
-    @Suppress("MissingPermission")
+    private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
+
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        permissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { results ->
+            val cameraGranted = results[Manifest.permission.CAMERA] == true
+            val locationGranted = results[Manifest.permission.ACCESS_FINE_LOCATION] == true
+
+            if (cameraGranted) {
+                Log.i("PERM", "Camera permission granted")
+                if (arSession == null) {
+                    tryCreateSession()
+                }
+            } else {
+                Log.w("PERM", "Camera permission denied")
+                handleDeniedPermission(Manifest.permission.CAMERA)
+            }
+
+            if (locationGranted) {
+                Log.i("PERM", "Location permission granted")
+                startLocationUpdates()
+            } else {
+                Log.w("PERM", "Location permission denied")
+                handleDeniedPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        }
 
         // get a new instance of the Retrofit API provider
         val api = AdsbModule.provideApi()
@@ -128,7 +154,7 @@ class MainActivity : GameActivity() {
                                 val acAltM = acAltFeet * 0.3048
 
                                 val userPoint = GeoPoint(lat, lon, userAltM)
-                                val acPoint = GeoPoint(lat, lon, acAltM)
+                                val acPoint = GeoPoint(acLat, acLon, acAltM)
 
                                 val dir = GeoUtils.relativeDirection(
                                     user = userPoint,
@@ -165,44 +191,25 @@ class MainActivity : GameActivity() {
             }
         }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_CODE
-            )
-        } else {
-            startLocationUpdates()
-        }
+        checkAndRequestPermissions()
     }
-    @Suppress("MissingPermission")
-
 
     override fun onResume() {
         super.onResume()
 
-        //check camera permissions
-        if (!hasCameraPermission()) {
-            requestCameraPermission()
-            return
+        if (!hasCameraPermission() || !hasLocationPermission()) {
+            checkAndRequestPermissions()
         }
 
-        //check location permissions
-        if (!hasLocationPermission()) {
-            requestLocationPermission()
-            return
-        }
-
-        //create arcore session if not already created
-        if (arSession == null) {
+        if (hasCameraPermission() && arSession == null) {
             tryCreateSession()
         }
 
         //resume ar session
         try {
-            arSession?.resume()
+            if (hasCameraPermission()) {
+                arSession?.resume()
+            }
         } catch (e: Exception) {
             Log.e("PlaneAR", "Failed to resume AR session", e)
         }
@@ -214,7 +221,7 @@ class MainActivity : GameActivity() {
             )
         }
 
-        startLocationUpdates()
+        if (hasLocationPermission()) startLocationUpdates()
         hideSystemUi()
     }
 
@@ -228,40 +235,9 @@ class MainActivity : GameActivity() {
         }
     }
 
-    // premission callbacks
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode == CAMERA_PERMISSION_CODE &&
-            grantResults.isNotEmpty() &&
-            grantResults[0] == PackageManager.PERMISSION_GRANTED
-        ) {
-            tryCreateSession()
-        }
-
-        if (requestCode == LOCATION_PERMISSION_CODE &&
-            grantResults.isNotEmpty() &&
-            grantResults[0] == PackageManager.PERMISSION_GRANTED
-        ) {
-            startLocationUpdates()
-        }
-    }
-
     private fun hasCameraPermission(): Boolean {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
                 PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun requestCameraPermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(Manifest.permission.CAMERA),
-            CAMERA_PERMISSION_CODE
-        )
     }
 
     private fun hasLocationPermission(): Boolean {
@@ -269,12 +245,68 @@ class MainActivity : GameActivity() {
                 PackageManager.PERMISSION_GRANTED
     }
 
-    private fun requestLocationPermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION),
-            LOCATION_PERMISSION_CODE
+    private fun checkAndRequestPermissions() {
+        val needCamera = !hasCameraPermission()
+        val needLocation = !hasLocationPermission()
+
+        if (!needCamera && !needLocation) {
+            return
+        }
+
+        val toRequest = mutableListOf<String>()
+        if (needCamera) toRequest.add(Manifest.permission.CAMERA)
+        if (needLocation) toRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
+
+        val showRationaleForAny = toRequest.any { ActivityCompat.shouldShowRequestPermissionRationale(this, it) }
+        if (showRationaleForAny) {
+            AlertDialog.Builder(this)
+                .setTitle("Permissions required")
+                .setMessage("This app needs Camera (for AR) and Location (for nearby aircraft) permissions to function properly.")
+                .setPositiveButton("Continue") { _, _ -> permissionLauncher.launch(toRequest.toTypedArray()) }
+                .setNegativeButton("Cancel", null)
+                .show()
+        } else {
+            permissionLauncher.launch(toRequest.toTypedArray())
+        }
+    }
+
+    private fun handleDeniedPermission(permission: String) {
+        val shouldExplain = ActivityCompat.shouldShowRequestPermissionRationale(this, permission)
+        if (!shouldExplain) {
+            val msg = when (permission) {
+                Manifest.permission.CAMERA -> "Camera access is required for AR features. Enable it in App Settings."
+                Manifest.permission.ACCESS_FINE_LOCATION -> "Location access is required to show nearby aircraft. Enable it in App Settings."
+                else -> "Required permission was denied. Enable it in App Settings."
+            }
+
+            AlertDialog.Builder(this)
+                .setTitle("Permission denied")
+                .setMessage(msg)
+                .setPositiveButton("Open Settings") { _, _ -> openAppSettings() }
+                .setNegativeButton("Cancel", null)
+                .show()
+        } else {
+            val pretty = when (permission) {
+                Manifest.permission.CAMERA -> "Camera"
+                Manifest.permission.ACCESS_FINE_LOCATION -> "Location"
+                else -> "Permission"
+            }
+            AlertDialog.Builder(this)
+                .setTitle("$pretty permission needed")
+                .setMessage("$pretty permission is required for core functionality. Would you like to grant it?")
+                .setPositiveButton("Grant") { _, _ -> permissionLauncher.launch(arrayOf(permission)) }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+    }
+
+    private fun openAppSettings() {
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.fromParts("package", packageName, null)
         )
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
     }
 
     @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
