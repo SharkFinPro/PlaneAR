@@ -4,6 +4,8 @@ add_library(${PROJECT_NAME} SHARED
   main.cpp
   ArBridge.cpp
   SceneSwitcher.cpp
+  InputUtils.cpp
+  AppScenes.cpp
   JNISceneBridge.cpp
 )
 
@@ -14,4 +16,5 @@ set(CMAKE_SHARED_LINKER_FLAGS
 
 target_include_directories(${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/../GraphicsEngine
+  ${CMAKE_CURRENT_SOURCE_DIR}
 )
