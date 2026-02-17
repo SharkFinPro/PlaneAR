@@ -25,7 +25,7 @@ namespace ge {
   class Renderer2D
   {
   public:
-    Renderer2D(std::shared_ptr<AssetManager> assetManager);
+    explicit Renderer2D(std::shared_ptr<AssetManager> assetManager);
 
     void createNewFrame();
 
