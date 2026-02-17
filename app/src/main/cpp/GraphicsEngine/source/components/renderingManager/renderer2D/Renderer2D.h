@@ -22,6 +22,13 @@ namespace ge {
   class Renderer;
   struct RenderInfo;
 
+  enum class RectMode {
+    CORNER,
+    CORNERS,
+    CENTER,
+    RADIUS
+  };
+
   class Renderer2D
   {
   public:
