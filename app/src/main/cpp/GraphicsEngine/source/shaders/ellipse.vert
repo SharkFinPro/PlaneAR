@@ -1,7 +1,7 @@
 #version 450
 
 layout(push_constant) uniform EllipsePC {
-  mat4 transform;
+  mat4 transformation;
   int screenWidth;
   int screenHeight;
   float z;
@@ -23,8 +23,7 @@ void main()
 
   vec2 pos = vec2(pc.x, pc.y) + (corner * 2.0 - 1.0) * vec2(pc.width, pc.height) * 0.5;
 
-
-  pos = (pc.transform * vec4(pos, 0.0, 1.0)).xy;
+  pos = (pc.transformation * vec4(pos, 0.0, 1.0)).xy;
 
   fragPos = pos;
 
