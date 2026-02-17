@@ -59,6 +59,19 @@ namespace ge {
     );
   }
 
+  void Renderer2D::fill(const float rgb,
+                        const float a)
+  {
+    float rgbScaled = rgb / 255.0f;
+
+    m_currentFill = glm::vec4(
+      rgbScaled,
+      rgbScaled,
+      rgbScaled,
+      a / 255.0f
+    );
+  }
+
   void Renderer2D::rotate(float angle)
   {
     m_currentTransform *= glm::rotate(glm::mat4(1.0), glm::radians(angle), {0.0f, 0.0f, 1.0f});

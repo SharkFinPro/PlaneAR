@@ -70,6 +70,9 @@ namespace ge {
               float b,
               float a = 255.0f);
 
+    void fill(float rgb,
+              float a = 255.0f);
+
     void rotate(float angle);
 
     void translate(float x,
