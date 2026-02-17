@@ -23,9 +23,9 @@ void main()
 
   vec2 pos = vec2(pc.x, pc.y) + (corner * 2.0 - 1.0) * vec2(pc.width, pc.height) * 0.5;
 
-  pos = (pc.transformation * vec4(pos, 0.0, 1.0)).xy;
-
   fragPos = pos;
+
+  pos = (pc.transformation * vec4(pos, 0.0, 1.0)).xy;
 
   vec2 ndc;
   ndc.x = 2.0 * pos.x / float(pc.screenWidth)  - 1.0;
