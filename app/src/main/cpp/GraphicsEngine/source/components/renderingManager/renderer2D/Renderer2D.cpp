@@ -95,10 +95,17 @@ namespace ge {
     m_transformStack.pop_back();
   }
 
+  void Renderer2D::rectMode(RectMode mode)
+  {
+    m_rectMode = mode;
+  }
+
   void Renderer2D::rect(float x, float y, float width, float height)
   {
+    const auto bounds = resolveRectBounds(x, y, width, height);
+
     m_rectsToRender.push_back({
-      .bounds = glm::vec4(x, y, width, height),
+      .bounds = bounds,
       .color = m_currentFill,
       .transform = m_currentTransform,
       .z = m_currentZ
@@ -214,6 +221,29 @@ namespace ge {
     });
 
     increaseCurrentZ();
+  }
+
+  glm::vec4 Renderer2D::resolveRectBounds(float a,
+                                          float b,
+                                          float c,
+                                          float d)
+  {
+    switch(m_rectMode)
+    {
+      case RectMode::CORNER:
+        return { a, b, c, d };
+
+      case RectMode::CORNERS:
+        return { a, b, c - a, d - b };
+
+      case RectMode::CENTER:
+        return { a - c * 0.5f, b - d * 0.5f, c, d };
+
+      case RectMode::RADIUS:
+        return { a - c, b - d, c * 2.0f, d * 2.0f };
+    }
+
+    return { a, b, c, d };
   }
 
   void Renderer2D::updateCurrentFont()

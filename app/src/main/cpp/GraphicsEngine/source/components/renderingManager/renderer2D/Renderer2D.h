@@ -58,6 +58,8 @@ namespace ge {
 
     void popMatrix();
 
+    void rectMode(RectMode mode);
+
     void rect(float x,
               float y,
               float width,
@@ -101,6 +103,8 @@ namespace ge {
 
     std::vector<glm::mat4> m_transformStack;
 
+    RectMode m_rectMode = RectMode::CORNER;
+
     std::vector<Rect> m_rectsToRender;
 
     std::vector<Triangle> m_trianglesToRender;
@@ -116,6 +120,11 @@ namespace ge {
     std::vector<Image> m_imagesToRender;
 
     float m_currentZ = 0.01f;
+
+    glm::vec4 resolveRectBounds(float a,
+                                float b,
+                                float c,
+                                float d);
 
     void updateCurrentFont();
 
