@@ -17,7 +17,17 @@ namespace ge {
   {
     m_currentZ = 0.01f;
 
-    m_currentTransform = glm::mat4(1.0f);
+    fill(255);
+
+    resetMatrix();
+
+    rectMode(RectMode::CORNER);
+
+    ellipseMode(EllipseMode::CENTER);
+
+    imageMode(ImageMode::CORNER);
+
+    textAlign(TextAlignH::LEFT, TextAlignV::BASELINE);
 
     m_rectsToRender.clear();
 
@@ -108,6 +118,13 @@ namespace ge {
 
     m_currentTransform = m_transformStack.back();
     m_transformStack.pop_back();
+  }
+
+  void Renderer2D::resetMatrix()
+  {
+    m_transformStack.clear();
+
+    m_currentTransform = glm::mat4(1.0f);
   }
 
   void Renderer2D::rectMode(const RectMode mode)

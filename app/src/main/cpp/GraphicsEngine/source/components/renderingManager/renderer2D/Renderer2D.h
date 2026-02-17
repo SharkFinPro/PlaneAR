@@ -87,6 +87,8 @@ namespace ge {
 
     void popMatrix();
 
+    void resetMatrix();
+
     void rectMode(RectMode mode);
 
     void ellipseMode(EllipseMode mode);
