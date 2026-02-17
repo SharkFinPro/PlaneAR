@@ -64,7 +64,8 @@ namespace ge {
     m_currentTransform *= glm::rotate(glm::mat4(1.0), glm::radians(angle), {0.0f, 0.0f, 1.0f});
   }
 
-  void Renderer2D::translate(float x, float y)
+  void Renderer2D::translate(float x,
+                             float y)
   {
     m_currentTransform *= glm::translate(glm::mat4(1.0), {x, y, 0});
   }
@@ -74,7 +75,8 @@ namespace ge {
     m_currentTransform *= glm::scale(glm::mat4(1.0), glm::vec3(xy));
   }
 
-  void Renderer2D::scale(float x, float y)
+  void Renderer2D::scale(float x,
+                         float y)
   {
     m_currentTransform *= glm::scale(glm::mat4(1.0), {x, y, 1});
   }
@@ -95,12 +97,25 @@ namespace ge {
     m_transformStack.pop_back();
   }
 
-  void Renderer2D::rectMode(RectMode mode)
+  void Renderer2D::rectMode(const RectMode mode)
   {
     m_rectMode = mode;
   }
 
-  void Renderer2D::rect(float x, float y, float width, float height)
+  void Renderer2D::ellipseMode(const EllipseMode mode)
+  {
+    m_ellipseMode = mode;
+  }
+
+  void Renderer2D::imageMode(const ImageMode mode)
+  {
+    m_imageMode = mode;
+  }
+
+  void Renderer2D::rect(float x,
+                        float y,
+                        float width,
+                        float height)
   {
     const auto bounds = resolveRectBounds(x, y, width, height);
 
@@ -138,8 +153,10 @@ namespace ge {
                            const float width,
                            const float height)
   {
+    const auto bounds = resolveEllipseBounds(x, y, width, height);
+
     m_ellipsesToRender.push_back({
-      .bounds = glm::vec4(x, y, width, height),
+      .bounds = bounds,
       .color = m_currentFill,
       .transform = m_currentTransform,
       .z = m_currentZ
@@ -170,13 +187,110 @@ namespace ge {
     updateCurrentFont();
   }
 
+  void Renderer2D::textAlign(const TextAlignH h,
+                             const TextAlignV v)
+  {
+    m_textAlignH = h,
+    m_textAlignV = v;
+  }
+
+  float Renderer2D::textWidth(const std::string& text) const
+  {
+    if (!m_currentFont)
+    {
+      return 0.0f;
+    }
+
+    float width = 0.0f;
+    for (const auto codepoint : decodeUTF8(text))
+    {
+      if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
+      {
+        width += glyphInfo->advance;
+      }
+    }
+
+    return width;
+  }
+
+  float Renderer2D::textAscent(const std::string &text) const
+  {
+    if (!m_currentFont)
+    {
+      return 0.0f;
+    }
+
+    float maxAscent = 0.0f;
+    for (const auto codepoint : decodeUTF8(text))
+    {
+      if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
+      {
+        maxAscent = std::max(maxAscent, glyphInfo->bearingY);
+      }
+    }
+
+    return maxAscent;
+  }
+
+  float Renderer2D::textDescent(const std::string &text) const
+  {
+    if (!m_currentFont)
+    {
+      return 0.0f;
+    }
+
+    float maxDescent = 0.0f;
+    for (const auto codepoint : decodeUTF8(text))
+    {
+      if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
+      {
+        const float descent = glyphInfo->height - glyphInfo->bearingY;
+        maxDescent = std::max(maxDescent, descent);
+      }
+    }
+
+    return maxDescent;
+  }
+
   void Renderer2D::text(const std::string& text,
                         float x,
                         float y)
   {
     const float maxGlyphHeight = m_currentFont->getMaxGlyphHeight();
 
-    float currentX = x;
+    float xOffset = 0.0f;
+    if (m_textAlignH == TextAlignH::CENTER || m_textAlignH == TextAlignH::RIGHT)
+    {
+      const float stringWidth = textWidth(text);
+      xOffset = (m_textAlignH == TextAlignH::CENTER) ? -stringWidth * 0.5f : -stringWidth;
+    }
+
+    float yOffset = 0.0f;
+    const float ascent  = textAscent(text);
+    const float descent = textDescent(text);
+    const float height  = ascent + descent;
+
+    switch (m_textAlignV)
+    {
+      case TextAlignV::BASELINE:
+        yOffset = 0.0f;
+        break;
+
+      case TextAlignV::TOP:
+        yOffset = ascent;
+        break;
+
+      case TextAlignV::CENTER:
+        yOffset = ascent - height * 0.5f;
+        break;
+
+      case TextAlignV::BOTTOM:
+        yOffset = -descent;
+        break;
+    }
+
+    float currentX = x + xOffset;
+    const float adjustedY = y + yOffset;
 
     for (const auto codepoint : decodeUTF8(text))
     {
@@ -185,7 +299,7 @@ namespace ge {
         m_glyphsToRender[m_currentFontName][m_currentFontSize].push_back({
           .bounds = glm::vec4(
             currentX + glyphInfo->bearingX,
-            y - glyphInfo->bearingY + maxGlyphHeight,
+            adjustedY - glyphInfo->bearingY,
             glyphInfo->width,
             glyphInfo->height
           ),
@@ -213,9 +327,11 @@ namespace ge {
                          float width,
                          float height)
   {
+    const auto bounds = resolveImageBounds(x, y, width, height);
+
     m_imagesToRender.push_back({
       .imageName = std::move(image),
-      .bounds = glm::vec4(x, y, width, height),
+      .bounds = bounds,
       .transform = m_currentTransform,
       .z = m_currentZ
     });
@@ -241,6 +357,51 @@ namespace ge {
 
       case RectMode::RADIUS:
         return { a - c, b - d, c * 2.0f, d * 2.0f };
+    }
+
+    return { a, b, c, d };
+  }
+
+  glm::vec4 Renderer2D::resolveEllipseBounds(float a,
+                                             float b,
+                                             float c,
+                                             float d)
+  {
+    switch(m_ellipseMode)
+    {
+      case EllipseMode::CENTER:
+        return { a, b, c, d };
+
+      case EllipseMode::RADIUS:
+        return { a, b, c * 2.0f, d * 2.0f };
+
+      case EllipseMode::CORNER:
+        return { a + c * 0.5f, b + d * 0.5f, c, d };
+
+      case EllipseMode::CORNERS:
+        const float w = c - a;
+        const float h = d - b;
+        return { a + w * 0.5f, b + h * 0.5f, w, h };
+    }
+
+    return { a, b, c, d };
+  }
+
+  glm::vec4 Renderer2D::resolveImageBounds(float a,
+                                           float b,
+                                           float c,
+                                           float d)
+  {
+    switch(m_imageMode)
+    {
+      case ImageMode::CORNER:
+        return { a, b, c, d };
+
+      case ImageMode::CORNERS:
+        return { a, b, c - a, d - b };
+
+      case ImageMode::CENTER:
+        return { a - c * 0.5f, b - d * 0.5f, c, d };
     }
 
     return { a, b, c, d };
