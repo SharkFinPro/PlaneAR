@@ -286,8 +286,6 @@ namespace ge {
                         float x,
                         float y)
   {
-    const float maxGlyphHeight = m_currentFont->getMaxGlyphHeight();
-
     float xOffset = 0.0f;
     if (m_textAlignH == TextAlignH::CENTER || m_textAlignH == TextAlignH::RIGHT)
     {
