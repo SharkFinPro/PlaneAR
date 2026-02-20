@@ -22,10 +22,43 @@ namespace ge {
   class Renderer;
   struct RenderInfo;
 
+  enum class RectMode {
+    CORNER,
+    CORNERS,
+    CENTER,
+    RADIUS
+  };
+
+  enum class EllipseMode {
+    CENTER,
+    RADIUS,
+    CORNER,
+    CORNERS
+  };
+
+  enum class ImageMode {
+    CORNER,
+    CORNERS,
+    CENTER
+  };
+
+  enum class TextAlignH {
+    LEFT,
+    CENTER,
+    RIGHT
+  };
+
+  enum class TextAlignV {
+    BASELINE,
+    TOP,
+    CENTER,
+    BOTTOM
+  };
+
   class Renderer2D
   {
   public:
-    Renderer2D(std::shared_ptr<AssetManager> assetManager);
+    explicit Renderer2D(std::shared_ptr<AssetManager> assetManager);
 
     void createNewFrame();
 
@@ -35,6 +68,9 @@ namespace ge {
     void fill(float r,
               float g,
               float b,
+              float a = 255.0f);
+
+    void fill(float rgb,
               float a = 255.0f);
 
     void rotate(float angle);
@@ -50,6 +86,14 @@ namespace ge {
     void pushMatrix();
 
     void popMatrix();
+
+    void resetMatrix();
+
+    void rectMode(RectMode mode);
+
+    void ellipseMode(EllipseMode mode);
+
+    void imageMode(ImageMode mode);
 
     void rect(float x,
               float y,
@@ -75,6 +119,15 @@ namespace ge {
 
     void textSize(uint32_t size);
 
+    void textAlign(TextAlignH h,
+                   TextAlignV v = TextAlignV::BASELINE);
+
+    [[nodiscard]] float textWidth(const std::string& text) const;
+
+    [[nodiscard]] float textAscent(const std::string& text) const;
+
+    [[nodiscard]] float textDescent(const std::string& text) const;
+
     void text(const std::string& text,
               float x,
               float y);
@@ -94,6 +147,16 @@ namespace ge {
 
     std::vector<glm::mat4> m_transformStack;
 
+    RectMode m_rectMode = RectMode::CORNER;
+
+    EllipseMode m_ellipseMode = EllipseMode::CENTER;
+
+    ImageMode m_imageMode = ImageMode::CORNER;
+
+    TextAlignH m_textAlignH = TextAlignH::LEFT;
+
+    TextAlignV m_textAlignV = TextAlignV::BASELINE;
+
     std::vector<Rect> m_rectsToRender;
 
     std::vector<Triangle> m_trianglesToRender;
@@ -109,6 +172,21 @@ namespace ge {
     std::vector<Image> m_imagesToRender;
 
     float m_currentZ = 0.01f;
+
+    [[nodiscard]] glm::vec4 resolveRectBounds(float a,
+                                              float b,
+                                              float c,
+                                              float d);
+
+    [[nodiscard]] glm::vec4 resolveEllipseBounds(float a,
+                                                 float b,
+                                                 float c,
+                                                 float d);
+
+    [[nodiscard]] glm::vec4 resolveImageBounds(float a,
+                                               float b,
+                                               float c,
+                                               float d);
 
     void updateCurrentFont();
 
