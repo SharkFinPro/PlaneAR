@@ -120,9 +120,11 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   r->fill(0, 255, 0);
   r->rect(x, y * 3.0f, w * 3.0f, h);
 
+  r->rectMode(ge::RectMode::CENTER);
   float cursorSize = 50.0f;
   r->fill(135, 22, 232);
-  r->rect(mouseX - cursorSize / 2.0f, mouseY - cursorSize / 2.0f, cursorSize, cursorSize);
+  r->rect(mouseX, mouseY, cursorSize, cursorSize);
+  r->rectMode(ge::RectMode::CORNER);
 
   r->fill(255, 0, 0, 200);
   r->rect(x, y * 5.0f, w * 2.0f, h);
