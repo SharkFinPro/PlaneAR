@@ -46,6 +46,19 @@ namespace {
     renderer->fill(r, g, b, a);
   }
 
+  void nativeFillRGB(JNIEnv* env,
+                     jobject thiz,
+                     jint rgb,
+                     jint a)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->fill(rgb, a);
+  }
+
   void nativeRotate(JNIEnv* env,
                     jobject thiz,
                     jfloat angle)
@@ -129,6 +142,42 @@ namespace {
     renderer->resetMatrix();
   }
 
+  void nativeRectMode(JNIEnv* env,
+                      jobject thiz,
+                      jint mode)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->rectMode(static_cast<ge::RectMode>(mode));
+  }
+
+  void nativeEllipseMode(JNIEnv* env,
+                         jobject thiz,
+                         jint mode)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->ellipseMode(static_cast<ge::EllipseMode>(mode));
+  }
+
+  void nativeImageMode(JNIEnv* env,
+                       jobject thiz,
+                       jint mode)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->imageMode(static_cast<ge::ImageMode>(mode));
+  }
+
   void nativeRect(JNIEnv* env,
                   jobject thiz,
                   jfloat x,
@@ -210,6 +259,20 @@ namespace {
     renderer->textSize(size);
   }
 
+  void nativeTextAlign(JNIEnv* env,
+                       jobject thiz,
+                       jint alignH,
+                       jint alignV)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->textAlign(static_cast<ge::TextAlignH>(alignH),
+                        static_cast<ge::TextAlignV>(alignV));
+  }
+
   void nativeText(JNIEnv* env,
                   jobject thiz,
                   jstring text,
@@ -281,6 +344,7 @@ namespace {
 
   const JNINativeMethod renderer2DMethods[] = {
     {"fill",        "(IIII)V",                    (void*)nativeFill},
+    {"fill",        "(II)V",                      (void*)nativeFillRGB},
     {"rotate",      "(F)V",                       (void*)nativeRotate},
     {"translate",   "(FF)V",                      (void*)nativeTranslate},
     {"scale",       "(FF)V",                      (void*)nativeScaleXY},
@@ -288,11 +352,15 @@ namespace {
     {"pushMatrix",  "()V",                        (void*)nativePushMatrix},
     {"popMatrix",   "()V",                        (void*)nativePopMatrix},
     {"resetMatrix", "()V",                        (void*)nativeResetMatrix},
+    {"rectMode",    "(I)V",                       (void*)nativeRectMode},
+    {"ellipseMode", "(I)V",                       (void*)nativeEllipseMode},
+    {"imageMode",   "(I)V",                       (void*)nativeImageMode},
     {"rect",        "(FFFF)V",                    (void*)nativeRect},
     {"triangle",    "(FFFFFF)V",                  (void*)nativeTriangle},
     {"ellipse",     "(FFFF)V",                    (void*)nativeEllipse},
     {"textFont",    "(Ljava/lang/String;I)V",     (void*)nativeTextFont},
     {"textSize",    "(I)V",                       (void*)nativeTextSize},
+    {"textAlign",   "(II)V",                      (void*)nativeTextAlign},
     {"text",        "(Ljava/lang/String;FF)V",    (void*)nativeText},
     {"image",       "(Ljava/lang/String;FFFF)V",  (void*)nativeImage}
   };
