@@ -46,6 +46,138 @@ namespace {
     renderer->fill(r, g, b, a);
   }
 
+  void nativeFillRGB(JNIEnv* env,
+                     jobject thiz,
+                     jint rgb,
+                     jint a)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->fill(rgb, a);
+  }
+
+  void nativeRotate(JNIEnv* env,
+                    jobject thiz,
+                    jfloat angle)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->rotate(angle);
+  }
+
+  void nativeTranslate(JNIEnv* env,
+                       jobject thiz,
+                       jfloat x,
+                       jfloat y)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->translate(x, y);
+  }
+
+  void nativeScaleXY(JNIEnv* env,
+                     jobject thiz,
+                     jfloat x,
+                     jfloat y)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->scale(x, y);
+  }
+
+  void nativeScale(JNIEnv* env,
+                   jobject thiz,
+                   jfloat xy)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->scale(xy);
+  }
+
+  void nativePushMatrix(JNIEnv* env,
+                        jobject thiz)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->pushMatrix();
+  }
+
+  void nativePopMatrix(JNIEnv* env,
+                       jobject thiz)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->popMatrix();
+  }
+
+  void nativeResetMatrix(JNIEnv* env,
+                         jobject thiz)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->resetMatrix();
+  }
+
+  void nativeRectMode(JNIEnv* env,
+                      jobject thiz,
+                      jint mode)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->rectMode(static_cast<ge::RectMode>(mode));
+  }
+
+  void nativeEllipseMode(JNIEnv* env,
+                         jobject thiz,
+                         jint mode)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->ellipseMode(static_cast<ge::EllipseMode>(mode));
+  }
+
+  void nativeImageMode(JNIEnv* env,
+                       jobject thiz,
+                       jint mode)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->imageMode(static_cast<ge::ImageMode>(mode));
+  }
+
   void nativeRect(JNIEnv* env,
                   jobject thiz,
                   jfloat x,
@@ -59,6 +191,23 @@ namespace {
       return;
     }
     renderer->rect(x, y, width, height);
+  }
+
+  void nativeTriangle(JNIEnv* env,
+                      jobject thiz,
+                      jfloat x1,
+                      jfloat y1,
+                      jfloat x2,
+                      jfloat y2,
+                      jfloat x3,
+                      jfloat y3)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->triangle(x1, y1, x2, y2, x3, y3);
   }
 
   void nativeEllipse(JNIEnv* env,
@@ -110,6 +259,20 @@ namespace {
     renderer->textSize(size);
   }
 
+  void nativeTextAlign(JNIEnv* env,
+                       jobject thiz,
+                       jint alignH,
+                       jint alignV)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+    renderer->textAlign(static_cast<ge::TextAlignH>(alignH),
+                        static_cast<ge::TextAlignV>(alignV));
+  }
+
   void nativeText(JNIEnv* env,
                   jobject thiz,
                   jstring text,
@@ -134,12 +297,12 @@ namespace {
   }
 
   void nativeImage(JNIEnv* env,
-                  jobject thiz,
-                  jstring image,
-                  jfloat x,
-                  jfloat y,
-                  jfloat w,
-                  jfloat h)
+                   jobject thiz,
+                   jstring image,
+                   jfloat x,
+                   jfloat y,
+                   jfloat w,
+                   jfloat h)
   {
     const char* imageStr = env->GetStringUTFChars(image, nullptr);
     if (imageStr == nullptr)
@@ -180,13 +343,26 @@ namespace {
   }
 
   const JNINativeMethod renderer2DMethods[] = {
-    {"fill", "(IIII)V", (void*)nativeFill},
-    {"rect", "(FFFF)V", (void*)nativeRect},
-    {"ellipse", "(FFFF)V", (void*)nativeEllipse},
-    {"textFont", "(Ljava/lang/String;I)V", (void*)nativeTextFont},
-    {"textSize", "(I)V", (void*)nativeTextSize},
-    {"text", "(Ljava/lang/String;FF)V", (void*)nativeText},
-    {"image", "(Ljava/lang/String;FFFF)V", (void*)nativeImage}
+    {"fill",        "(IIII)V",                    (void*)nativeFill},
+    {"fill",        "(II)V",                      (void*)nativeFillRGB},
+    {"rotate",      "(F)V",                       (void*)nativeRotate},
+    {"translate",   "(FF)V",                      (void*)nativeTranslate},
+    {"scale",       "(FF)V",                      (void*)nativeScaleXY},
+    {"scale",       "(F)V",                       (void*)nativeScale},
+    {"pushMatrix",  "()V",                        (void*)nativePushMatrix},
+    {"popMatrix",   "()V",                        (void*)nativePopMatrix},
+    {"resetMatrix", "()V",                        (void*)nativeResetMatrix},
+    {"rectMode",    "(I)V",                       (void*)nativeRectMode},
+    {"ellipseMode", "(I)V",                       (void*)nativeEllipseMode},
+    {"imageMode",   "(I)V",                       (void*)nativeImageMode},
+    {"rect",        "(FFFF)V",                    (void*)nativeRect},
+    {"triangle",    "(FFFFFF)V",                  (void*)nativeTriangle},
+    {"ellipse",     "(FFFF)V",                    (void*)nativeEllipse},
+    {"textFont",    "(Ljava/lang/String;I)V",     (void*)nativeTextFont},
+    {"textSize",    "(I)V",                       (void*)nativeTextSize},
+    {"textAlign",   "(II)V",                      (void*)nativeTextAlign},
+    {"text",        "(Ljava/lang/String;FF)V",    (void*)nativeText},
+    {"image",       "(Ljava/lang/String;FFFF)V",  (void*)nativeImage}
   };
 
   const JNINativeMethod graphicsEngineMethods[] = {
