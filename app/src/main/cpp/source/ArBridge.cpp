@@ -3,8 +3,14 @@
 #include <mutex>
 #include <algorithm>
 #include "ArBridge.h"
+#include <android/hardware_buffer_jni.h>
+#include <android/hardware_buffer.h>
+#include <atomic>
+#include <android/log.h>
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, "HB_TEST", __VA_ARGS__)
 
 
+std::atomic<long long> gHwBufferCount{0};
 ArState gArState;
 
 
@@ -86,6 +92,27 @@ extern "C" {
         std::lock_guard<std::mutex> lock(gArState.mtx);
         gArState.trackingState = trackingState;
     }
+
+JNIEXPORT void JNICALL
+Java_edu_osu_t22_planear_ARSessionManager_nativeOnHardwareBuffer(
+        JNIEnv* env, jobject, jobject hardwareBufferObj, jlong) {
+
+    if (!hardwareBufferObj) return;
+
+    AHardwareBuffer* ahb = AHardwareBuffer_fromHardwareBuffer(env, hardwareBufferObj);
+    if (!ahb) return;
+
+    AHardwareBuffer_acquire(ahb);
+    ++gHwBufferCount;
+    AHardwareBuffer_release(ahb);
+}
+
+JNIEXPORT jlong JNICALL
+Java_edu_osu_t22_planear_ARSessionManager_nativeGetHardwareBufferFrameCount(
+        JNIEnv* /*env*/, jobject /*thiz*/) {
+    return (jlong)gHwBufferCount.load();
+}
+
 }
 //just for testing to ensure successful session creation
 bool gArReady = false;

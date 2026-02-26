@@ -53,6 +53,15 @@ void drawCommonUI(const SceneInfo& info, SceneSwitcher* switcher) {
   else r->fill(255, 0, 0, 220);
   r->ellipse(1000, 20, 40, 40);
 
+  // --- NEW: text under AR status dot ---
+  long long hbCount = gHwBufferCount.load();
+  if (hbCount > 0)
+    r->fill(0, 255, 0, 220);     // green
+  else
+    r->fill(255, 0, 0, 220);     // red
+
+    r->ellipse(130, 80, 40, 40);
+
   // Update and draw buttons
   for (int i = 0; i < navButtons.size(); ++i) {
     if (navButtons[i]->update(info.mouseX, info.mouseY, info.tapOccurred)) {

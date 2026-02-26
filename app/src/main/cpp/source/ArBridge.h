@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <mutex>
+#include <atomic>
 
 struct ArAnchor {
     int id;
@@ -21,6 +22,6 @@ struct ArState {
 extern "C" {
 void nativeSetArReady(bool ready);
 }
-
+extern std::atomic<long long> gHwBufferCount;
 extern ArState gArState;
 

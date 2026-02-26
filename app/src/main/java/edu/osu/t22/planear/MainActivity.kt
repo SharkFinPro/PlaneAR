@@ -33,6 +33,7 @@ import com.google.ar.core.Frame
 import com.google.ar.core.exceptions.CameraNotAvailableException
 import edu.osu.t22.planear.scenes.Scene3
 import edu.osu.t22.planear.scenes.SceneSwitcher
+import android.hardware.HardwareBuffer
 
 
 class MainActivity : GameActivity() {
@@ -352,6 +353,7 @@ class MainActivity : GameActivity() {
                 Log.i("PlaneAR", "ARCore session created")
 
                 val config = Config(arSession).apply {
+                    textureUpdateMode = Config.TextureUpdateMode.EXPOSE_HARDWARE_BUFFER
                     planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
                     depthMode =
                         if (arSession!!.isDepthModeSupported(Config.DepthMode.AUTOMATIC))
@@ -416,26 +418,32 @@ class ARSessionManager(
         session.setCameraTextureName(tex)
     }
 
+    private var tick = 0
 
     fun onUpdateFrame() {
         // Keep ARCore in sync with display rotation & surface size
         session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
 
-        val frame: Frame
-        try {
-            frame = session.update()
+
+        val frame: Frame = try {
+            session.update()
         } catch (e: CameraNotAvailableException) {
             nativeOnTrackingStateChanged(TrackingState.STOPPED.ordinal)
             return
         }
 
         val camera = frame.camera
-        if (camera.trackingState != TrackingState.TRACKING) {
-            // Inform native side that tracking is limited or lost
-            nativeOnTrackingStateChanged(camera.trackingState.ordinal)
-            return
-        }
+        nativeOnTrackingStateChanged(camera.trackingState.ordinal)
 
+        if (camera.trackingState != TrackingState.TRACKING) return
+
+        val hb = frame.hardwareBuffer
+        if (hb != null) {
+            nativeOnHardwareBuffer(hb, frame.timestamp)
+            hb.close()
+        } else {
+            Log.w("ARSession", "HardwareBuffer was null - is  EXPOSE_HARDWARE_BUFFER set?")
+        }
 
         // Camera pose -> 4x4 matrix
         val cameraMatrix = FloatArray(16)
@@ -487,4 +495,11 @@ class ARSessionManager(
     private external fun nativeOnTrackingStateChanged(
         trackingState: Int
     )
+
+    private external fun nativeOnHardwareBuffer(
+        hardwareBuffer: HardwareBuffer,
+        timestamp: Long
+    )
+
+    private external fun nativeGetHardwareBufferFrameCount(): Long
 }
