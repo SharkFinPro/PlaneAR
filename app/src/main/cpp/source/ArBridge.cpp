@@ -111,6 +111,29 @@ Java_edu_osu_t22_planear_ARSessionManager_nativeGetHardwareBufferFrameCount(
     return (jlong)gHwBufferCount.load();
 }
 
+JNIEXPORT void JNICALL
+Java_edu_osu_t22_planear_MainActivity_nativeSetAircraftDots(
+        JNIEnv* env,
+        jobject /*thiz*/,
+        jfloatArray dots) {
+
+    jsize len = env->GetArrayLength(dots);
+    int count = len / 3;
+
+    std::vector<float> buf(len);
+    env->GetFloatArrayRegion(dots, 0, len, buf.data());
+
+    std::vector<AircraftDot> parsed(count);
+    for (int i = 0; i < count; i++) {
+        parsed[i] = { buf[i*3+0], buf[i*3+1], buf[i*3+2] };
+    }
+
+    std::lock_guard<std::mutex> lock(gArState.mtx);
+    gArState.aircraftDots = std::move(parsed);
+
+    }
+
+
 }
 //just for testing to ensure successful session creation
 bool gArReady = false;

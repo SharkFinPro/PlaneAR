@@ -34,9 +34,15 @@ import com.google.ar.core.exceptions.CameraNotAvailableException
 import edu.osu.t22.planear.scenes.Scene3
 import edu.osu.t22.planear.scenes.SceneSwitcher
 import android.hardware.HardwareBuffer
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.util.Log.d
+import edu.osu.t22.planear.geo.Planeprojector
 
 
-class MainActivity : GameActivity() {
+class MainActivity : GameActivity(), SensorEventListener {
     companion object {
         init {
             System.loadLibrary("GraphicsEngine")
@@ -46,13 +52,29 @@ class MainActivity : GameActivity() {
         private const val CAMERA_PERMISSION_CODE = 0
         private const val LOCATION_PERMISSION_CODE = 1
 
+        private const val H_FOV_DEG = 54.8 // this is for a samsung galaxy s20
+        private const val V_FOV_DEG = 42.5 // https://www.camerafv5.com/devices/manufacturers/samsung/galaxy_s20_unknown_0/ find you device here and copy fov of camera
+
 
         @JvmStatic
         external fun nativeSetArReady(ready: Boolean)
+
+        @JvmStatic
+        external fun nativeSetAircraftDots(dots: FloatArray)
     }
 
-    private lateinit var sceneSwitcher: SceneSwitcher
+    private lateinit var sensorManager: SensorManager
+    private var rotationVectorSensor: Sensor? = null
 
+    private val rotationMatrix    = FloatArray(9)
+    private val orientationAngles = FloatArray(3)
+
+    @Volatile private var deviceAzimuthDeg = 0.0
+    @Volatile private var devicePitchDeg   = 0.0
+    @Volatile private var deviceRollDeg    = 0.0
+
+
+    private lateinit var sceneSwitcher: SceneSwitcher
     private var arSession: Session? = null
     private var arSessionManager: ARSessionManager? = null
 
@@ -64,6 +86,8 @@ class MainActivity : GameActivity() {
     @Suppress("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
         // Initialize the scene manager
         sceneSwitcher = SceneSwitcher.initialize()
@@ -95,7 +119,6 @@ class MainActivity : GameActivity() {
                         if (loc == null) {
                             Log.w("ADSB", "No location available")
                         } else {
-
                             val lat = loc.latitude
                             val lon = loc.longitude
 
@@ -111,57 +134,100 @@ class MainActivity : GameActivity() {
 
                             // log results
                             val nearbyData = nearby.await()
-                            Log.d("ADSB_TEST", "Got ${nearbyData.total} aircraft")
+                            d("ADSB_TEST", "Got ${nearbyData.total} aircraft")
                             val closestData = closest.await()
-                            Log.d(
-                                "ADSB_TEST",
-                                "Closest aircraft: ${closestData.ac.firstOrNull() ?: "No aircraft found"}"
+
+                            d(
+                                "ADSB_TEST", "Closest aircraft: ${closestData.ac.firstOrNull() ?: "No aircraft found"}"
                             )
-                            Log.d(
-                                "ADSB_TEST",
-                                "Timing data: (now: ${nearbyData.now}, cTime: ${nearbyData.cTime}, pTime: ${nearbyData.pTime})"
+                            d(
+                                "ADSB_TEST", "Timing data: (now: ${nearbyData.now}, cTime: ${nearbyData.cTime}, pTime: ${nearbyData.pTime})"
                             )
 
 
                             //--------------------TESTING GEO CALCULATIONS--------------------
-                            val closestAircraft = closestData.ac.firstOrNull()
-                            if (closestAircraft != null) {
 
-                                // will be replaced with arcore geolocation
-                                val userAltM = 0.0
-                                val userHeadingDeg = 90.0 //facing east
+                            // will be replaced with arcore geolocation
+                            val userAltM = loc.altitude
+                            val userPoint = GeoPoint(lat, lon, userAltM)
+                            //val userHeadingDeg = 90.0 //facing east
+                            val azimuth = deviceAzimuthDeg
+                            val pitch = devicePitchDeg
+                            val roll = deviceRollDeg
 
-                                val acLat = closestAircraft.lat
-                                val acLon = closestAircraft.lon
-                                val acAltFeet = closestAircraft.alt_baro.toDoubleOrNull() ?: 0.0
-                                val acAltM = acAltFeet * 0.3048
+                            val screenW = window.decorView.width
+                            val screenH = window.decorView.height
 
-                                val userPoint = GeoPoint(lat, lon, userAltM)
-                                val acPoint = GeoPoint(lat, lon, acAltM)
+                            val projectableAircraft = nearbyData.ac.filter { it.isProjectable }
+
+                            val acPoints = projectableAircraft.map { ac ->
+                                GeoPoint(
+                                    latDeg = ac.lat!!,
+                                    lonDeg = ac.lon!!,
+                                    altM = ac.altitudeMeters!!
+                                )
+                            }
+
+                            val screenPoints = Planeprojector.projectAll(
+                                user = userPoint,
+                                aircraft = acPoints,
+                                azimuthDeg = azimuth,
+                                pitchDeg = pitch,
+                                rollDeg = roll,
+                                hFovDeg = H_FOV_DEG,
+                                vFovDeg = V_FOV_DEG,
+                                screenWidth = screenW,
+                                screenHeight = screenH
+                            )
+
+                            val dots = Planeprojector.toNativeArray(screenPoints)
+                            nativeSetAircraftDots(dots)
+
+                            screenPoints.forEachIndexed { i, point ->
+                                if (point.visible) {
+                                    val ac = projectableAircraft[i]
+                                    d("PROJECTION",
+                                        "${ac.label} ->" + "x=${"%.0f".format(point.x)} " +
+                                                "y=${"%.0f".format(point.y)} " +
+                                                "dist=${"%.0f".format(point.distance)}m " +
+                                                "type=${ac.t ?: "?"} " +
+                                                "gs=${ac.gs ?: "?"}kts"
+                                    )
+                                }
+                            }
+                            d("PROJECTION", "${screenPoints.count { it.visible }} / ${acPoints.size} aircraft on screen")
+
+                            val closestAc = closestData.ac.firstOrNull { it.isProjectable }
+                            if (closestAc != null) {
+                                val acPoint = GeoPoint(
+                                    latDeg = closestAc.lat!!,
+                                    lonDeg = closestAc.lon!!,
+                                    altM = closestAc.altitudeMeters!!
+                                )
 
                                 val dir = GeoUtils.relativeDirection(
                                     user = userPoint,
-                                    userHeadingDeg = userHeadingDeg,
+                                    userHeadingDeg = azimuth,
                                     aircraft = acPoint
                                 )
-
-                                Log.d(
-                                    "ADSB_DIR",
-                                    "distance=${"%.0f".format(dir.distanceMeters)} m, " +
-                                            "bearing=${"%.1f".format(dir.bearingToAircraft)}°" +
-                                            "relative=${"%.1f".format(dir.relativeBearingDeg)}°, " +
-                                            "elevation=${"%.1f".format(dir.elevationDeg)}°"
+                                d("Closest",
+                                    "label=${closestAc.label} " +
+                                    "type=${closestAc.t ?: "unknown"} " +
+                                    "alt=${"%.0f".format(closestAc.altitudeMeters!!)}m " +
+                                    "gs=${closestAc.gs ?: "?"}kts " +
+                                    "track=${closestAc.track ?: "?"}° " +
+                                    "dist=${"%.0f".format(dir.distanceMeters)}m " +
+                                    "elevation=${"%.1f".format(dir.elevationDeg)}°"
                                 )
 
                                 val enh = GeoUtils.enhVector(userPoint, acPoint)
-                                Log.d(
-                                    "ADSB_ENH",
-                                    "east=${"%.1f".format(enh.east)}, " +
-                                            "north=${"%.1f".format(enh.north)} m, " +
-                                            "height=${"%.1f".format(enh.height)} m"
+                                d("CLOSEST_ENH",
+                                    "east=${"%.1f".format(enh.east)}m " +
+                                    "north=${"%.1f".format(enh.north)}m " +
+                                    "height=${"%.1f".format(enh.height)}m"
                                 )
                             } else {
-                                Log.d("ADSB_DIR", "No closest aircraft")
+                                Log.d("CLOSEST", "No projectable closest aircraft")
                             }
                         }
                     } catch (e: Exception) {
@@ -170,7 +236,7 @@ class MainActivity : GameActivity() {
                     onArUpdateFrame() // something might need to change I have to call frame update and then the next call is delayed at least 5 seconds right after
 
                     // repeat every 5 seconds
-                    delay(5_000L)
+                    delay(500L)//0.5 sec
                 }
             }
         }
@@ -187,8 +253,9 @@ class MainActivity : GameActivity() {
             startLocationUpdates()
         }
     }
-    @Suppress("MissingPermission")
 
+
+    @Suppress("MissingPermission")
     private fun registerScenes() {
         // Register scenes with unique IDs
         sceneSwitcher.registerScene(3, Scene3())
@@ -200,6 +267,9 @@ class MainActivity : GameActivity() {
 
     override fun onResume() {
         super.onResume()
+        rotationVectorSensor?.also { sensor ->
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME)
+        }
 
         //check camera permissions
         if (!hasCameraPermission()) {
@@ -238,6 +308,7 @@ class MainActivity : GameActivity() {
 
     override fun onPause() {
         super.onPause()
+        sensorManager.unregisterListener(this)
         stopLocationUpdates()
         try {
             arSession?.pause()
@@ -268,6 +339,18 @@ class MainActivity : GameActivity() {
             startLocationUpdates()
         }
     }
+
+    override fun onSensorChanged(event: SensorEvent) {
+        if (event.sensor.type != Sensor.TYPE_ROTATION_VECTOR) return
+        SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+        SensorManager.getOrientation(rotationMatrix, orientationAngles)
+
+        deviceAzimuthDeg = Math.toDegrees(orientationAngles[0].toDouble()).let { if (it < 0) it + 360.0 else it }
+        devicePitchDeg = Math.toDegrees(orientationAngles[1].toDouble())
+        deviceRollDeg = Math.toDegrees(orientationAngles[2].toDouble())
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     private fun hasCameraPermission(): Boolean {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
@@ -317,7 +400,7 @@ class MainActivity : GameActivity() {
                 val loc = result.lastLocation
                 if (loc != null) {
                     lastKnownLocation = loc
-                    Log.d("LOCATION", "Location update: ${loc.latitude}, ${loc.longitude}")
+                    d("LOCATION", "Location update: ${loc.latitude}, ${loc.longitude}")
                 }
             }
         }
@@ -328,7 +411,7 @@ class MainActivity : GameActivity() {
             val last = getLastLocationOrNull()
             if (last != null) {
                 lastKnownLocation = last
-                Log.d("LOCATION", "Populated initial lastKnownLocation: ${last.latitude}, ${last.longitude}")
+                d("LOCATION", "Populated initial lastKnownLocation: ${last.latitude}, ${last.longitude}")
             }
         }
     }
@@ -426,7 +509,7 @@ class ARSessionManager(
     private var validHbCount = 0
 
     fun onUpdateFrame() {
-        Log.d("ARSession", "onUpdateFrame called")
+        d("ARSession", "onUpdateFrame called")
 
         // Keep ARCore in sync with display rotation & surface size
         session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)

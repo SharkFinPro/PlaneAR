@@ -3,6 +3,12 @@
 #include <mutex>
 #include <atomic>
 
+struct AircraftDot {
+    float x;
+    float y;
+    float distanceMeters;
+};
+
 struct ArAnchor {
     int id;
     float matrix[16];
@@ -15,6 +21,8 @@ struct ArState {
 
     std::vector<ArAnchor> anchors;
     int trackingState = 0;
+
+    std::vector<AircraftDot> aircraftDots;
 
     std::mutex mtx;
 };

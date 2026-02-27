@@ -43,12 +43,21 @@ void drawCommonUI(const SceneInfo& info, SceneSwitcher* switcher) {
     }
   }
 
+
+
   // AR Status
   bool arReady = false;
   {
     std::lock_guard<std::mutex> lock(gArState.mtx);
     arReady = gArReady;
   }
+
+  std::lock_guard<std::mutex> lock(gArState.mtx);
+    for (const auto& dot : gArState.aircraftDots) {
+        r->fill(255, 165, 0, 220);
+        r->ellipse(dot.x, dot.y, 40, 40);
+    }
+
   // ar dot top right
   if (arReady) r->fill(120, 255, 0, 220);
   else r->fill(255, 0, 0, 220);
