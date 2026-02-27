@@ -167,6 +167,7 @@ class MainActivity : GameActivity() {
                     } catch (e: Exception) {
                         Log.e("ADSB_TEST", "API call failed", e)
                     }
+                    onArUpdateFrame() // something might need to change I have to call frame update and then the next call is delayed at least 5 seconds right after
 
                     // repeat every 5 seconds
                     delay(5_000L)
@@ -354,13 +355,14 @@ class MainActivity : GameActivity() {
 
                 val config = Config(arSession).apply {
                     textureUpdateMode = Config.TextureUpdateMode.EXPOSE_HARDWARE_BUFFER
+
                     planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
-                    depthMode =
-                        if (arSession!!.isDepthModeSupported(Config.DepthMode.AUTOMATIC))
-                            Config.DepthMode.AUTOMATIC
-                        else Config.DepthMode.DISABLED
+                    depthMode = if (arSession!!.isDepthModeSupported(Config.DepthMode.AUTOMATIC))
+                        Config.DepthMode.AUTOMATIC else Config.DepthMode.DISABLED
                 }
                 arSession!!.configure(config)
+
+                Log.i("PlaneAR", "AR config applied: textureMode=${config.textureUpdateMode}")
 
                 arSessionManager = ARSessionManager(
                     session = arSession!!,
@@ -395,7 +397,8 @@ class MainActivity : GameActivity() {
     }
 
     fun setCameraTexture(textureId: Int) {
-        arSessionManager?.setCameraTextureName(textureId)
+
+        //arSessionManager?.setCameraTextureName(textureId)
     }
 }
 
@@ -419,8 +422,12 @@ class ARSessionManager(
     }
 
     private var tick = 0
+    private var nullHbCount = 0
+    private var validHbCount = 0
 
     fun onUpdateFrame() {
+        Log.d("ARSession", "onUpdateFrame called")
+
         // Keep ARCore in sync with display rotation & surface size
         session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
 
@@ -439,10 +446,17 @@ class ARSessionManager(
 
         val hb = frame.hardwareBuffer
         if (hb != null) {
-            nativeOnHardwareBuffer(hb, frame.timestamp)
-            hb.close()
+            validHbCount++
+            if (validHbCount % 60 == 0) Log.i("ARSession", "HB frames received: $validHbCount")
+            try {
+                nativeOnHardwareBuffer(hb, frame.timestamp)
+            } finally {
+                hb.close()
+            }
         } else {
-            Log.w("ARSession", "HardwareBuffer was null - is  EXPOSE_HARDWARE_BUFFER set?")
+            nullHbCount++
+            if (nullHbCount % 60 == 0) Log.w("ARSession", "HB was null $nullHbCount times")
+            // acording to my logcat no frames where null on the emulator
         }
 
         // Camera pose -> 4x4 matrix

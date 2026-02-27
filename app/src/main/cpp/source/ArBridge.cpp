@@ -102,9 +102,7 @@ Java_edu_osu_t22_planear_ARSessionManager_nativeOnHardwareBuffer(
     AHardwareBuffer* ahb = AHardwareBuffer_fromHardwareBuffer(env, hardwareBufferObj);
     if (!ahb) return;
 
-    AHardwareBuffer_acquire(ahb);
     ++gHwBufferCount;
-    AHardwareBuffer_release(ahb);
 }
 
 JNIEXPORT jlong JNICALL
