@@ -8,7 +8,7 @@
 namespace AppScenes {
   void homeScene(const SceneInfo& info, SceneSwitcher* switcher);
   void arScene(const SceneInfo& info, SceneSwitcher* switcher);
-  void filesScene(const SceneInfo& info, SceneSwitcher* switcher);
+  void flightHistoryScene(const SceneInfo& info, SceneSwitcher* switcher);
   void mapScene(const SceneInfo& info, SceneSwitcher* switcher);
   void settingsScene(const SceneInfo& info, SceneSwitcher* switcher);
 

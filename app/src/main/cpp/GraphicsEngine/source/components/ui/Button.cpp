@@ -34,8 +34,9 @@ namespace ge::ui {
 
     // Label text
     renderer->fill(40, 40, 40);
-    renderer->textSize(32);
-    renderer->text(m_label, m_x + 20, m_y + (m_h / 2.0f) + 10);
+    renderer->textFont("roboto", 32);
+    renderer->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
+    renderer->text(m_label, m_x + m_w / 2.0f, m_y + m_h / 2.0f);
   }
 
 } // ge::ui
