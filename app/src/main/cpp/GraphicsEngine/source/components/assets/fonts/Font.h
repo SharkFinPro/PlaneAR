@@ -71,6 +71,11 @@ namespace ge {
     return codepoints;
   }
 
+  enum class CharsetMode {
+    ASCII,  // Printable ASCII only (codepoints 32-126, ~95 chars)
+    FULL    // All glyphs available in the font file
+  };
+
   class Font
   {
   public:
@@ -80,7 +85,8 @@ namespace ge {
          uint32_t fontSize,
          VkCommandPool commandPool,
          VkDescriptorPool descriptorPool,
-         VkDescriptorSetLayout descriptorSetLayout);
+         VkDescriptorSetLayout descriptorSetLayout,
+         CharsetMode charsetMode = CharsetMode::ASCII);
 
     [[nodiscard]] GlyphInfo* getGlyphInfo(uint32_t codepoint);
 
@@ -104,9 +110,10 @@ namespace ge {
 
     void createGlyphAtlas(VkCommandPool commandPool,
                           const std::vector<uint8_t>& fontBuffer,
-                          uint32_t fontSize);
+                          uint32_t fontSize,
+                          CharsetMode charsetMode);
 
-    static std::vector<FT_ULong> getCharset(FT_Face face);
+    static std::vector<FT_ULong> getCharset(FT_Face face, CharsetMode charsetMode);
 
     static std::vector<uint8_t> createAtlasBuffer(FT_Face face,
                                                   const std::vector<FT_ULong>& charset,

@@ -16,12 +16,13 @@ namespace ge {
              const uint32_t fontSize,
              VkCommandPool commandPool,
              VkDescriptorPool descriptorPool,
-             VkDescriptorSetLayout descriptorSetLayout)
+             VkDescriptorSetLayout descriptorSetLayout,
+             const CharsetMode charsetMode)
     : m_logicalDevice(std::move(logicalDevice))
   {
     const auto fontBuffer = loadFontFromFile(assetManager, fileName);
 
-    createGlyphAtlas(commandPool, fontBuffer, fontSize);
+    createGlyphAtlas(commandPool, fontBuffer, fontSize, charsetMode);
 
     createDescriptorSet(descriptorPool, descriptorSetLayout);
   }
@@ -65,7 +66,8 @@ namespace ge {
 
   void Font::createGlyphAtlas(VkCommandPool commandPool,
                               const std::vector<uint8_t>& fontBuffer,
-                              const uint32_t fontSize)
+                              const uint32_t fontSize,
+                              const CharsetMode charsetMode)
   {
     FT_Library ft;
     if (FT_Init_FreeType(&ft))
@@ -82,7 +84,7 @@ namespace ge {
 
     FT_Set_Pixel_Sizes(face, 0, fontSize);
 
-    const auto charset = getCharset(face);
+    const auto charset = getCharset(face, charsetMode);
 
     uint32_t maxGlyphWidth, maxGlyphHeight, glyphsPerRow, atlasWidth, atlasHeight;
     auto atlasBuffer = createAtlasBuffer(face, charset, maxGlyphWidth,
@@ -107,16 +109,32 @@ namespace ge {
     FT_Done_FreeType(ft);
   }
 
-  std::vector<FT_ULong> Font::getCharset(FT_Face face)
+  std::vector<FT_ULong> Font::getCharset(FT_Face face, const CharsetMode charsetMode)
   {
     std::vector<FT_ULong> charset;
 
-    FT_UInt gindex;
-    FT_ULong charcode = FT_Get_First_Char(face, &gindex);
-    while (gindex != 0)
+    if (charsetMode == CharsetMode::ASCII)
     {
-      charset.push_back(charcode);
-      charcode = FT_Get_Next_Char(face, charcode, &gindex);
+      // Only include printable ASCII characters (32-126)
+      for (FT_ULong charcode = 32; charcode <= 126; ++charcode)
+      {
+        const FT_UInt gindex = FT_Get_Char_Index(face, charcode);
+        if (gindex != 0)
+        {
+          charset.push_back(charcode);
+        }
+      }
+    }
+    else
+    {
+      // FULL mode: load all glyphs available in the font
+      FT_UInt gindex;
+      FT_ULong charcode = FT_Get_First_Char(face, &gindex);
+      while (gindex != 0)
+      {
+        charset.push_back(charcode);
+        charcode = FT_Get_Next_Char(face, charcode, &gindex);
+      }
     }
 
     return charset;
@@ -135,12 +153,14 @@ namespace ge {
 
     for (FT_ULong charcode : charset)
     {
-      if (FT_Load_Char(face, charcode, FT_LOAD_RENDER))
+      if (FT_Load_Char(face, charcode, FT_LOAD_DEFAULT))
       {
         continue;
       }
-      maxGlyphWidth = std::max(maxGlyphWidth, face->glyph->bitmap.width);
-      maxGlyphHeight = std::max(maxGlyphHeight, face->glyph->bitmap.rows);
+      const uint32_t glyphWidth = static_cast<uint32_t>((face->glyph->metrics.width + 63) >> 6);
+      const uint32_t glyphHeight = static_cast<uint32_t>((face->glyph->metrics.height + 63) >> 6);
+      maxGlyphWidth = std::max(maxGlyphWidth, glyphWidth);
+      maxGlyphHeight = std::max(maxGlyphHeight, glyphHeight);
     }
 
     glyphsPerRow = static_cast<uint32_t>(std::ceil(std::sqrt(charset.size())));
