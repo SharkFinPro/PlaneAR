@@ -41,7 +41,7 @@ void android_main(struct android_app* pApp)
         engine = std::make_unique<ge::GraphicsEngine>(pApp);
 
         engine->getAssetManager()->registerFont("roboto", "fonts/Roboto-VariableFont_wdth,wght.ttf");
-        engine->getAssetManager()->registerFont("emoji", "fonts/NotoEmoji-VariableFont_wght.ttf");
+        engine->getAssetManager()->registerFont("emoji", "fonts/NotoEmoji-VariableFont_wght.ttf", ge::CharsetMode::FULL);
         
         engine->getAssetManager()->registerImage("plane", "images/plane.jpg");
       }

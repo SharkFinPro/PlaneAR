@@ -5,12 +5,12 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include "fonts/Font.h"
 
 struct AAssetManager;
 
 namespace ge {
 
-  class Font;
   class ImageTexture;
   class LogicalDevice;
 
@@ -45,7 +45,11 @@ namespace ge {
     [[nodiscard]] AAssetManager* getAAssetManager() const;
 
     void registerFont(std::string fontName,
-                      std::string fontPath);
+                      std::string fontPath,
+                      CharsetMode charsetMode = CharsetMode::ASCII);
+
+    void preloadFont(const std::string& fontName,
+                     uint32_t fontSize);
 
     [[nodiscard]] std::shared_ptr<Font> getFont(const std::string& fontName,
                                                 uint32_t fontSize);
@@ -70,7 +74,12 @@ namespace ge {
 
     VkDescriptorSetLayout m_fontDescriptorSetLayout = VK_NULL_HANDLE;
 
-    std::unordered_map<std::string, std::string> m_fontNames;
+    struct FontRegistration {
+      std::string path;
+      CharsetMode charsetMode;
+    };
+
+    std::unordered_map<std::string, FontRegistration> m_fontNames;
     std::unordered_map<FontKey, std::shared_ptr<Font>, FontKeyHash> m_fonts;
 
     VkDescriptorSetLayout m_imageDescriptorSetLayout = VK_NULL_HANDLE;

@@ -1,5 +1,4 @@
 #include "AssetManager.h"
-#include "fonts/Font.h"
 #include "textures/ImageTexture.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
@@ -33,9 +32,20 @@ namespace ge {
   }
 
   void AssetManager::registerFont(std::string fontName,
-                                  std::string fontPath)
+                                  std::string fontPath,
+                                  const CharsetMode charsetMode)
   {
-    m_fontNames.insert({ std::move(fontName), std::move(fontPath) });
+    m_fontNames.insert({ std::move(fontName), FontRegistration{ std::move(fontPath), charsetMode } });
+  }
+
+  void AssetManager::preloadFont(const std::string& fontName,
+                                 const uint32_t fontSize)
+  {
+    const FontKey key { fontName, fontSize };
+    if (m_fonts.find(key) == m_fonts.end())
+    {
+      loadFont(fontName, fontSize);
+    }
   }
 
   std::shared_ptr<Font> AssetManager::getFont(const std::string& fontName,
@@ -139,9 +149,9 @@ namespace ge {
   void AssetManager::loadFont(const std::string& fontName,
                               uint32_t fontSize)
   {
-    const auto fontPath = m_fontNames.find(fontName);
+    const auto fontEntry = m_fontNames.find(fontName);
 
-    if (fontPath == m_fontNames.end())
+    if (fontEntry == m_fontNames.end())
     {
       throw std::runtime_error("Font not found: " + fontName);
     }
@@ -149,11 +159,12 @@ namespace ge {
     auto font = std::make_shared<Font>(
       m_logicalDevice,
       m_aassetManager,
-      fontPath->second,
+      fontEntry->second.path,
       fontSize,
       m_commandPool,
       m_descriptorPool,
-      m_fontDescriptorSetLayout
+      m_fontDescriptorSetLayout,
+      fontEntry->second.charsetMode
     );
 
     m_fonts.emplace(FontKey{ fontName, fontSize }, std::move(font));

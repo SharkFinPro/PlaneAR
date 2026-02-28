@@ -76,8 +76,14 @@ namespace AppScenes {
     void initialize(const std::unique_ptr<ge::GraphicsEngine>& engine, struct android_app* pApp) {
         auto am = engine->getAssetManager();
         am->registerFont("roboto", "fonts/Roboto-VariableFont_wdth,wght.ttf");
-        am->registerFont("emoji", "fonts/NotoEmoji-VariableFont_wght.ttf");
+        am->registerFont("emoji", "fonts/NotoEmoji-VariableFont_wght.ttf", ge::CharsetMode::FULL);
         am->registerImage("plane", "images/plane.jpg");
+
+        // Eagerly preload fonts at the sizes used by the app
+        am->preloadFont("roboto", 42);
+        am->preloadFont("roboto", 64);
+        am->preloadFont("roboto", 100);
+        am->preloadFont("emoji", 150);
 
         if (navButtons.empty()) {
             float screenWidth = (float)ANativeWindow_getWidth(pApp->window);
