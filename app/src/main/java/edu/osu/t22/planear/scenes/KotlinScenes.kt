@@ -1,45 +1,55 @@
 package edu.osu.t22.planear.scenes
 
-import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
-import edu.osu.t22.planear.graphicsEngine.Renderer2D
+import edu.osu.t22.planear.graphicsEngine.*
 
 class Scene3 : Scene {
-    override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
-        val engine = GraphicsEngineWrapper(sceneInfo.enginePtr)
-        val r = engine.getRenderer2D()
+    override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher, arCore: ARCoreProvider?) {
+        val width = sceneInfo.screenWidth;
+        val height = sceneInfo.screenHeight;
 
-        // Light blue background
-        r.fill(240, 248, 255)
-        r.rect(0f, 0f, sceneInfo.screenWidth, sceneInfo.screenHeight)
+        with (GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D())
+        {
+            arCore?.updateCameraBuffer(this)
 
-        // Title
-        r.fill(0, 0, 0)
-        r.textFont("roboto", 100)
-        r.text("PlaneAR", 100f, 300f)
+            rectMode(RectMode.CORNER);
 
-        r.textSize(64)
-        r.text("An AR Plane Tracking App", 100f, 450f)
+            // Light blue background
+            fill(240, 248, 255);
+            rect(0, 0, width, height);
 
-        r.fill(100, 100, 200);
-        r.rect(sceneInfo.screenWidth / 4, sceneInfo.screenHeight - 200, sceneInfo.screenWidth / 2, 150f);
+            // Title
+            fill(0, 0, 0);
+            textFont("roboto", 100);
+            text("PlaneAR", 100, 300);
 
-        r.fill(255, 255, 255);
-        r.textSize(70);
-        r.text("Go to C++", sceneInfo.screenWidth / 3, sceneInfo.screenHeight - 200);
+            textSize(64);
+            text("An AR Plane Tracking App", 100, 450);
 
-        if (sceneInfo.tapOccurred &&
-            sceneInfo.mouseX > sceneInfo.screenWidth / 4 &&
-            sceneInfo.mouseX < sceneInfo.screenWidth / 4 + sceneInfo.screenWidth / 2 &&
-            sceneInfo.mouseY > sceneInfo.screenHeight - 200 &&
-            sceneInfo.mouseY < sceneInfo.screenHeight - 200 + 150) {
-            sceneSwitcher.setCurrentScene(1);
+            fill(100, 100, 200);
+            rectMode(RectMode.CENTER);
+            rect(width / 2, height - 200, width / 2, 150);
+
+            fill(255, 255, 255);
+            textSize(70);
+            textAlign(TextAlignH.CENTER, TextAlignV.CENTER);
+            text("Go to C++", width / 2, height - 200);
+
+            renderTapEffect(this, sceneInfo);
         }
 
-        renderTapEffect(r, sceneInfo)
+        if (sceneInfo.tapOccurred &&
+            sceneInfo.mouseX > width / 4 &&
+            sceneInfo.mouseX < width / 4 + width / 2 &&
+            sceneInfo.mouseY > height - 200 &&
+            sceneInfo.mouseY < height - 200 + 150) {
+            sceneSwitcher.setCurrentScene(1);
+        }
     }
 
     private fun renderTapEffect(r: Renderer2D, sceneInfo: SceneInfo) {
-        r.fill(255, 200, 0, 150)
-        r.ellipse(sceneInfo.mouseX - 15f, sceneInfo.mouseY - 15f, 30f, 30f)
+        with (r) {
+            fill(255, 200, 0, 150)
+            ellipse(sceneInfo.mouseX - 15f, sceneInfo.mouseY - 15f, 30f, 30f)
+        }
     }
 }

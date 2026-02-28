@@ -1,7 +1,12 @@
 package edu.osu.t22.planear.scenes
+import edu.osu.t22.planear.graphicsEngine.Renderer2D
+
+interface ARCoreProvider {
+    fun updateCameraBuffer(renderer: Renderer2D)
+}
 
 interface Scene {
-    fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher)
+    fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher, arCore: ARCoreProvider? = null)
 }
 
 data class SceneInfo(
@@ -15,6 +20,7 @@ data class SceneInfo(
 
 class SceneSwitcher {
     private val scenes = mutableMapOf<Int, Scene>()
+    var arCoreProvider: ARCoreProvider? = null
 
     companion object {
         @JvmStatic
@@ -62,6 +68,6 @@ class SceneSwitcher {
     private fun renderSceneInternal(sceneId: Int, enginePtr: Long, mouseX: Float, mouseY: Float, tapOccurred: Boolean, screenWidth: Float, screenHeight: Float) {
         val scene = scenes[sceneId] ?: return
         val sceneInfo = SceneInfo(enginePtr, mouseX, mouseY, tapOccurred, screenWidth, screenHeight)
-        scene.render(sceneInfo, this)
+        scene.render(sceneInfo, this, arCoreProvider)
     }
 }

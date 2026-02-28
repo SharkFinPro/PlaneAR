@@ -31,6 +31,8 @@ import edu.osu.t22.planear.geo.GeoPoint
 import android.view.Surface
 import com.google.ar.core.Frame
 import com.google.ar.core.exceptions.CameraNotAvailableException
+import edu.osu.t22.planear.graphicsEngine.Renderer2D
+import edu.osu.t22.planear.scenes.ARCoreProvider
 import edu.osu.t22.planear.scenes.Scene3
 import edu.osu.t22.planear.scenes.SceneSwitcher
 import android.hardware.HardwareBuffer
@@ -40,9 +42,10 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log.d
 import edu.osu.t22.planear.geo.Planeprojector
+import kotlin.io.use
 
 
-class MainActivity : GameActivity(), SensorEventListener {
+class MainActivity : GameActivity(), SensorEventListener, ARCoreProvider {
     companion object {
         init {
             System.loadLibrary("GraphicsEngine")
@@ -235,6 +238,8 @@ class MainActivity : GameActivity(), SensorEventListener {
                     }
                     onArUpdateFrame() // something might need to change I have to call frame update and then the next call is delayed at least 5 seconds right after
 
+                    onArUpdateFrame()
+
                     // repeat every 5 seconds
                     delay(500L)//0.5 sec
                 }
@@ -254,16 +259,31 @@ class MainActivity : GameActivity(), SensorEventListener {
         }
     }
 
-
     @Suppress("MissingPermission")
+    
+    override fun updateCameraBuffer(renderer: Renderer2D) {
+        val frame = arSessionManager?.getLastFrame() ?: return
+        try {
+            frame.acquireCameraImage().use { image ->
+                image.hardwareBuffer?.let { hwb ->
+                    renderer.updateCameraBuffer(hwb)
+                    hwb.close()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("PlaneAR", "Failed to update camera buffer", e)
+        }
+    }
+
     private fun registerScenes() {
+        sceneSwitcher.arCoreProvider = this
+
         // Register scenes with unique IDs
         sceneSwitcher.registerScene(3, Scene3())
 
         // Set the initial scene
         sceneSwitcher.setCurrentScene(3)
     }
-
 
     override fun onResume() {
         super.onResume()
@@ -513,7 +533,6 @@ class ARSessionManager(
 
         // Keep ARCore in sync with display rotation & surface size
         session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
-
 
         val frame: Frame = try {
             session.update()
