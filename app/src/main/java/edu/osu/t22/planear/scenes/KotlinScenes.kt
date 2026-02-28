@@ -3,12 +3,14 @@ package edu.osu.t22.planear.scenes
 import edu.osu.t22.planear.graphicsEngine.*
 
 class Scene3 : Scene {
-    override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
+    override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher, arCore: ARCoreProvider?) {
         val width = sceneInfo.screenWidth;
         val height = sceneInfo.screenHeight;
 
         with (GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D())
         {
+            arCore?.updateCameraBuffer(this)
+
             rectMode(RectMode.CORNER);
 
             // Light blue background

@@ -90,6 +90,8 @@ class Renderer2D(private val ptr: Long) {
     fun image(image: String, x: Number, y: Number, width: Number, height: Number) = image(image, x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
 
     private external fun image(image: String, x: Float, y: Float, width: Float, height: Float)
+
+    external fun updateCameraBuffer(buffer: android.hardware.HardwareBuffer)
 }
 
 class GraphicsEngineWrapper(private val ptr: Long) {

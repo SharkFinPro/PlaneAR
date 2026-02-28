@@ -26,6 +26,11 @@ namespace ge {
     return m_physicalDevice;
   }
 
+  VkDevice LogicalDevice::getDevice() const
+  {
+    return m_device;
+  }
+
   void LogicalDevice::waitIdle() const
   {
     vkDeviceWaitIdle(m_device);

@@ -10,6 +10,7 @@ struct AAssetManager;
 
 namespace ge {
 
+  class CameraTexture;
   class Font;
   class ImageTexture;
   class LogicalDevice;
@@ -59,6 +60,8 @@ namespace ge {
 
     [[nodiscard]] VkDescriptorSetLayout getImageDescriptorSetLayout() const;
 
+    [[nodiscard]] std::shared_ptr<CameraTexture> getCameraTexture();
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -77,6 +80,8 @@ namespace ge {
 
     std::unordered_map<std::string, std::string> m_imageNames;
     std::unordered_map<std::string, std::shared_ptr<ImageTexture>> m_images;
+
+    std::shared_ptr<CameraTexture> m_cameraTexture;
 
     void createDescriptorSetLayouts();
 

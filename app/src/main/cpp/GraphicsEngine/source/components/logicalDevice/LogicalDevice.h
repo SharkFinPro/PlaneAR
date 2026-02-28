@@ -20,6 +20,8 @@ namespace ge {
 
     [[nodiscard]] std::shared_ptr<PhysicalDevice> getPhysicalDevice() const;
 
+    [[nodiscard]] VkDevice getDevice() const;
+
     void waitIdle() const;
 
     [[nodiscard]] VkQueue getGraphicsQueue() const;

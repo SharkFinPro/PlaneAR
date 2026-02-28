@@ -1,7 +1,11 @@
 #include "GraphicsEngine.h"
+#include "components/assets/AssetManager.h"
+#include "components/assets/textures/CameraTexture.h"
 #include "components/renderingManager/RenderingManager.h"
 #include "components/renderingManager/renderer2D/Renderer2D.h"
 #include <game-activity/native_app_glue/android_native_app_glue.h>
+#include <android/hardware_buffer_jni.h>
+#include <android/hardware_buffer.h>
 
 namespace {
   inline ge::Renderer2D* getRenderer(JNIEnv* env,
@@ -321,6 +325,21 @@ namespace {
     env->ReleaseStringUTFChars(image, imageStr);
   }
 
+  void nativeUpdateCameraBuffer(JNIEnv* env,
+                                jobject thiz,
+                                jobject hardwareBuffer)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr) return;
+
+    AHardwareBuffer* ahb = AHardwareBuffer_fromHardwareBuffer(env, hardwareBuffer);
+    if (ahb == nullptr) return;
+
+    renderer->getAssetManager()->getCameraTexture()->updateFromHardwareBuffer(ahb);
+
+    AHardwareBuffer_release(ahb);
+  }
+
   jlong nativeGetRenderer2DPtr(JNIEnv* env,
                                jobject,
                                jlong enginePtr)
@@ -362,7 +381,8 @@ namespace {
     {"textSize",    "(I)V",                       (void*)nativeTextSize},
     {"textAlign",   "(II)V",                      (void*)nativeTextAlign},
     {"text",        "(Ljava/lang/String;FF)V",    (void*)nativeText},
-    {"image",       "(Ljava/lang/String;FFFF)V",  (void*)nativeImage}
+    {"image",       "(Ljava/lang/String;FFFF)V",  (void*)nativeImage},
+    {"updateCameraBuffer", "(Landroid/hardware/HardwareBuffer;)V", (void*)nativeUpdateCameraBuffer}
   };
 
   const JNINativeMethod graphicsEngineMethods[] = {
