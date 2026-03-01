@@ -8,6 +8,7 @@
 #include <memory>
 #include <unordered_map>
 #include <string>
+#include <variant>
 #include <vector>
 
 struct AAssetManager;
@@ -139,6 +140,19 @@ namespace ge {
                float height);
 
   private:
+    struct GlyphCommand {
+      Glyph glyph;
+      std::string fontName;
+      uint32_t fontSize;
+    };
+
+    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image>;
+
+    struct DrawEntry {
+      DrawCommand command;
+      float z;
+    };
+
     std::shared_ptr<AssetManager> m_assetManager;
 
     glm::vec4 m_currentFill = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -157,19 +171,11 @@ namespace ge {
 
     TextAlignV m_textAlignV = TextAlignV::BASELINE;
 
-    std::vector<Rect> m_rectsToRender;
-
-    std::vector<Triangle> m_trianglesToRender;
-
-    std::vector<Ellipse> m_ellipsesToRender;
-
-    std::unordered_map<std::string, std::unordered_map<uint32_t, std::vector<Glyph>>> m_glyphsToRender;
+    std::vector<DrawEntry> m_drawList;
 
     std::shared_ptr<Font> m_currentFont;
     std::string m_currentFontName;
     uint32_t m_currentFontSize = 12;
-
-    std::vector<Image> m_imagesToRender;
 
     float m_currentZ = 0.01f;
 
@@ -194,36 +200,21 @@ namespace ge {
 
     void normalizeZValues();
 
-    void renderRects(const std::shared_ptr<PipelineManager>& pipelineManager,
-                     const RenderInfo* renderInfo) const;
-
     static void renderRect(const std::shared_ptr<PipelineManager>& pipelineManager,
                            const RenderInfo* renderInfo,
                            const Rect& rect);
-
-    void renderTriangles(const std::shared_ptr<PipelineManager>& pipelineManager,
-                         const RenderInfo* renderInfo) const;
 
     static void renderTriangle(const std::shared_ptr<PipelineManager>& pipelineManager,
                                const RenderInfo* renderInfo,
                                const Triangle& triangle);
 
-    void renderEllipses(const std::shared_ptr<PipelineManager>& pipelineManager,
-                        const RenderInfo* renderInfo) const;
-
     static void renderEllipse(const std::shared_ptr<PipelineManager>& pipelineManager,
                               const RenderInfo* renderInfo,
                               const Ellipse& ellipse);
 
-    void renderGlyphs(const std::shared_ptr<PipelineManager>& pipelineManager,
-                      const RenderInfo* renderInfo) const;
-
-    static void renderGlyph(const std::shared_ptr<PipelineManager>& pipelineManager,
-                            const RenderInfo* renderInfo,
-                            const Glyph& glyph);
-
-    void renderImages(const std::shared_ptr<PipelineManager>& pipelineManager,
-                      const RenderInfo* renderInfo) const;
+    void renderGlyph(const std::shared_ptr<PipelineManager>& pipelineManager,
+                     const RenderInfo* renderInfo,
+                     const GlyphCommand& glyphCmd) const;
 
     void renderImage(const std::shared_ptr<PipelineManager>& pipelineManager,
                      const RenderInfo* renderInfo,
