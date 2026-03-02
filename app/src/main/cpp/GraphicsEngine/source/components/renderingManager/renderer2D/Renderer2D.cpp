@@ -6,6 +6,7 @@
 #include "../../pipelines/GraphicsPipeline.h"
 #include "../../pipelines/PipelineManager.h"
 #include "../LegacyRenderer.h"
+#include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace ge {
@@ -29,15 +30,7 @@ namespace ge {
 
     textAlign(TextAlignH::LEFT, TextAlignV::BASELINE);
 
-    m_rectsToRender.clear();
-
-    m_trianglesToRender.clear();
-
-    m_ellipsesToRender.clear();
-
-    m_glyphsToRender.clear();
-
-    m_imagesToRender.clear();
+    m_drawList.clear();
   }
 
   void Renderer2D::render(const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -45,15 +38,55 @@ namespace ge {
   {
     normalizeZValues();
 
-    renderRects(pipelineManager, renderInfo);
+    std::stable_sort(m_drawList.begin(), m_drawList.end(), [](const DrawEntry& a, const DrawEntry& b) {
+      return a.z > b.z;
+    });
 
-    renderTriangles(pipelineManager, renderInfo);
+    PipelineType currentPipeline = PipelineType::rect;
+    bool firstDraw = true;
 
-    renderEllipses(pipelineManager, renderInfo);
+    auto bindIfNeeded = [&](PipelineType type)
+    {
+      if (firstDraw || currentPipeline != type)
+      {
+        pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, type);
+        currentPipeline = type;
+        firstDraw = false;
+      }
+    };
 
-    renderGlyphs(pipelineManager, renderInfo);
+    for (const auto& entry : m_drawList)
+    {
+      std::visit([&](const auto& cmd) {
+        using T = std::decay_t<decltype(cmd)>;
 
-    renderImages(pipelineManager, renderInfo);
+        if constexpr (std::is_same_v<T, Rect>)
+        {
+          bindIfNeeded(PipelineType::rect);
+          renderRect(pipelineManager, renderInfo, cmd);
+        }
+        else if constexpr (std::is_same_v<T, Triangle>)
+        {
+          bindIfNeeded(PipelineType::triangle);
+          renderTriangle(pipelineManager, renderInfo, cmd);
+        }
+        else if constexpr (std::is_same_v<T, Ellipse>)
+        {
+          bindIfNeeded(PipelineType::ellipse);
+          renderEllipse(pipelineManager, renderInfo, cmd);
+        }
+        else if constexpr (std::is_same_v<T, GlyphCommand>)
+        {
+          bindIfNeeded(PipelineType::font);
+          renderGlyph(pipelineManager, renderInfo, cmd);
+        }
+        else if constexpr (std::is_same_v<T, Image>)
+        {
+          bindIfNeeded(PipelineType::image);
+          renderImage(pipelineManager, renderInfo, cmd);
+        }
+      }, entry.command);
+    }
   }
 
   void Renderer2D::fill(const float r,
@@ -149,11 +182,14 @@ namespace ge {
   {
     const auto bounds = resolveRectBounds(x, y, width, height);
 
-    m_rectsToRender.push_back({
-      .bounds = bounds,
-      .color = m_currentFill,
-      .transform = m_currentTransform,
-      .z = m_currentZ
+    m_drawList.push_back({
+      Rect{
+        .bounds = bounds,
+        .color = m_currentFill,
+        .transform = m_currentTransform,
+        .z = m_currentZ
+      },
+      m_currentZ
     });
 
     increaseCurrentZ();
@@ -166,13 +202,16 @@ namespace ge {
                             const float x3,
                             const float y3)
   {
-    m_trianglesToRender.push_back({
-      .p1 = glm::vec2(x1, y1),
-      .p2 = glm::vec2(x2, y2),
-      .p3 = glm::vec2(x3, y3),
-      .color = m_currentFill,
-      .transform = m_currentTransform,
-      .z = m_currentZ
+    m_drawList.push_back({
+      Triangle{
+        .p1 = glm::vec2(x1, y1),
+        .p2 = glm::vec2(x2, y2),
+        .p3 = glm::vec2(x3, y3),
+        .color = m_currentFill,
+        .transform = m_currentTransform,
+        .z = m_currentZ
+      },
+      m_currentZ
     });
 
     increaseCurrentZ();
@@ -185,11 +224,14 @@ namespace ge {
   {
     const auto bounds = resolveEllipseBounds(x, y, width, height);
 
-    m_ellipsesToRender.push_back({
-      .bounds = bounds,
-      .color = m_currentFill,
-      .transform = m_currentTransform,
-      .z = m_currentZ
+    m_drawList.push_back({
+      Ellipse{
+        .bounds = bounds,
+        .color = m_currentFill,
+        .transform = m_currentTransform,
+        .z = m_currentZ
+      },
+      m_currentZ
     });
 
     increaseCurrentZ();
@@ -220,7 +262,7 @@ namespace ge {
   void Renderer2D::textAlign(const TextAlignH h,
                              const TextAlignV v)
   {
-    m_textAlignH = h,
+    m_textAlignH = h;
     m_textAlignV = v;
   }
 
@@ -320,26 +362,36 @@ namespace ge {
     float currentX = x + xOffset;
     const float adjustedY = y + yOffset;
 
+    // All glyphs in a text() call share the same Z so they sort together
+    const float textZ = m_currentZ;
+
     for (const auto codepoint : decodeUTF8(text))
     {
       if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
       {
-        m_glyphsToRender[m_currentFontName][m_currentFontSize].push_back({
-          .bounds = glm::vec4(
-            currentX + glyphInfo->bearingX,
-            adjustedY - glyphInfo->bearingY,
-            glyphInfo->width,
-            glyphInfo->height
-          ),
-          .color = m_currentFill,
-          .transform = m_currentTransform,
-          .uv = glm::vec4(
-            glyphInfo->u0,
-            glyphInfo->v0,
-            glyphInfo->u1,
-            glyphInfo->v1
-          ),
-          .z = m_currentZ
+        m_drawList.push_back({
+          GlyphCommand{
+            .glyph = {
+              .bounds = glm::vec4(
+                currentX + glyphInfo->bearingX,
+                adjustedY - glyphInfo->bearingY,
+                glyphInfo->width,
+                glyphInfo->height
+              ),
+              .color = m_currentFill,
+              .transform = m_currentTransform,
+              .uv = glm::vec4(
+                glyphInfo->u0,
+                glyphInfo->v0,
+                glyphInfo->u1,
+                glyphInfo->v1
+              ),
+              .z = textZ
+            },
+            .fontName = m_currentFontName,
+            .fontSize = m_currentFontSize
+          },
+          textZ
         });
 
         currentX += glyphInfo->advance;
@@ -357,11 +409,14 @@ namespace ge {
   {
     const auto bounds = resolveImageBounds(x, y, width, height);
 
-    m_imagesToRender.push_back({
-      .imageName = std::move(image),
-      .bounds = bounds,
-      .transform = m_currentTransform,
-      .z = m_currentZ
+    m_drawList.push_back({
+      Image{
+        .imageName = std::move(image),
+        .bounds = bounds,
+        .transform = m_currentTransform,
+        .z = m_currentZ
+      },
+      m_currentZ
     });
 
     increaseCurrentZ();
@@ -447,51 +502,25 @@ namespace ge {
 
   void Renderer2D::normalizeZValues()
   {
-    for (auto& rect : m_rectsToRender)
+    for (auto& entry : m_drawList)
     {
-      rect.z /= m_currentZ;
-      rect.z = 1.0f - rect.z;
-    }
+      float normalized = entry.z / m_currentZ;
+      float flipped = 1.0f - normalized;
 
-    for (auto& triangle : m_trianglesToRender)
-    {
-      triangle.z /= m_currentZ;
-      triangle.z = 1.0f - triangle.z;
-    }
+      entry.z = flipped;
 
-    for (auto& ellipse : m_ellipsesToRender)
-    {
-      ellipse.z /= m_currentZ;
-      ellipse.z = 1.0f - ellipse.z;
-    }
+      std::visit([flipped](auto& cmd) {
+        using T = std::decay_t<decltype(cmd)>;
 
-    for (auto& font : m_glyphsToRender)
-    {
-      for (auto& fontSize : font.second)
-      {
-        for (auto& glyph : fontSize.second)
+        if constexpr (std::is_same_v<T, GlyphCommand>)
         {
-          glyph.z /= m_currentZ;
-          glyph.z = 1.0f - glyph.z;
+          cmd.glyph.z = flipped;
         }
-      }
-    }
-
-    for (auto& image : m_imagesToRender)
-    {
-      image.z /= m_currentZ;
-      image.z = 1.0f - image.z;
-    }
-  }
-
-  void Renderer2D::renderRects(const std::shared_ptr<PipelineManager>& pipelineManager,
-                               const RenderInfo* renderInfo) const
-  {
-    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::rect);
-
-    for (const auto& rect : m_rectsToRender)
-    {
-      renderRect(pipelineManager, renderInfo, rect);
+        else
+        {
+          cmd.z = flipped;
+        }
+      }, entry.command);
     }
   }
 
@@ -513,17 +542,6 @@ namespace ge {
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
   }
 
-  void Renderer2D::renderTriangles(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                   const RenderInfo* renderInfo) const
-  {
-    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::triangle);
-
-    for (const auto& triangle : m_trianglesToRender)
-    {
-      renderTriangle(pipelineManager, renderInfo, triangle);
-    }
-  }
-
   void Renderer2D::renderTriangle(const std::shared_ptr<PipelineManager>& pipelineManager,
                                   const RenderInfo* renderInfo,
                                   const Triangle& triangle)
@@ -540,17 +558,6 @@ namespace ge {
     );
 
     renderInfo->commandBuffer->draw(3, 1, 0, 0);
-  }
-
-  void Renderer2D::renderEllipses(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                  const RenderInfo* renderInfo) const
-  {
-    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::ellipse);
-
-    for (const auto& ellipse : m_ellipsesToRender)
-    {
-      renderEllipse(pipelineManager, renderInfo, ellipse);
-    }
   }
 
   void Renderer2D::renderEllipse(const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -571,37 +578,20 @@ namespace ge {
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
   }
 
-  void Renderer2D::renderGlyphs(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                const RenderInfo* renderInfo) const
-  {
-    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::font);
-
-    for (const auto& [fontName, fontSizes] : m_glyphsToRender)
-    {
-      for (const auto& [fontSize, text] : fontSizes)
-      {
-        const auto descriptorSet = m_assetManager->getFont(fontName, fontSize)->getDescriptorSet(renderInfo->currentFrame);
-
-        pipelineManager->bindGraphicsPipelineDescriptorSet(
-          renderInfo->commandBuffer,
-          PipelineType::font,
-          descriptorSet,
-          0
-        );
-
-        for (const auto& glyph : text)
-        {
-          renderGlyph(pipelineManager, renderInfo, glyph);
-        }
-      }
-    }
-  }
-
   void Renderer2D::renderGlyph(const std::shared_ptr<PipelineManager>& pipelineManager,
                                const RenderInfo* renderInfo,
-                               const Glyph& glyph)
+                               const GlyphCommand& glyphCmd) const
   {
-    const auto glyphPC = glyph.createPushConstant(renderInfo->extent);
+    const auto descriptorSet = m_assetManager->getFont(glyphCmd.fontName, glyphCmd.fontSize)->getDescriptorSet(renderInfo->currentFrame);
+
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      PipelineType::font,
+      descriptorSet,
+      0
+    );
+
+    const auto glyphPC = glyphCmd.glyph.createPushConstant(renderInfo->extent);
 
     pipelineManager->pushGraphicsPipelineConstants(
       renderInfo->commandBuffer,
@@ -613,17 +603,6 @@ namespace ge {
     );
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
-  }
-
-  void Renderer2D::renderImages(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                const RenderInfo* renderInfo) const
-  {
-    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::image);
-
-    for (const auto& image : m_imagesToRender)
-    {
-      renderImage(pipelineManager, renderInfo, image);
-    }
   }
 
   void Renderer2D::renderImage(const std::shared_ptr<PipelineManager>& pipelineManager,
