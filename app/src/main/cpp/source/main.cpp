@@ -67,7 +67,7 @@ void android_main(struct android_app* pApp)
 
       if (engine)
       {
-        SceneInfo info{engine, pApp, mouseX, mouseY, tapOccurred};
+        SceneInfo info{engine, pApp, mouseX, mouseY, tapOccurred, InputUtils::isTouching()};
         switcher.renderCurrentScene(info);
       }
     }

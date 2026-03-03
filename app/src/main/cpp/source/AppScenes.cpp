@@ -33,8 +33,7 @@ static constexpr std::array<SceneId, 6> sceneIdMap = {
     SceneId::Settings
 };
 
-// --- Mock Flight Data ---
-
+//Mock Flight Data
 struct FlightEntry {
   std::string callsign;
   std::string takeoffTime;
@@ -132,11 +131,12 @@ namespace AppScenes {
         am->registerFont("emoji", "fonts/NotoEmoji-VariableFont_wght.ttf", ge::CharsetMode::FULL);
         am->registerImage("plane", "images/plane.jpg");
 
-        // Eagerly preload fonts at the sizes used by the app
+        am->preloadFont("roboto", 30);
         am->preloadFont("roboto", 34);
         am->preloadFont("roboto", 36);
         am->preloadFont("roboto", 38);
         am->preloadFont("roboto", 42);
+        am->preloadFont("roboto", 48);
         am->preloadFont("roboto", 52);
         am->preloadFont("roboto", 64);
         am->preloadFont("roboto", 100);
@@ -161,17 +161,263 @@ namespace AppScenes {
 
     void homeScene(const SceneInfo& info, SceneSwitcher* switcher) {
         const auto r = info.engine->getRenderingManager()->getRenderer2D();
+        float screenW = (float)ANativeWindow_getWidth(info.pApp->window);
+        float screenH = (float)ANativeWindow_getHeight(info.pApp->window);
+
+        r->rectMode(ge::RectMode::CORNER);
+        r->imageMode(ge::ImageMode::CORNER);
+
+        // ── Background ──
+        r->fill(245, 245, 245);
+        r->rect(0, 0, screenW, screenH);
+
+        // ── Layout constants ──
+        float margin = screenW * 0.05f;
+        float cardTop = screenH * 0.05f;
+        float cardW = screenW - 2.0f * margin;
+        float cardH = screenH * 0.38f;
+        float cornerR = 30.0f;
+
+        r->fill(76, 175, 80);
+        r->rect(margin + cornerR, cardTop, cardW - 2.0f * cornerR, cardH);
+        r->rect(margin, cardTop + cornerR, cardW, cardH - 2.0f * cornerR);
+
+        r->ellipseMode(ge::EllipseMode::CENTER);
+        r->ellipse(margin + cornerR, cardTop + cornerR, cornerR * 2.0f, cornerR * 2.0f);
+        r->ellipse(margin + cardW - cornerR, cardTop + cornerR, cornerR * 2.0f, cornerR * 2.0f);
+        r->ellipse(margin + cornerR, cardTop + cardH - cornerR, cornerR * 2.0f, cornerR * 2.0f);
+        r->ellipse(margin + cardW - cornerR, cardTop + cardH - cornerR, cornerR * 2.0f, cornerR * 2.0f);
+
+        // Flights in air card
         r->fill(255, 255, 255);
-        
-        static ge::ui::Label title("PlaneAR", 100, 300, "roboto", 100);
-        static ge::ui::Label subTitle("An AR Plane Tracking App", 100, 450, "roboto", 64);
-        static ge::ui::Label emojis("✈🥳", 800, 200, "emoji", 150);
+        float btnW = cardW * 0.75f;
+        float btnH = 80.0f;
+        float btnX = margin + (cardW - btnW) / 2.0f;
+        float btnY = cardTop + cardH * 0.10f;
+        float btnR = btnH / 2.0f;
 
-        title.draw(r);
-        subTitle.draw(r);
-        emojis.draw(r);
+        r->fill(255, 255, 255);
+        r->rect(btnX + btnR, btnY, btnW - 2.0f * btnR, btnH);
+        r->rect(btnX, btnY, btnW, btnH); // full fill (covered by ellipses at ends)
 
-        r->image("plane", 350, 300, 600, 400);
+        r->ellipseMode(ge::EllipseMode::CENTER);
+        r->ellipse(btnX + btnR, btnY + btnR, btnH, btnH);
+        r->ellipse(btnX + btnW - btnR, btnY + btnR, btnH, btnH);
+        r->fill(255, 255, 255);
+        r->rect(btnX + btnR, btnY, btnW - 2.0f * btnR, btnH);
+
+        r->fill(76, 175, 80);
+        r->textFont("roboto", 48);
+        r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
+        r->text("Flights in Air", screenW / 2.0f, btnY + btnH / 2.0f);
+
+        float imgPad = cardW * 0.08f;
+        float imgTop = btnY + btnH + cardH * 0.06f;
+        float imgW = cardW - 2.0f * imgPad;
+        float imgH = cardTop + cardH - imgTop - cardH * 0.06f;
+        float imgCornerR = 20.0f;
+        r->fill(255, 255, 255);
+        r->rect(margin + imgPad + imgCornerR, imgTop, imgW - 2.0f * imgCornerR, imgH);
+        r->rect(margin + imgPad, imgTop + imgCornerR, imgW, imgH - 2.0f * imgCornerR);
+        r->ellipseMode(ge::EllipseMode::CENTER);
+        r->ellipse(margin + imgPad + imgCornerR, imgTop + imgCornerR, imgCornerR * 2.0f, imgCornerR * 2.0f);
+        r->ellipse(margin + imgPad + imgW - imgCornerR, imgTop + imgCornerR, imgCornerR * 2.0f, imgCornerR * 2.0f);
+        r->ellipse(margin + imgPad + imgCornerR, imgTop + imgH - imgCornerR, imgCornerR * 2.0f, imgCornerR * 2.0f);
+        r->ellipse(margin + imgPad + imgW - imgCornerR, imgTop + imgH - imgCornerR, imgCornerR * 2.0f, imgCornerR * 2.0f);
+
+        r->image("plane", margin + imgPad, imgTop, imgW, imgH);
+
+        // Recently viewed
+        float rvSectionY = cardTop + cardH + 80.0f;
+        r->fill(30, 30, 30);
+        r->textFont("roboto", 52);
+        r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
+        r->text("Recently Viewed", margin, rvSectionY);
+
+        // Carousel state
+        static float scrollOffset = 0.0f;
+        static float prevMouseX = 0.0f;
+        static bool dragging = false;
+        static float dragStartX = 0.0f;
+        static float dragStartOffset = 0.0f;
+        static float totalDragDist = 0.0f;
+        static int homeSelectedFlight = -1;
+        static bool homeTapConsumed = false;
+
+        homeTapConsumed = false;
+
+        // Carousel layout
+        constexpr int RV_COUNT = 10;
+        float rvCardGap = 20.0f;
+        float rvCardW = (cardW - 2.0f * rvCardGap) / 3.0f;
+        float rvTop = rvSectionY + 25.0f;
+        float rvImgH = rvCardW * 0.75f;
+        float rvCornerR = 12.0f;
+        float totalContentW = RV_COUNT * (rvCardW + rvCardGap) - rvCardGap;
+        float maxScroll = std::max(0.0f, totalContentW - cardW);
+
+        // Carousel touch zone
+        float rvZoneTop = rvTop - 10.0f;
+        float rvZoneBottom = rvTop + rvImgH + 80.0f;
+
+        // Drag handling
+        bool inZone = info.mouseY >= rvZoneTop && info.mouseY <= rvZoneBottom &&
+                      info.mouseX >= margin && info.mouseX <= margin + cardW;
+
+        if (info.tapOccurred && inZone && homeSelectedFlight < 0) {
+            dragging = true;
+            dragStartX = info.mouseX;
+            dragStartOffset = scrollOffset;
+            totalDragDist = 0.0f;
+            prevMouseX = info.mouseX;
+        }
+
+        if (dragging && info.isTouching) {
+            float delta = info.mouseX - prevMouseX;
+            scrollOffset -= delta;
+            totalDragDist += std::abs(delta);
+            prevMouseX = info.mouseX;
+        }
+
+        if (dragging && !info.isTouching) {
+            dragging = false;
+        }
+
+        // Clamp scroll
+        scrollOffset = std::clamp(scrollOffset, 0.0f, maxScroll);
+
+        // Draw carousel cards
+        for (int i = 0; i < RV_COUNT && i < (int)g_flightData.size(); ++i) {
+            float rawX = margin + i * (rvCardW + rvCardGap) - scrollOffset;
+
+            // Cull cards outside visible area
+            if (rawX + rvCardW < margin - 20.0f || rawX > margin + cardW + 20.0f)
+                continue;
+
+            r->fill(230, 235, 240);
+            r->rectMode(ge::RectMode::CORNER);
+            r->rect(rawX + rvCornerR, rvTop, rvCardW - 2.0f * rvCornerR, rvImgH);
+            r->rect(rawX, rvTop + rvCornerR, rvCardW, rvImgH - 2.0f * rvCornerR);
+            r->ellipseMode(ge::EllipseMode::CENTER);
+            r->fill(230, 235, 240);
+            r->ellipse(rawX + rvCornerR, rvTop + rvCornerR, rvCornerR * 2.0f, rvCornerR * 2.0f);
+            r->ellipse(rawX + rvCardW - rvCornerR, rvTop + rvCornerR, rvCornerR * 2.0f, rvCornerR * 2.0f);
+            r->ellipse(rawX + rvCornerR, rvTop + rvImgH - rvCornerR, rvCornerR * 2.0f, rvCornerR * 2.0f);
+            r->ellipse(rawX + rvCardW - rvCornerR, rvTop + rvImgH - rvCornerR, rvCornerR * 2.0f, rvCornerR * 2.0f);
+
+            r->image("plane", rawX, rvTop, rvCardW, rvImgH);
+
+            float textY = rvTop + rvImgH + 30.0f;
+            r->fill(50, 50, 50);
+            r->textFont("roboto", 34);
+            r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
+            r->text(g_flightData[i].callsign, rawX, textY);
+
+            r->fill(120, 120, 120);
+            r->textFont("roboto", 30);
+            r->text(g_flightData[i].date, rawX, textY + 36.0f);
+
+            // Tap detection on card (only if not dragging)
+            if (info.tapOccurred && !homeTapConsumed && homeSelectedFlight < 0 &&
+                totalDragDist < 15.0f) {
+            }
+        }
+
+        // Detect card taps when finger lifts
+        if (!info.isTouching && !dragging && totalDragDist < 15.0f && homeSelectedFlight < 0) {
+            float tapX = info.mouseX;
+            float tapY = info.mouseY;
+            if (tapY >= rvTop && tapY <= rvTop + rvImgH + 70.0f) {
+                for (int i = 0; i < RV_COUNT && i < (int)g_flightData.size(); ++i) {
+                    float rawX = margin + i * (rvCardW + rvCardGap) - scrollOffset;
+                    if (tapX >= rawX && tapX <= rawX + rvCardW) {
+                        homeSelectedFlight = i;
+                        homeTapConsumed = true;
+                        totalDragDist = 9999.0f; // Prevent re-triggering
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Widget overlay
+        if (homeSelectedFlight >= 0 && homeSelectedFlight < (int)g_flightData.size()) {
+            const auto& flight = g_flightData[homeSelectedFlight];
+            float widgetW = screenW * 0.82f;
+            float widgetH = 380.0f;
+            float widgetX = (screenW - widgetW) / 2.0f;
+            float widgetY = screenH * 0.30f;
+
+            r->fill(76, 175, 80);
+            r->rect(widgetX, widgetY, widgetW, widgetH);
+            r->fill(56, 142, 60);
+            r->rect(widgetX, widgetY, widgetW, 80.0f);
+
+            r->fill(255, 255, 255);
+            r->textFont("roboto", 52);
+            r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
+            r->text(flight.callsign, screenW / 2.0f, widgetY + 40.0f);
+
+            float closeX = widgetX + widgetW - 55.0f;
+            float closeY = widgetY + 15.0f;
+            float closeSize = 50.0f;
+            r->fill(255, 255, 255, 200);
+            r->rect(closeX, closeY, closeSize, closeSize);
+            r->fill(56, 142, 60);
+            r->textFont("roboto", 42);
+            r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
+            r->text("X", closeX + closeSize / 2.0f, closeY + closeSize / 2.0f);
+
+            float contentX = widgetX + 30.0f;
+            float rowStart = widgetY + 110.0f;
+            float rowGap = 70.0f;
+            float halfW = (widgetW - 70.0f) / 2.0f;
+
+            r->fill(240, 248, 255);
+            r->rect(contentX, rowStart, halfW, 55.0f);
+            r->rect(contentX + halfW + 10.0f, rowStart, halfW, 55.0f);
+            r->fill(30, 30, 30);
+            r->textFont("roboto", 34);
+            r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
+            r->text("Takeoff: " + flight.takeoffTime, contentX + halfW / 2.0f, rowStart + 27.0f);
+            r->text("Landing: " + flight.landingTime, contentX + halfW * 1.5f + 10.0f, rowStart + 27.0f);
+
+            float row2Y = rowStart + rowGap;
+            r->fill(240, 248, 255);
+            r->rect(contentX, row2Y, widgetW - 60.0f, 55.0f);
+            r->fill(30, 30, 30);
+            r->textFont("roboto", 36);
+            r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::CENTER);
+            r->text("Plane Type: " + flight.planeType, contentX + 15.0f, row2Y + 27.0f);
+
+            float row3Y = row2Y + rowGap;
+            r->fill(240, 248, 255);
+            r->rect(contentX, row3Y, widgetW - 60.0f, 55.0f);
+            r->fill(30, 30, 30);
+            r->textFont("roboto", 36);
+            r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::CENTER);
+            r->text("Airspeed: " + std::to_string(flight.airspeed) + " kts", contentX + 15.0f, row3Y + 27.0f);
+
+            if (info.tapOccurred && !homeTapConsumed) {
+                if (info.mouseX >= closeX && info.mouseX <= closeX + closeSize &&
+                    info.mouseY >= closeY && info.mouseY <= closeY + closeSize) {
+                    homeSelectedFlight = -1;
+                    homeTapConsumed = true;
+                }
+                else if (info.mouseX < widgetX || info.mouseX > widgetX + widgetW ||
+                         info.mouseY < widgetY || info.mouseY > widgetY + widgetH) {
+                    homeSelectedFlight = -1;
+                    homeTapConsumed = true;
+                }
+            }
+        }
+
+        if (info.tapOccurred && homeSelectedFlight < 0) {
+            if (info.mouseX >= btnX && info.mouseX <= btnX + btnW &&
+                info.mouseY >= btnY && info.mouseY <= btnY + btnH) {
+                switcher->setCurrentScene(static_cast<uint32_t>(SceneId::AR));
+            }
+        }
 
         drawCommonUI(info, switcher);
     }
@@ -194,47 +440,39 @@ namespace AppScenes {
         int totalPages = ((totalFlights - 1) / FLIGHTS_PER_PAGE) + 1;
         g_flightCurrentPage = std::clamp(g_flightCurrentPage, 0, totalPages - 1);
 
-        // ── Layout Constants ──
         float margin = screenW * 0.06f;
         float headerY = screenH * 0.06f;
         float titleY = headerY + 70.0f;
         float subtitleY = titleY + 45.0f;
         float listStartY = subtitleY + 50.0f;
-        float listEndY = screenH - 200.0f;  // leave room for nav bar
+        float listEndY = screenH - 200.0f;
         float rowHeight = (listEndY - listStartY) / FLIGHTS_PER_PAGE;
 
-        // ── Background ──
         r->rectMode(ge::RectMode::CORNER);
         r->fill(245, 248, 250);
         r->rect(0, 0, screenW, screenH);
 
-        // ── Header ──
-        // "Back" button
         r->fill(76, 175, 80);
         r->textFont("roboto", 42);
         r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
         r->text("Back", margin, titleY);
 
-        // "Flight History" title
         r->fill(30, 30, 30);
         r->textFont("roboto", 64);
         r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::BASELINE);
         r->text("Flight History", screenW / 2.0f, titleY);
 
-        // "Next" button
         r->fill(76, 175, 80);
         r->textFont("roboto", 42);
         r->textAlign(ge::TextAlignH::RIGHT, ge::TextAlignV::BASELINE);
         r->text("Next", screenW - margin, titleY);
 
-        // Page indicator
         r->fill(120, 120, 120);
         r->textFont("roboto", 36);
         r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::BASELINE);
         r->text("Page " + std::to_string(g_flightCurrentPage + 1) + " / " + std::to_string(totalPages),
                 screenW / 2.0f, subtitleY);
 
-        // ── Handle Back/Next taps ──
         bool widgetShown = (g_flightSelectedIndex >= 0);
         if (info.tapOccurred && !widgetShown) {
             float btnTop = headerY;
@@ -251,7 +489,6 @@ namespace AppScenes {
             }
         }
 
-        // ── Flight Rows ──
         int pageStart = g_flightCurrentPage * FLIGHTS_PER_PAGE;
         int pageEnd = std::min(pageStart + FLIGHTS_PER_PAGE, totalFlights);
 
@@ -262,29 +499,24 @@ namespace AppScenes {
             float rightEdge = screenW - margin;
             float dotRadius = 16.0f;
 
-            // Separator lines (top and bottom of each row)
             r->fill(200, 200, 200);
             r->rect(margin, rowY, screenW - 2.0f * margin, 2.0f);
             r->rect(margin, rowY + rowHeight - 2.0f, screenW - 2.0f * margin, 2.0f);
 
-            // Callsign
             r->fill(50, 50, 50);
             r->textFont("roboto", 38);
             r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
             r->text(g_flightData[i].callsign, margin + 10.0f, textY);
 
-            // Date
             r->fill(100, 100, 100);
             r->textFont("roboto", 34);
             r->textAlign(ge::TextAlignH::RIGHT, ge::TextAlignV::BASELINE);
             r->text(g_flightData[i].date, rightEdge - dotRadius * 3.0f, textY);
 
-            // Green status dot
             r->fill(76, 175, 80);
             r->ellipseMode(ge::EllipseMode::CENTER);
             r->ellipse(rightEdge - dotRadius, rowY + rowHeight / 2.0f, dotRadius * 2.0f, dotRadius * 2.0f);
 
-            // Row tap detection
             if (info.tapOccurred && !g_flightTapConsumed && !widgetShown) {
                 if (info.mouseX >= margin && info.mouseX <= rightEdge &&
                     info.mouseY >= rowY && info.mouseY <= rowY + rowHeight) {
@@ -295,35 +527,28 @@ namespace AppScenes {
         }
 
 
-        // ── Detail Widget Overlay ──
         if (g_flightSelectedIndex >= 0 && g_flightSelectedIndex < totalFlights) {
             const auto& flight = g_flightData[g_flightSelectedIndex];
 
-            // Semi-transparent backdrop
             r->fill(0, 0, 0, 80);
             r->rect(0, 0, screenW, screenH);
 
-            // Widget dimensions
             float widgetW = screenW * 0.82f;
             float widgetH = 380.0f;
             float widgetX = (screenW - widgetW) / 2.0f;
             float widgetY = screenH * 0.30f;
 
-            // Green background
             r->fill(76, 175, 80);
             r->rect(widgetX, widgetY, widgetW, widgetH);
 
-            // Darker green header bar
             r->fill(56, 142, 60);
             r->rect(widgetX, widgetY, widgetW, 80.0f);
 
-            // Callsign title
             r->fill(255, 255, 255);
             r->textFont("roboto", 52);
             r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
             r->text(flight.callsign, screenW / 2.0f, widgetY + 40.0f);
 
-            // Close "X" button
             float closeX = widgetX + widgetW - 55.0f;
             float closeY = widgetY + 15.0f;
             float closeSize = 50.0f;
@@ -334,13 +559,11 @@ namespace AppScenes {
             r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
             r->text("X", closeX + closeSize / 2.0f, closeY + closeSize / 2.0f);
 
-            // Content rows
             float contentX = widgetX + 30.0f;
             float rowStart = widgetY + 110.0f;
             float rowGap = 70.0f;
             float halfW = (widgetW - 70.0f) / 2.0f;
 
-            // Row 1: Takeoff / Landing
             r->fill(240, 248, 255);
             r->rect(contentX, rowStart, halfW, 55.0f);
             r->rect(contentX + halfW + 10.0f, rowStart, halfW, 55.0f);
@@ -351,7 +574,6 @@ namespace AppScenes {
             r->text("Takeoff: " + flight.takeoffTime, contentX + halfW / 2.0f, rowStart + 27.0f);
             r->text("Landing: " + flight.landingTime, contentX + halfW * 1.5f + 10.0f, rowStart + 27.0f);
 
-            // Row 2: Plane Type
             float row2Y = rowStart + rowGap;
             r->fill(240, 248, 255);
             r->rect(contentX, row2Y, widgetW - 60.0f, 55.0f);
@@ -360,7 +582,6 @@ namespace AppScenes {
             r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::CENTER);
             r->text("Plane Type: " + flight.planeType, contentX + 15.0f, row2Y + 27.0f);
 
-            // Row 3: Airspeed
             float row3Y = row2Y + rowGap;
             r->fill(240, 248, 255);
             r->rect(contentX, row3Y, widgetW - 60.0f, 55.0f);
@@ -369,15 +590,12 @@ namespace AppScenes {
             r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::CENTER);
             r->text("Airspeed: " + std::to_string(flight.airspeed) + " kts", contentX + 15.0f, row3Y + 27.0f);
 
-            // Handle taps on widget
             if (info.tapOccurred && !g_flightTapConsumed) {
-                // Close button tap
                 if (info.mouseX >= closeX && info.mouseX <= closeX + closeSize &&
                     info.mouseY >= closeY && info.mouseY <= closeY + closeSize) {
                     g_flightSelectedIndex = -1;
                     g_flightTapConsumed = true;
                 }
-                // Tap outside widget dismisses it
                 else if (info.mouseX < widgetX || info.mouseX > widgetX + widgetW ||
                          info.mouseY < widgetY || info.mouseY > widgetY + widgetH) {
                     g_flightSelectedIndex = -1;
@@ -386,7 +604,6 @@ namespace AppScenes {
             }
         }
 
-        // ── Common Navbar ──
         drawCommonUI(info, switcher);
     }
 

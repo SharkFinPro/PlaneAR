@@ -12,6 +12,7 @@ struct SceneInfo {
   float mouseX;
   float mouseY;
   bool tapOccurred;
+  bool isTouching;
 };
 
 class SceneSwitcher
