@@ -205,7 +205,7 @@ namespace ge {
   {
     const std::array<VkDescriptorPoolSize, 2> poolSizes {{
       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30},
-      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 10}
+      {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_logicalDevice->getMaxFramesInFlight() * 50}
     }};
 
     const VkDescriptorPoolCreateInfo poolCreateInfo {
