@@ -17,20 +17,15 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.ar.core.Anchor
 import com.google.ar.core.Config
 import com.google.ar.core.TrackingState
-import edu.osu.t22.planear.adsb.AdsbModule
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import edu.osu.t22.planear.geo.GeoUtils
-import edu.osu.t22.planear.geo.GeoPoint
 import android.view.Surface
 import com.google.ar.core.Frame
 import com.google.ar.core.exceptions.CameraNotAvailableException
+import edu.osu.t22.planear.adsb.AdsbManager
 import edu.osu.t22.planear.locationManager.LocationManager
 import edu.osu.t22.planear.scenes.SceneSwitcher
-
 
 class MainActivity : GameActivity() {
     companion object {
@@ -53,98 +48,26 @@ class MainActivity : GameActivity() {
 
     private lateinit var locationManager: LocationManager
 
+    private lateinit var adsbManager: AdsbManager
+
     @Suppress("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         locationManager = LocationManager(this, lifecycleScope)
 
+        adsbManager = AdsbManager(locationManager)
+
         // Initialize the scene manager
         sceneSwitcher = SceneSwitcher.initialize()
-
-        // get a new instance of the Retrofit API provider
-        val api = AdsbModule.provideApi()
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (isActive) {
                     try {
-
-                        val loc = locationManager.awaitLastLocation()
-
-                        if (loc == null) {
-                            Log.w("ADSB", "No location available")
-                        } else {
-                            val lat = loc.latitude
-                            val lon = loc.longitude
-
-                            // get all nearby aircraft within 50nm
-                            val nearby = async(Dispatchers.IO) {
-                                api.getNearbyAircraft(lat, lon, 50)
-                            }
-
-                            // get closest aircraft (could also just be parsed from the nearby list
-                            val closest = async(Dispatchers.IO) {
-                                api.getClosestAircraft(lat, lon, 250)
-                            }
-
-                            // log results
-                            val nearbyData = nearby.await()
-                            Log.d("ADSB_TEST", "Got ${nearbyData.total} aircraft")
-                            val closestData = closest.await()
-                            Log.d(
-                                "ADSB_TEST",
-                                "Closest aircraft: ${closestData.ac.firstOrNull() ?: "No aircraft found"}"
-                            )
-                            Log.d(
-                                "ADSB_TEST",
-                                "Timing data: (now: ${nearbyData.now}, cTime: ${nearbyData.cTime}, pTime: ${nearbyData.pTime})"
-                            )
-
-
-                            //--------------------TESTING GEO CALCULATIONS--------------------
-                            val closestAircraft = closestData.ac.firstOrNull()
-                            if (closestAircraft != null) {
-
-                                // will be replaced with arcore geolocation
-                                val userAltM = 0.0
-                                val userHeadingDeg = 90.0 //facing east
-
-                                val acLat = closestAircraft.lat
-                                val acLon = closestAircraft.lon
-                                val acAltFeet = closestAircraft.alt_baro.toDoubleOrNull() ?: 0.0
-                                val acAltM = acAltFeet * 0.3048
-
-                                val userPoint = GeoPoint(lat, lon, userAltM)
-                                val acPoint = GeoPoint(lat, lon, acAltM)
-
-                                val dir = GeoUtils.relativeDirection(
-                                    user = userPoint,
-                                    userHeadingDeg = userHeadingDeg,
-                                    aircraft = acPoint
-                                )
-
-                                Log.d(
-                                    "ADSB_DIR",
-                                    "distance=${"%.0f".format(dir.distanceMeters)} m, " +
-                                            "bearing=${"%.1f".format(dir.bearingToAircraft)}°" +
-                                            "relative=${"%.1f".format(dir.relativeBearingDeg)}°, " +
-                                            "elevation=${"%.1f".format(dir.elevationDeg)}°"
-                                )
-
-                                val enh = GeoUtils.enhVector(userPoint, acPoint)
-                                Log.d(
-                                    "ADSB_ENH",
-                                    "east=${"%.1f".format(enh.east)}, " +
-                                            "north=${"%.1f".format(enh.north)} m, " +
-                                            "height=${"%.1f".format(enh.height)} m"
-                                )
-                            } else {
-                                Log.d("ADSB_DIR", "No closest aircraft")
-                            }
-                        }
+                        adsbManager.poll()
                     } catch (e: Exception) {
-                        Log.e("ADSB_TEST", "API call failed", e)
+                        Log.e("ADSB_EXECUTION", "API call failed", e)
                     }
 
                     // repeat every 5 seconds
@@ -165,8 +88,6 @@ class MainActivity : GameActivity() {
             locationManager.start()
         }
     }
-    @Suppress("MissingPermission")
-
 
     @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     override fun onResume() {
