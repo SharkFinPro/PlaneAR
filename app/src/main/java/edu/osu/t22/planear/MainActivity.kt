@@ -188,11 +188,11 @@ class MainActivity : GameActivity() {
     @Suppress("MissingPermission")
 
     private fun registerScenes() {
-        // Register scenes with unique IDs
-        sceneSwitcher.registerScene(3, Scene3())
-
-        // Set the initial scene
-        sceneSwitcher.setCurrentScene(3)
+//        // Register scenes with unique IDs
+//        sceneSwitcher.registerScene(3, Scene3())
+//
+//        // Set the initial scene
+//        sceneSwitcher.setCurrentScene(3)
     }
 
 
