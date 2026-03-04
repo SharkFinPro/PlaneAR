@@ -138,7 +138,7 @@ class MainActivity : GameActivity() {
         }
     }
 
-    // premission callbacks
+    // permission callbacks
     @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -228,7 +228,6 @@ class MainActivity : GameActivity() {
             return false
         }
     }
-
 
     private fun hideSystemUi() {
         val decorView = window.decorView
