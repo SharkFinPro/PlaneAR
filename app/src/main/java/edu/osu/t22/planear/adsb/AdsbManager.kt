@@ -3,16 +3,16 @@ package edu.osu.t22.planear.adsb
 import android.util.Log
 import edu.osu.t22.planear.geo.GeoPoint
 import edu.osu.t22.planear.geo.GeoUtils
-import edu.osu.t22.planear.location.LocationManager
+import edu.osu.t22.planear.location.AppLocationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
-class AdsbManager(private val locationManager: LocationManager) {
+class AdsbManager(private val appLocationManager: AppLocationManager) {
     private val api = AdsbModule.provideApi()
 
     suspend fun poll() {
-        val loc = locationManager.lastKnownLocation
+        val loc = appLocationManager.lastKnownLocation
         if (loc == null) {
             Log.w("AdsbManager", "No location available")
             return

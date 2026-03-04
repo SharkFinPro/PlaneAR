@@ -15,7 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-class LocationManager(private val context: Context, private val scope: CoroutineScope) {
+class AppLocationManager(private val context: Context, private val scope: CoroutineScope) {
     @Volatile var lastKnownLocation: Location? = null
         private set
 

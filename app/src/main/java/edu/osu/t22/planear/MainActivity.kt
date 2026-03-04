@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import android.view.Surface
 import edu.osu.t22.planear.adsb.AdsbManager
 import edu.osu.t22.planear.ar.ArManager
-import edu.osu.t22.planear.location.LocationManager
+import edu.osu.t22.planear.location.AppLocationManager
 import edu.osu.t22.planear.scenes.SceneSwitcher
 
 class MainActivity : GameActivity() {
@@ -37,7 +37,7 @@ class MainActivity : GameActivity() {
 
     private lateinit var sceneSwitcher: SceneSwitcher
 
-    private lateinit var locationManager: LocationManager
+    private lateinit var appLocationManager: AppLocationManager
 
     private lateinit var adsbManager: AdsbManager
 
@@ -47,9 +47,9 @@ class MainActivity : GameActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        locationManager = LocationManager(this, lifecycleScope)
+        appLocationManager = AppLocationManager(this, lifecycleScope)
 
-        adsbManager = AdsbManager(locationManager)
+        adsbManager = AdsbManager(appLocationManager)
 
         arManager = ArManager(this)
 
@@ -80,7 +80,7 @@ class MainActivity : GameActivity() {
                 LOCATION_PERMISSION_CODE
             )
         } else {
-            locationManager.start()
+            appLocationManager.start()
         }
     }
 
@@ -111,7 +111,7 @@ class MainActivity : GameActivity() {
         }
 
         // Location Manager
-        locationManager.start()
+        appLocationManager.start()
 
         // Hide System UI
         hideSystemUi()
@@ -119,7 +119,7 @@ class MainActivity : GameActivity() {
 
     override fun onPause() {
         super.onPause()
-        locationManager.stop()
+        appLocationManager.stop()
         arManager.pause()
     }
 
@@ -143,7 +143,7 @@ class MainActivity : GameActivity() {
             grantResults.isNotEmpty() &&
             grantResults[0] == PackageManager.PERMISSION_GRANTED
         ) {
-            locationManager.start()
+            appLocationManager.start()
         }
     }
 
