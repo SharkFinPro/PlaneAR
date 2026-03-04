@@ -24,10 +24,9 @@ static int activeNavIndex = 0;
 static std::vector<std::unique_ptr<ge::ui::Button>> navButtons;
 
 // Mapping buttons to Scene IDs using the new Enum Class
-static constexpr std::array<SceneId, 5> sceneIdMap = {
+static constexpr std::array<SceneId, 4> sceneIdMap = {
     SceneId::Home,
     SceneId::AR,
-    SceneId::Kotlin,
     SceneId::FlightHistory,
     SceneId::Settings
 };
@@ -142,17 +141,17 @@ namespace AppScenes {
         am->preloadFont("emoji", 150);
 
         if (navButtons.empty()) {
-            float screenWidth = (float)ANativeWindow_getWidth(pApp->window);
-            float screenHeight = (float)ANativeWindow_getHeight(pApp->window);
+            float screenWidth = static_cast<float>(ANativeWindow_getWidth(pApp->window));
+            float screenHeight = static_cast<float>(ANativeWindow_getHeight(pApp->window));
             float spacing = 80.0f;
             float navY = screenHeight - 150.0f;
             float dotSize = 80.0f;
             float totalNavWidth = (5 * dotSize) + (4 * spacing);
             float navStartX = (screenWidth - totalNavWidth) / 2.0f;
 
-            const char* labels[] = {"Home", "AR", "Kot", "Hist", "Set"};
-            for (int i = 0; i < 5; ++i) {
-                float dotX = navStartX + (i * (dotSize + spacing));
+            std::array<std::string, 4> labels { "Home", "AR", "Hist", "Set" };
+            for (int i = 0; i < labels.size(); ++i) {
+                float dotX = navStartX + (static_cast<float>(i) * (dotSize + spacing));
                 navButtons.push_back(std::make_unique<ge::ui::Button>(labels[i], dotX, navY, dotSize, dotSize));
             }
         }
