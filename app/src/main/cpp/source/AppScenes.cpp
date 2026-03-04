@@ -21,7 +21,6 @@ extern ArState gArState;
 extern bool gArReady;
 
 static int activeNavIndex = 0;
-static std::vector<std::unique_ptr<ge::ui::Button>> navButtons;
 
 // Mapping buttons to Scene IDs using the new Enum Class
 static constexpr std::array<SceneId, 4> sceneIdMap = {
@@ -30,6 +29,9 @@ static constexpr std::array<SceneId, 4> sceneIdMap = {
     SceneId::FlightHistory,
     SceneId::Settings
 };
+
+constexpr std::array<std::string, 4> navLabels { "Home", "AR View", "History", "Settings" };
+constexpr std::array<std::string, 4> navEmojiLabels { "🏠", "📷", "🕒", "⚙️" };
 
 //Mock Flight Data
 struct FlightEntry {
@@ -81,6 +83,62 @@ static bool g_flightTapConsumed = false;
 static constexpr int FLIGHTS_PER_PAGE = 14;
 
 // --- Private Helper Functions ---
+void drawNavButtons(const SceneInfo& info, SceneSwitcher* switcher) {
+  const auto r = info.engine->getRenderingManager()->getRenderer2D();
+
+  auto screenWidth = static_cast<float>(ANativeWindow_getWidth(info.pApp->window));
+  auto screenHeight = static_cast<float>(ANativeWindow_getHeight(info.pApp->window));
+
+  auto buttonWidth = screenWidth / 4.0f;
+  float buttonHeight = 250.0f;
+
+  float buttonTop = screenHeight - buttonHeight;
+
+  // Navigation Background
+  r->fill(255);
+  r->rect(0, buttonTop, screenWidth, buttonHeight);
+
+  for (int i = 0; i < navLabels.size(); ++i) {
+    float offsetX = static_cast<float>(i) * buttonWidth;
+
+    // Active Button Background
+    if (i == activeNavIndex) {
+      r->fill(76, 217, 100);
+      r->rect(offsetX, buttonTop, buttonWidth, buttonHeight);
+    }
+
+    // Button Text
+    if (i == activeNavIndex) {
+      r->fill(255);
+    } else {
+      r->fill(100);
+    }
+
+    float yOffset = 40.0f;
+
+    r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
+    r->textFont("roboto", 42);
+    r->text(navLabels[i], offsetX + buttonWidth / 2.0f, screenHeight - buttonHeight / 2.0f + yOffset);
+
+    r->textFont("emoji", 70);
+    r->text(navEmojiLabels[i], offsetX + buttonWidth / 2.0f, screenHeight - buttonHeight / 2.0f - yOffset);
+
+    // Check for and handle button press
+    if (info.mouseX > offsetX &&
+        info.mouseX < offsetX + buttonWidth &&
+        info.mouseY > buttonTop &&
+        info.mouseY < buttonTop + buttonHeight)
+    {
+      const auto targetId = static_cast<uint32_t>(sceneIdMap[i]);
+      switcher->setCurrentScene(targetId);
+      LOGI("Button %d clicked! Switching to scene %u", i, targetId);
+    }
+  }
+
+  // Small bar above buttons
+  r->fill(100);
+  r->rect(0, screenHeight - buttonHeight, screenWidth, 1);
+}
 
 void drawCommonUI(const SceneInfo& info, SceneSwitcher* switcher) {
   const auto r = info.engine->getRenderingManager()->getRenderer2D();
@@ -104,15 +162,7 @@ void drawCommonUI(const SceneInfo& info, SceneSwitcher* switcher) {
   r->ellipse(1000, 20, 40, 40);
 
   // Update and draw buttons
-  for (int i = 0; i < navButtons.size(); ++i) {
-    if (navButtons[i]->update(info.mouseX, info.mouseY, info.tapOccurred)) {
-      SceneId targetId = sceneIdMap[i];
-      switcher->setCurrentScene(static_cast<uint32_t>(targetId));
-      LOGI("Button %d clicked! Switching to scene %u", i, static_cast<uint32_t>(targetId));
-    }
-    navButtons[i]->setActive(i == activeNavIndex);
-    navButtons[i]->draw(r);
-  }
+  drawNavButtons(info, switcher);
 
   // Render cursor
   float cursorSize = 50.0f;
@@ -138,23 +188,8 @@ namespace AppScenes {
         am->preloadFont("roboto", 52);
         am->preloadFont("roboto", 64);
         am->preloadFont("roboto", 100);
+        am->preloadFont("emoji", 70);
         am->preloadFont("emoji", 150);
-
-        if (navButtons.empty()) {
-            float screenWidth = static_cast<float>(ANativeWindow_getWidth(pApp->window));
-            float screenHeight = static_cast<float>(ANativeWindow_getHeight(pApp->window));
-            float spacing = 80.0f;
-            float navY = screenHeight - 150.0f;
-            float dotSize = 80.0f;
-            float totalNavWidth = (5 * dotSize) + (4 * spacing);
-            float navStartX = (screenWidth - totalNavWidth) / 2.0f;
-
-            std::array<std::string, 4> labels { "Home", "AR", "Hist", "Set" };
-            for (int i = 0; i < labels.size(); ++i) {
-                float dotX = navStartX + (static_cast<float>(i) * (dotSize + spacing));
-                navButtons.push_back(std::make_unique<ge::ui::Button>(labels[i], dotX, navY, dotSize, dotSize));
-            }
-        }
     }
 
     void homeScene(const SceneInfo& info, SceneSwitcher* switcher) {
