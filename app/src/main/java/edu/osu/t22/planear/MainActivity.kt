@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import android.view.Surface
 import edu.osu.t22.planear.adsb.AdsbManager
 import edu.osu.t22.planear.ar.ArManager
-import edu.osu.t22.planear.locationManager.LocationManager
+import edu.osu.t22.planear.location.LocationManager
 import edu.osu.t22.planear.scenes.SceneSwitcher
 
 class MainActivity : GameActivity() {

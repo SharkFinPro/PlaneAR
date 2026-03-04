@@ -3,7 +3,7 @@ package edu.osu.t22.planear.adsb
 import android.util.Log
 import edu.osu.t22.planear.geo.GeoPoint
 import edu.osu.t22.planear.geo.GeoUtils
-import edu.osu.t22.planear.locationManager.LocationManager
+import edu.osu.t22.planear.location.LocationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope

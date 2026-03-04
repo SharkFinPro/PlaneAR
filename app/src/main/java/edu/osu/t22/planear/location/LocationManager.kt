@@ -1,4 +1,4 @@
-package edu.osu.t22.planear.locationManager
+package edu.osu.t22.planear.location
 
 import android.Manifest
 import android.content.Context
