@@ -62,9 +62,6 @@ class MainActivity : GameActivity() {
         // Initialize the scene manager
         sceneSwitcher = SceneSwitcher.initialize()
 
-        // Register Kotlin scenes
-        registerScenes()
-
         // get a new instance of the Retrofit API provider
         val api = AdsbModule.provideApi()
 
@@ -169,14 +166,6 @@ class MainActivity : GameActivity() {
         }
     }
     @Suppress("MissingPermission")
-
-    private fun registerScenes() {
-//        // Register scenes with unique IDs
-//        sceneSwitcher.registerScene(3, Scene3())
-//
-//        // Set the initial scene
-//        sceneSwitcher.setCurrentScene(3)
-    }
 
 
     @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
