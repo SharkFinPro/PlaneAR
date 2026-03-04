@@ -8,7 +8,6 @@ enum class SceneId : uint32_t {
     AR = 2,
     Kotlin = 3,
     FlightHistory = 4,
-    Map = 5,
     Settings = 6
 };
 

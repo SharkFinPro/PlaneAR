@@ -24,12 +24,11 @@ static int activeNavIndex = 0;
 static std::vector<std::unique_ptr<ge::ui::Button>> navButtons;
 
 // Mapping buttons to Scene IDs using the new Enum Class
-static constexpr std::array<SceneId, 6> sceneIdMap = {
+static constexpr std::array<SceneId, 5> sceneIdMap = {
     SceneId::Home,
     SceneId::AR,
     SceneId::Kotlin,
     SceneId::FlightHistory,
-    SceneId::Map,
     SceneId::Settings
 };
 
@@ -148,11 +147,11 @@ namespace AppScenes {
             float spacing = 80.0f;
             float navY = screenHeight - 150.0f;
             float dotSize = 80.0f;
-            float totalNavWidth = (6 * dotSize) + (5 * spacing);
+            float totalNavWidth = (5 * dotSize) + (4 * spacing);
             float navStartX = (screenWidth - totalNavWidth) / 2.0f;
 
-            const char* labels[] = {"Home", "AR", "Kot", "Hist", "Map", "Set"};
-            for (int i = 0; i < 6; ++i) {
+            const char* labels[] = {"Home", "AR", "Kot", "Hist", "Set"};
+            for (int i = 0; i < 5; ++i) {
                 float dotX = navStartX + (i * (dotSize + spacing));
                 navButtons.push_back(std::make_unique<ge::ui::Button>(labels[i], dotX, navY, dotSize, dotSize));
             }
@@ -607,12 +606,6 @@ namespace AppScenes {
         drawCommonUI(info, switcher);
     }
 
-    void mapScene(const SceneInfo& info, SceneSwitcher* switcher) {
-        const auto r = info.engine->getRenderingManager()->getRenderer2D();
-        static ge::ui::Label title("Map Scene", 100, 300, "roboto", 100);
-        title.draw(r);
-        drawCommonUI(info, switcher);
-    }
 
     void settingsScene(const SceneInfo& info, SceneSwitcher* switcher) {
         const auto r = info.engine->getRenderingManager()->getRenderer2D();

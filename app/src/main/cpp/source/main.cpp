@@ -48,7 +48,6 @@ void android_main(struct android_app* pApp)
           switcher.loadScene(static_cast<uint32_t>(SceneId::Home),     AppScenes::homeScene);
           switcher.loadScene(static_cast<uint32_t>(SceneId::AR),       AppScenes::arScene);
           switcher.loadScene(static_cast<uint32_t>(SceneId::FlightHistory), AppScenes::flightHistoryScene);
-          switcher.loadScene(static_cast<uint32_t>(SceneId::Map),      AppScenes::mapScene);
           switcher.loadScene(static_cast<uint32_t>(SceneId::Settings), AppScenes::settingsScene);
           
           scenesLoaded = true;
