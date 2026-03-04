@@ -25,7 +25,7 @@ void main()
 {
   vec2 halfSize = vec2(pc.width, pc.height) * 0.5;
   float dist = roundedRectSDF(fragLocalPos - halfSize, halfSize, pc.cornerRadius);
-  
+
   float alpha = 1.0 - smoothstep(-1.0, 1.0, dist);
 
   outColor = vec4(pc.r, pc.g, pc.b, pc.a * alpha);
