@@ -342,6 +342,10 @@ namespace AppScenes {
         // Widget overlay
         if (homeSelectedFlight >= 0 && homeSelectedFlight < (int)g_flightData.size()) {
             const auto& flight = g_flightData[homeSelectedFlight];
+
+            r->fill(0, 0, 0, 80);
+            r->rect(0, 0, screenW, screenH);
+
             float widgetW = screenW * 0.82f;
             float widgetH = 380.0f;
             float widgetX = (screenW - widgetW) / 2.0f;
