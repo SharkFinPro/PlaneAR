@@ -42,7 +42,6 @@ class MainActivity : GameActivity() {
         private const val CAMERA_PERMISSION_CODE = 0
         private const val LOCATION_PERMISSION_CODE = 1
 
-
         @JvmStatic
         external fun nativeSetArReady(ready: Boolean)
     }
