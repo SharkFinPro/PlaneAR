@@ -7,8 +7,7 @@ enum class SceneId : uint32_t {
     Home = 1,
     AR = 2,
     Kotlin = 3,
-    Files = 4,
-    Map = 5,
+    FlightHistory = 4,
     Settings = 6
 };
 
