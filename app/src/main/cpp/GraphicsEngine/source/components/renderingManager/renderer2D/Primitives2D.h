@@ -11,6 +11,7 @@ namespace ge {
     glm::vec4 color;
     glm::mat4 transform;
     float z;
+    float radius;
 
     struct PushConstant {
       glm::mat4 transform;
@@ -25,6 +26,7 @@ namespace ge {
       float g;
       float b;
       float a;
+      float radius;
     };
 
     [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent) const
@@ -41,7 +43,8 @@ namespace ge {
         .r = color.r,
         .g = color.g,
         .b = color.b,
-        .a = color.a
+        .a = color.a,
+        .radius = radius
       };
     }
   };
