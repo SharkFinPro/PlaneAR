@@ -115,10 +115,10 @@ void doRendering(const std::unique_ptr<ge::GraphicsEngine>& engine, float mouseX
   r->popMatrix();
 
   r->fill(0, 0, 255);
-  r->rect(x, y, w, h);
+  r->rect(x, y, w, h, 25.0f);
 
   r->fill(0, 255, 0);
-  r->rect(x, y * 3.0f, w * 3.0f, h);
+  r->rect(x, y * 3.0f, w * 3.0f, h, 50.0f);
 
   r->rectMode(ge::RectMode::CENTER);
   float cursorSize = 50.0f;

@@ -178,7 +178,8 @@ namespace ge {
   void Renderer2D::rect(float x,
                         float y,
                         float width,
-                        float height)
+                        float height,
+                        float radius)
   {
     const auto bounds = resolveRectBounds(x, y, width, height);
 
@@ -187,7 +188,8 @@ namespace ge {
         .bounds = bounds,
         .color = m_currentFill,
         .transform = m_currentTransform,
-        .z = m_currentZ
+        .z = m_currentZ,
+        .radius = radius
       },
       m_currentZ
     });

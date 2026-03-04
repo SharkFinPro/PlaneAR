@@ -11,11 +11,15 @@ layout(push_constant) uniform RectPC {
   float height;
 } pc;
 
+layout(location = 0) out vec2 fragLocalPos;
+
 void main()
 {
   vec2 corner = vec2(gl_VertexIndex & 1, gl_VertexIndex >> 1);
 
-  vec2 pos = vec2(pc.x, pc.y) + corner * vec2(pc.width, pc.height);
+  fragLocalPos = corner * vec2(pc.width, pc.height);
+
+  vec2 pos = vec2(pc.x, pc.y) + fragLocalPos;
 
   pos = (pc.transformation * vec4(pos, 0.0, 1.0)).xy;
 

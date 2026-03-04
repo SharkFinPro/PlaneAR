@@ -99,7 +99,8 @@ namespace ge {
     void rect(float x,
               float y,
               float width,
-              float height);
+              float height,
+              float radius = 0.0f);
 
     void triangle(float x1,
                   float y1,
