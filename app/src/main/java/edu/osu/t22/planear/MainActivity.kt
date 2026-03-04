@@ -2,7 +2,6 @@ package edu.osu.t22.planear
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
 import android.view.View
 import android.util.Log
@@ -18,21 +17,18 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.ar.core.Anchor
 import com.google.ar.core.Config
 import com.google.ar.core.TrackingState
-import com.google.android.gms.location.*
 import edu.osu.t22.planear.adsb.AdsbModule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import edu.osu.t22.planear.geo.GeoUtils
 import edu.osu.t22.planear.geo.GeoPoint
 import android.view.Surface
 import com.google.ar.core.Frame
 import com.google.ar.core.exceptions.CameraNotAvailableException
 import edu.osu.t22.planear.locationManager.LocationManager
-import edu.osu.t22.planear.scenes.Scene3
 import edu.osu.t22.planear.scenes.SceneSwitcher
 
 
