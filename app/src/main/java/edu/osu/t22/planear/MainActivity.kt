@@ -31,6 +31,7 @@ import edu.osu.t22.planear.geo.GeoPoint
 import android.view.Surface
 import com.google.ar.core.Frame
 import com.google.ar.core.exceptions.CameraNotAvailableException
+import edu.osu.t22.planear.locationManager.LocationManager
 import edu.osu.t22.planear.scenes.Scene3
 import edu.osu.t22.planear.scenes.SceneSwitcher
 
@@ -55,14 +56,13 @@ class MainActivity : GameActivity() {
     private var arSession: Session? = null
     private var arSessionManager: ARSessionManager? = null
 
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var locationRequest: LocationRequest
-    private var locationCallback: LocationCallback? = null
-    @Volatile private var lastKnownLocation: Location? = null
+    private lateinit var locationManager: LocationManager
 
     @Suppress("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        locationManager = LocationManager(this, lifecycleScope)
 
         // Initialize the scene manager
         sceneSwitcher = SceneSwitcher.initialize()
@@ -73,28 +73,16 @@ class MainActivity : GameActivity() {
         // get a new instance of the Retrofit API provider
         val api = AdsbModule.provideApi()
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-        locationRequest = LocationRequest.Builder(
-            Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-            10000L
-        ).apply {
-            setMinUpdateIntervalMillis(2000L)
-            setWaitForAccurateLocation(true)
-        }.build()
-
-
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (isActive) {
                     try {
 
-                        val loc = lastKnownLocation ?: getLastLocationOrNull()
+                        val loc = locationManager.awaitLastLocation()
 
                         if (loc == null) {
                             Log.w("ADSB", "No location available")
                         } else {
-
                             val lat = loc.latitude
                             val lon = loc.longitude
 
@@ -182,7 +170,7 @@ class MainActivity : GameActivity() {
                 LOCATION_PERMISSION_CODE
             )
         } else {
-            startLocationUpdates()
+            locationManager.start()
         }
     }
     @Suppress("MissingPermission")
@@ -196,6 +184,7 @@ class MainActivity : GameActivity() {
     }
 
 
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     override fun onResume() {
         super.onResume()
 
@@ -230,13 +219,13 @@ class MainActivity : GameActivity() {
             )
         }
 
-        startLocationUpdates()
+        locationManager.start()
         hideSystemUi()
     }
 
     override fun onPause() {
         super.onPause()
-        stopLocationUpdates()
+        locationManager.stop()
         try {
             arSession?.pause()
         } catch (e: Exception) {
@@ -245,6 +234,7 @@ class MainActivity : GameActivity() {
     }
 
     // premission callbacks
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -263,7 +253,7 @@ class MainActivity : GameActivity() {
             grantResults.isNotEmpty() &&
             grantResults[0] == PackageManager.PERMISSION_GRANTED
         ) {
-            startLocationUpdates()
+            locationManager.start()
         }
     }
 
@@ -291,49 +281,6 @@ class MainActivity : GameActivity() {
             arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION),
             LOCATION_PERMISSION_CODE
         )
-    }
-
-    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
-    private suspend fun getLastLocationOrNull(): Location? {
-        return try {
-            fusedLocationClient.lastLocation.await()
-        } catch (e: Exception) {
-            Log.w("PlaneAR", "Failed to get last location", e)
-            null
-        }
-    }
-
-    private fun startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
-            PackageManager.PERMISSION_GRANTED) {
-            Log.w("LOCATION", "Location permission not granted")
-            return
-        }
-
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(result: LocationResult) {
-                val loc = result.lastLocation
-                if (loc != null) {
-                    lastKnownLocation = loc
-                    Log.d("LOCATION", "Location update: ${loc.latitude}, ${loc.longitude}")
-                }
-            }
-        }
-
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback as LocationCallback, mainLooper)
-
-        lifecycleScope.launch {
-            val last = getLastLocationOrNull()
-            if (last != null) {
-                lastKnownLocation = last
-                Log.d("LOCATION", "Populated initial lastKnownLocation: ${last.latitude}, ${last.longitude}")
-            }
-        }
-    }
-
-    private fun stopLocationUpdates() {
-        locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) }
-        locationCallback = null
     }
 
     //ARCORE 1.51 install / create session flow
