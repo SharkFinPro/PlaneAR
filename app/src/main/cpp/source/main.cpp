@@ -1,12 +1,14 @@
 #include "ArBridge.h"
 #include "SceneSwitcher.h"
-#include "AppScenes.h"
 #include "InputUtils.h"
 #include "JNISceneBridge.h"
 #include "SceneIds.h"
 #include <source/GraphicsEngine.h>
+#include <source/components/assets/AssetManager.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 #include <memory>
+
+void preloadAssets(const std::unique_ptr<ge::GraphicsEngine>& engine);
 
 void android_main(struct android_app* pApp)
 {
@@ -16,7 +18,6 @@ void android_main(struct android_app* pApp)
   // Register the switcher with the JNI bridge
   JNISceneBridge::setSceneSwitcher(&switcher);
 
-  bool scenesLoaded = false;
   int events;
   struct android_poll_source* source;
 
@@ -41,18 +42,7 @@ void android_main(struct android_app* pApp)
       {
         engine = std::make_unique<ge::GraphicsEngine>(pApp);
 
-        // Assets and UI setup
-        AppScenes::initialize(engine, pApp);
-
-        if (!scenesLoaded) {
-          switcher.loadScene(static_cast<uint32_t>(SceneId::Home),     AppScenes::homeScene);
-          switcher.loadScene(static_cast<uint32_t>(SceneId::FlightHistory), AppScenes::flightHistoryScene);
-          switcher.loadScene(static_cast<uint32_t>(SceneId::Favorites), AppScenes::favoritesScene);
-
-          switcher.setCurrentScene(static_cast<uint32_t>(SceneId::Home));
-          
-          scenesLoaded = true;
-        }
+        preloadAssets(engine);
       }
 
       if (pApp->window == nullptr && engine)
@@ -72,4 +62,21 @@ void android_main(struct android_app* pApp)
       }
     }
   }
+}
+
+void preloadAssets(const std::unique_ptr<ge::GraphicsEngine>& engine)
+{
+  auto am = engine->getAssetManager();
+  am->registerFont("roboto", "fonts/Roboto-VariableFont_wdth,wght.ttf");
+  am->registerFont("emoji", "fonts/NotoEmoji-VariableFont_wght.ttf", ge::CharsetMode::FULL);
+  am->registerImage("plane", "images/plane.jpg");
+
+  am->preloadFont("roboto", 9);
+  am->preloadFont("roboto", 10);
+  am->preloadFont("roboto", 11);
+  am->preloadFont("roboto", 12);
+  am->preloadFont("roboto", 14);
+  am->preloadFont("roboto", 15);
+  am->preloadFont("roboto", 18);
+  am->preloadFont("emoji", 20);
 }

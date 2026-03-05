@@ -1,6 +1,9 @@
 package edu.osu.t22.planear.scenes
 
 import edu.osu.t22.planear.scenes.pages.ArPage
+import edu.osu.t22.planear.scenes.pages.FavoritesPage
+import edu.osu.t22.planear.scenes.pages.FlightHistoryPage
+import edu.osu.t22.planear.scenes.pages.HomePage
 import edu.osu.t22.planear.scenes.pages.SceneId
 import edu.osu.t22.planear.scenes.pages.SettingsPage
 
@@ -14,7 +17,8 @@ data class SceneInfo(
     val mouseY: Float,
     val tapOccurred: Boolean,
     val screenWidth: Float,
-    val screenHeight: Float
+    val screenHeight: Float,
+    val isTouching: Boolean
 )
 
 class SceneSwitcher {
@@ -35,8 +39,8 @@ class SceneSwitcher {
 
         // This will be called from C++ via JNI
         @JvmStatic
-        fun renderScene(sceneId: Int, enginePtr: Long, mouseX: Float, mouseY: Float, tapOccurred: Boolean, screenWidth: Float, screenHeight: Float) {
-            instance?.renderSceneInternal(sceneId, enginePtr, mouseX, mouseY, tapOccurred, screenWidth, screenHeight)
+        fun renderScene(sceneId: Int, enginePtr: Long, mouseX: Float, mouseY: Float, tapOccurred: Boolean, screenWidth: Float, screenHeight: Float, isTouching: Boolean) {
+            instance?.renderSceneInternal(sceneId, enginePtr, mouseX, mouseY, tapOccurred, screenWidth, screenHeight, isTouching)
         }
 
         private var instance: SceneSwitcher? = null
@@ -54,8 +58,13 @@ class SceneSwitcher {
     }
 
     private fun registerScenes() {
+        registerScene(SceneId.Home.id, HomePage())
         registerScene(SceneId.AR.id, ArPage())
+        registerScene(SceneId.FlightHistory.id, FlightHistoryPage())
         registerScene(SceneId.Settings.id, SettingsPage())
+        registerScene(SceneId.Favorites.id, FavoritesPage())
+
+        setCurrentScene(SceneId.Home.id)
     }
 
     private fun registerScene(sceneId: Int, scene: Scene) {
@@ -74,9 +83,9 @@ class SceneSwitcher {
         nativeSetCurrentScene(sceneId)
     }
 
-    private fun renderSceneInternal(sceneId: Int, enginePtr: Long, mouseX: Float, mouseY: Float, tapOccurred: Boolean, screenWidth: Float, screenHeight: Float) {
+    private fun renderSceneInternal(sceneId: Int, enginePtr: Long, mouseX: Float, mouseY: Float, tapOccurred: Boolean, screenWidth: Float, screenHeight: Float, isTouching: Boolean) {
         val scene = scenes[sceneId] ?: return
-        val sceneInfo = SceneInfo(enginePtr, mouseX, mouseY, tapOccurred, screenWidth, screenHeight)
+        val sceneInfo = SceneInfo(enginePtr, mouseX, mouseY, tapOccurred, screenWidth, screenHeight, isTouching)
         scene.render(sceneInfo, this)
     }
 }

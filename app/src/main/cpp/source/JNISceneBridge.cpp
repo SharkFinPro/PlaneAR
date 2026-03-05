@@ -61,7 +61,8 @@ namespace {
       (jfloat)sceneInfo.mouseY,
       (jboolean)sceneInfo.tapOccurred,
       screenWidth,
-      screenHeight
+      screenHeight,
+      sceneInfo.isTouching
     );
 
     if (env->ExceptionCheck())
@@ -94,7 +95,7 @@ namespace {
     g_renderSceneMethod = env->GetStaticMethodID(
       g_sceneSwitcherClass,
       "renderScene",
-      "(IJFFZFF)V"
+      "(IJFFZFFZ)V"
     );
 
     if (!g_renderSceneMethod)

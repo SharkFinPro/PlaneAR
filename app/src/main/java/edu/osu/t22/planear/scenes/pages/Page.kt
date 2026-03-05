@@ -21,6 +21,10 @@ val navLabels = listOf("Home", "AR View", "History", "Settings")
 val navEmojiLabels = listOf("🏠", "📷", "🕒", "⚙️")
 
 interface Page : Scene {
+    companion object {
+        val flightFavorites: MutableList<Boolean> = MutableList(flightData.size) { false }
+    }
+
     val sceneId: SceneId
 
     val navHeight: Float
