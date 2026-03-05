@@ -566,13 +566,6 @@ namespace AppScenes {
         drawCommonUI(info, switcher);
     }
 
-    void arScene(const SceneInfo& info, SceneSwitcher* switcher) {
-        const auto r = info.engine->getRenderingManager()->getRenderer2D();
-        static ge::ui::Label title("AR Scene", 100, 300, "roboto", 100);
-        title.draw(r);
-        drawCommonUI(info, switcher);
-    }
-
     void flightHistoryScene(const SceneInfo& info, SceneSwitcher* switcher) {
         const auto r = info.engine->getRenderingManager()->getRenderer2D();
         float screenW = (float)ANativeWindow_getWidth(info.pApp->window);
@@ -787,7 +780,6 @@ namespace AppScenes {
 
         drawCommonUI(info, switcher);
     }
-
 
     void favoritesScene(const SceneInfo& info, SceneSwitcher* switcher) {
         const auto r = info.engine->getRenderingManager()->getRenderer2D();
@@ -1010,11 +1002,4 @@ namespace AppScenes {
         drawCommonUI(info, switcher);
     }
 
-
-    void settingsScene(const SceneInfo& info, SceneSwitcher* switcher) {
-        const auto r = info.engine->getRenderingManager()->getRenderer2D();
-        static ge::ui::Label title("Settings Scene", 100, 300, "roboto", 100);
-        title.draw(r);
-        drawCommonUI(info, switcher);
-    }
 } // namespace AppScenes
