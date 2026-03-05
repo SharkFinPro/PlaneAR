@@ -12,7 +12,8 @@ enum class SceneId(val id: Int) {
     Home(1),
     AR(2),
     FlightHistory(3),
-    Settings(4)
+    Settings(4),
+    Favorites(5)
 }
 
 val sceneIdMap = listOf(SceneId.Home, SceneId.AR, SceneId.FlightHistory, SceneId.Settings)
