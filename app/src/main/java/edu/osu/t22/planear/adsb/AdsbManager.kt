@@ -43,16 +43,16 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
             Log.d("AdsbManager", "Closest aircraft: $closestAircraft")
 
             // will be replaced with arcore geolocation
-            val userAltM       = 0.0
+            val userAltM = 0.0
             val userHeadingDeg = 90.0 // facing east
 
-            val acLat    = closestAircraft.lat
-            val acLon    = closestAircraft.lon
+            val acLat = closestAircraft.lat
+            val acLon = closestAircraft.lon
             val acAltFeet = closestAircraft.alt_baro.toDoubleOrNull() ?: 0.0
-            val acAltM   = acAltFeet * 0.3048
+            val acAltM = acAltFeet * 0.3048
 
             val userPoint = GeoPoint(lat, lon, userAltM)
-            val acPoint   = GeoPoint(acLat, acLon, acAltM)
+            val acPoint = GeoPoint(acLat, acLon, acAltM)
 
             val dir = GeoUtils.relativeDirection(
                 user = userPoint,
