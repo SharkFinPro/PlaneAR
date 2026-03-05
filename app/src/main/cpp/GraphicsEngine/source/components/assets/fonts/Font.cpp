@@ -164,8 +164,10 @@ namespace ge {
     }
 
     glyphsPerRow = static_cast<uint32_t>(std::ceil(std::sqrt(charset.size())));
+    const auto numRows = static_cast<uint32_t>(std::ceil(static_cast<float>(charset.size()) / static_cast<float>(glyphsPerRow)));
+
     atlasWidth = glyphsPerRow * maxGlyphWidth;
-    atlasHeight = glyphsPerRow * maxGlyphHeight;
+    atlasHeight = maxGlyphHeight * numRows;
 
     std::vector<uint8_t> atlasBuffer(atlasWidth * atlasHeight, 0);
 
