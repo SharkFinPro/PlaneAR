@@ -22,5 +22,3 @@ val flightData: List<FlightEntry> = listOf(
     FlightEntry("UAL718",  "12:30 PM", "04:00 PM", "Boeing 787-9",    480, "02/27/2026"),
     FlightEntry("DAL310",  "01:15 PM", "03:45 PM", "Airbus A330",     475, "02/27/2026")
 )
-
-val flightFavorites: MutableList<Boolean> = MutableList(flightData.size) { false }

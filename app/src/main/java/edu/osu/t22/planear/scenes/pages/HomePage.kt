@@ -192,7 +192,7 @@ class HomePage : Page {
             text("Favorites", margin, favSectionY)
 
             val homeFavIndices = flightData.indices.filter { i ->
-                i < flightFavorites.size && flightFavorites[i]
+                i < Page.flightFavorites.size && Page.flightFavorites[i]
             }
             val favCount = homeFavIndices.size
 
