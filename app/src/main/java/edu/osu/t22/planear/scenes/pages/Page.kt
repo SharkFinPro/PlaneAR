@@ -24,7 +24,7 @@ interface Page : Scene {
     val sceneId: SceneId
 
     val navHeight: Float
-        get() = 250.0f
+        get() = 225.0f
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         drawNavButtons(sceneInfo, sceneSwitcher);
@@ -42,7 +42,7 @@ interface Page : Scene {
         with (GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
             // Navigation Background
             fill(255)
-            rect(0f, buttonTop, screenWidth, navHeight)
+            rect(0, buttonTop, screenWidth, navHeight)
 
             for (i in navLabels.indices) {
                 val offsetX = i.toFloat() * buttonWidth
@@ -56,7 +56,7 @@ interface Page : Scene {
                 // Button Text
                 if (i == activeNavIndex) fill(255) else fill(100)
 
-                val yOffset = 40.0f
+                val yOffset = 30.0f
 
                 textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
                 textFont("roboto", 12)

@@ -96,7 +96,7 @@ void drawNavButtons(const SceneInfo& info, SceneSwitcher* switcher) {
   auto screenHeight = static_cast<float>(ANativeWindow_getHeight(info.pApp->window));
 
   auto buttonWidth = screenWidth / 4.0f;
-  float buttonHeight = 250.0f;
+  float buttonHeight = 225.0f;
 
   float buttonTop = screenHeight - buttonHeight;
 
@@ -120,7 +120,7 @@ void drawNavButtons(const SceneInfo& info, SceneSwitcher* switcher) {
       r->fill(100);
     }
 
-    float yOffset = 40.0f;
+    float yOffset = 30.0f;
 
     r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
     r->textFont("roboto", 12);
