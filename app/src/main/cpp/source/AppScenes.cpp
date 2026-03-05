@@ -379,6 +379,107 @@ namespace AppScenes {
             }
         }
 
+        // ── Favorites Section ──
+        float favSectionY = rvTop + rvImgH + 160.0f;
+        r->fill(30, 30, 30);
+        r->textFont("roboto", 52);
+        r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
+        r->text("Favorites", margin, favSectionY);
+
+        // Build favorites list
+        std::vector<int> homeFavIndices;
+        for (int i = 0; i < (int)g_flightData.size(); ++i) {
+            if (i < (int)g_flightFavorites.size() && g_flightFavorites[i]) {
+                homeFavIndices.push_back(i);
+            }
+        }
+        int favCount = static_cast<int>(homeFavIndices.size());
+
+        // Favorites carousel state
+        static float favScrollOffset = 0.0f;
+        static float favPrevMouseX = 0.0f;
+        static bool favDragging = false;
+        static float favTotalDragDist = 0.0f;
+
+        float favTop = favSectionY + 25.0f;
+        float favTotalContentW = favCount > 0 ? favCount * (rvCardW + rvCardGap) - rvCardGap : 0.0f;
+        float favMaxScroll = std::max(0.0f, favTotalContentW - cardW);
+
+        // Favorites touch zone
+        float favZoneTop = favTop - 10.0f;
+        float favZoneBottom = favTop + rvImgH + 80.0f;
+
+        bool inFavZone = info.mouseY >= favZoneTop && info.mouseY <= favZoneBottom &&
+                         info.mouseX >= margin && info.mouseX <= margin + cardW;
+
+        if (info.tapOccurred && inFavZone && homeSelectedFlight < 0) {
+            favDragging = true;
+            favTotalDragDist = 0.0f;
+            favPrevMouseX = info.mouseX;
+        }
+
+        if (favDragging && info.isTouching) {
+            float delta = info.mouseX - favPrevMouseX;
+            favScrollOffset -= delta;
+            favTotalDragDist += std::abs(delta);
+            favPrevMouseX = info.mouseX;
+        }
+
+        if (favDragging && !info.isTouching) {
+            favDragging = false;
+        }
+
+        favScrollOffset = std::clamp(favScrollOffset, 0.0f, favMaxScroll);
+
+        // Draw favorites cards
+        for (int fi = 0; fi < favCount; ++fi) {
+            int idx = homeFavIndices[fi];
+            float rawX = margin + fi * (rvCardW + rvCardGap) - favScrollOffset;
+
+            if (rawX + rvCardW < margin - 20.0f || rawX > margin + cardW + 20.0f)
+                continue;
+
+            r->fill(230, 235, 240);
+            r->rectMode(ge::RectMode::CORNER);
+            r->rect(rawX + rvCornerR, favTop, rvCardW - 2.0f * rvCornerR, rvImgH);
+            r->rect(rawX, favTop + rvCornerR, rvCardW, rvImgH - 2.0f * rvCornerR);
+            r->ellipseMode(ge::EllipseMode::CENTER);
+            r->fill(230, 235, 240);
+            r->ellipse(rawX + rvCornerR, favTop + rvCornerR, rvCornerR * 2.0f, rvCornerR * 2.0f);
+            r->ellipse(rawX + rvCardW - rvCornerR, favTop + rvCornerR, rvCornerR * 2.0f, rvCornerR * 2.0f);
+            r->ellipse(rawX + rvCornerR, favTop + rvImgH - rvCornerR, rvCornerR * 2.0f, rvCornerR * 2.0f);
+            r->ellipse(rawX + rvCardW - rvCornerR, favTop + rvImgH - rvCornerR, rvCornerR * 2.0f, rvCornerR * 2.0f);
+
+            r->image("plane", rawX, favTop, rvCardW, rvImgH);
+
+            float ftextY = favTop + rvImgH + 30.0f;
+            r->fill(50, 50, 50);
+            r->textFont("roboto", 34);
+            r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
+            r->text(g_flightData[idx].callsign, rawX, ftextY);
+
+            r->fill(120, 120, 120);
+            r->textFont("roboto", 30);
+            r->text(g_flightData[idx].date, rawX, ftextY + 36.0f);
+        }
+
+        if (!info.isTouching && !favDragging && favTotalDragDist < 15.0f && homeSelectedFlight < 0) {
+            float tapX = info.mouseX;
+            float tapY = info.mouseY;
+            if (tapY >= favTop && tapY <= favTop + rvImgH + 70.0f) {
+                for (int fi = 0; fi < favCount; ++fi) {
+                    int idx = homeFavIndices[fi];
+                    float rawX = margin + fi * (rvCardW + rvCardGap) - favScrollOffset;
+                    if (tapX >= rawX && tapX <= rawX + rvCardW) {
+                        homeSelectedFlight = idx;
+                        homeTapConsumed = true;
+                        favTotalDragDist = 9999.0f;
+                        break;
+                    }
+                }
+            }
+        }
+
         // Widget overlay
         if (homeSelectedFlight >= 0 && homeSelectedFlight < (int)g_flightData.size()) {
             const auto& flight = g_flightData[homeSelectedFlight];
