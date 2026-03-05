@@ -59,6 +59,8 @@ class SceneSwitcher {
         registerScene(SceneId.Home.id, HomePage())
         registerScene(SceneId.AR.id, ArPage())
         registerScene(SceneId.Settings.id, SettingsPage())
+
+        setCurrentScene(SceneId.Home.id)
     }
 
     private fun registerScene(sceneId: Int, scene: Scene) {
