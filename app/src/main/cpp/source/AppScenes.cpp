@@ -390,7 +390,7 @@ namespace AppScenes {
         std::vector<int> homeFavIndices;
         for (int i = 0; i < (int)g_flightData.size(); ++i) {
             if (i < (int)g_flightFavorites.size() && g_flightFavorites[i]) {
-               homeFavIndices.push_back(i);
+                homeFavIndices.push_back(i);
             }
         }
         int favCount = static_cast<int>(homeFavIndices.size());
