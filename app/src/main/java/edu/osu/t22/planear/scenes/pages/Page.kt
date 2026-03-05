@@ -115,14 +115,14 @@ interface Page : Scene {
             fill(30, 30, 30)
             textFont("roboto", 26)
             textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
-            text(flight.callsign, padX, sheetY + 80.0f)
+            text(flight.callsign, padX, sheetY + 100.0f)
 
             // Accent line under callsign
             fill(76, 175, 80)
-            rect(padX, sheetY + 92.0f, 60.0f, 4.0f, 2.0f)
+            rect(padX, sheetY + 112.0f, 60.0f, 4.0f, 2.0f)
 
             // Field rows
-            val fieldStartY = sheetY + 140.0f
+            val fieldStartY = sheetY + 200.0f
             val fieldGap    = 100.0f
 
             fun drawField(label: String, value: String, y: Float) {
