@@ -338,7 +338,7 @@ class HomePage : Page {
                 val my = sceneInfo.mouseY
                 if (mx >= btnX && mx <= btnX + btnW &&
                     my >= btnY && my <= btnY + btnH) {
-                    sceneSwitcher.setCurrentScene(SceneId.AR.ordinal.toUInt().toInt())
+                    sceneSwitcher.setCurrentScene(SceneId.AR.id)
                 }
             }
         }
