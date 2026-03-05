@@ -482,7 +482,7 @@ namespace AppScenes {
         float titleY = headerY + 70.0f;
         float subtitleY = titleY + 45.0f;
         float listStartY = subtitleY + 50.0f;
-        float listEndY = screenH - 200.0f;
+        float listEndY = screenH - 280.0f;
         float rowHeight = (listEndY - listStartY) / FLIGHTS_PER_PAGE;
 
         r->rectMode(ge::RectMode::CORNER);
