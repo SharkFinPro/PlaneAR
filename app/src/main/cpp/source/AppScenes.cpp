@@ -82,6 +82,12 @@ static int g_flightSelectedIndex = -1; // -1 = no selection, widget hidden
 static bool g_flightTapConsumed = false;
 static constexpr int FLIGHTS_PER_PAGE = 14;
 
+// --- Favorites State ---
+static std::vector<bool> g_flightFavorites(30, false);
+static int g_favCurrentPage = 0;
+static int g_favSelectedIndex = -1;
+static bool g_favTapConsumed = false;
+
 // --- Private Helper Functions ---
 void drawNavButtons(const SceneInfo& info, SceneSwitcher* switcher) {
   const auto r = info.engine->getRenderingManager()->getRenderer2D();
@@ -481,7 +487,8 @@ namespace AppScenes {
         float headerY = screenH * 0.06f;
         float titleY = headerY + 70.0f;
         float subtitleY = titleY + 45.0f;
-        float listStartY = subtitleY + 50.0f;
+        float favLinkY = subtitleY + 45.0f;
+        float listStartY = favLinkY + 50.0f;
         float listEndY = screenH - 280.0f;
         float rowHeight = (listEndY - listStartY) / FLIGHTS_PER_PAGE;
 
@@ -510,6 +517,12 @@ namespace AppScenes {
         r->text("Page " + std::to_string(g_flightCurrentPage + 1) + " / " + std::to_string(totalPages),
                 screenW / 2.0f, subtitleY);
 
+        // "Favorites" link
+        r->fill(76, 175, 80);
+        r->textFont("roboto", 38);
+        r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::BASELINE);
+        r->text("Favorites", screenW / 2.0f, favLinkY);
+
         bool widgetShown = (g_flightSelectedIndex >= 0);
         if (info.tapOccurred && !widgetShown) {
             float btnTop = headerY;
@@ -524,6 +537,13 @@ namespace AppScenes {
                     g_flightTapConsumed = true;
                 }
             }
+
+            // Tap on "Favorites" link
+            if (info.mouseY >= favLinkY - 35.0f && info.mouseY <= favLinkY + 10.0f &&
+                info.mouseX >= screenW * 0.3f && info.mouseX <= screenW * 0.7f) {
+                switcher->setCurrentScene(static_cast<uint32_t>(SceneId::Favorites));
+                g_flightTapConsumed = true;
+            }
         }
 
         int pageStart = g_flightCurrentPage * FLIGHTS_PER_PAGE;
@@ -535,6 +555,8 @@ namespace AppScenes {
             float textY = rowY + rowHeight * 0.65f;
             float rightEdge = screenW - margin;
             float dotRadius = 16.0f;
+            float starX = margin + 240.0f;
+            float starHalf = 18.0f;
 
             r->fill(200, 200, 200);
             r->rect(margin, rowY, screenW - 2.0f * margin, 2.0f);
@@ -545,6 +567,15 @@ namespace AppScenes {
             r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
             r->text(g_flightData[i].callsign, margin + 10.0f, textY);
 
+            // Favorite indicator (square)
+            if (i < (int)g_flightFavorites.size() && g_flightFavorites[i]) {
+                r->fill(128, 0, 128); // purple
+            } else {
+                r->fill(180, 180, 180); // grey
+            }
+            r->rectMode(ge::RectMode::CORNER);
+            r->rect(starX - starHalf, rowY + rowHeight / 2.0f - starHalf, starHalf * 2.0f, starHalf * 2.0f);
+
             r->fill(100, 100, 100);
             r->textFont("roboto", 34);
             r->textAlign(ge::TextAlignH::RIGHT, ge::TextAlignV::BASELINE);
@@ -554,6 +585,18 @@ namespace AppScenes {
             r->ellipseMode(ge::EllipseMode::CENTER);
             r->ellipse(rightEdge - dotRadius, rowY + rowHeight / 2.0f, dotRadius * 2.0f, dotRadius * 2.0f);
 
+            // Tap on star to toggle favorite
+            if (info.tapOccurred && !g_flightTapConsumed && !widgetShown) {
+                if (info.mouseX >= starX - 30.0f && info.mouseX <= starX + 30.0f &&
+                    info.mouseY >= rowY && info.mouseY <= rowY + rowHeight) {
+                    if (i < (int)g_flightFavorites.size()) {
+                        g_flightFavorites[i] = !g_flightFavorites[i];
+                    }
+                    g_flightTapConsumed = true;
+                }
+            }
+
+            // Tap on row (excluding star) to open detail widget
             if (info.tapOccurred && !g_flightTapConsumed && !widgetShown) {
                 if (info.mouseX >= margin && info.mouseX <= rightEdge &&
                     info.mouseY >= rowY && info.mouseY <= rowY + rowHeight) {
@@ -637,6 +680,228 @@ namespace AppScenes {
                          info.mouseY < widgetY || info.mouseY > widgetY + widgetH) {
                     g_flightSelectedIndex = -1;
                     g_flightTapConsumed = true;
+                }
+            }
+        }
+
+        drawCommonUI(info, switcher);
+    }
+
+
+    void favoritesScene(const SceneInfo& info, SceneSwitcher* switcher) {
+        const auto r = info.engine->getRenderingManager()->getRenderer2D();
+        float screenW = (float)ANativeWindow_getWidth(info.pApp->window);
+        float screenH = (float)ANativeWindow_getHeight(info.pApp->window);
+
+        g_favTapConsumed = false;
+
+        // Build list of favorite flight indices
+        std::vector<int> favIndices;
+        for (int i = 0; i < (int)g_flightData.size(); ++i) {
+            if (i < (int)g_flightFavorites.size() && g_flightFavorites[i]) {
+                favIndices.push_back(i);
+            }
+        }
+
+        int totalFavs = static_cast<int>(favIndices.size());
+        int totalPages = totalFavs > 0 ? ((totalFavs - 1) / FLIGHTS_PER_PAGE) + 1 : 1;
+        g_favCurrentPage = std::clamp(g_favCurrentPage, 0, std::max(0, totalPages - 1));
+
+        float margin = screenW * 0.06f;
+        float headerY = screenH * 0.06f;
+        float titleY = headerY + 70.0f;
+        float subtitleY = titleY + 45.0f;
+        float histLinkY = subtitleY + 45.0f;
+        float listStartY = histLinkY + 50.0f;
+        float listEndY = screenH - 280.0f;
+        float rowHeight = (listEndY - listStartY) / FLIGHTS_PER_PAGE;
+
+        r->rectMode(ge::RectMode::CORNER);
+        r->fill(245, 248, 250);
+        r->rect(0, 0, screenW, screenH);
+
+        // Header: Back / Title / Next
+        r->fill(76, 175, 80);
+        r->textFont("roboto", 42);
+        r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
+        r->text("Back", margin, titleY);
+
+        r->fill(30, 30, 30);
+        r->textFont("roboto", 64);
+        r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::BASELINE);
+        r->text("Favorites", screenW / 2.0f, titleY);
+
+        r->fill(76, 175, 80);
+        r->textFont("roboto", 42);
+        r->textAlign(ge::TextAlignH::RIGHT, ge::TextAlignV::BASELINE);
+        r->text("Next", screenW - margin, titleY);
+
+        // Page indicator
+        r->fill(120, 120, 120);
+        r->textFont("roboto", 36);
+        r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::BASELINE);
+        r->text("Page " + std::to_string(g_favCurrentPage + 1) + " / " + std::to_string(totalPages),
+                screenW / 2.0f, subtitleY);
+
+        // "Flight History" link
+        r->fill(76, 175, 80);
+        r->textFont("roboto", 38);
+        r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::BASELINE);
+        r->text("Flight History", screenW / 2.0f, histLinkY);
+
+        bool widgetShown = (g_favSelectedIndex >= 0);
+        if (info.tapOccurred && !widgetShown) {
+            float btnTop = headerY;
+            float btnBottom = headerY + 80.0f;
+            if (info.mouseY >= btnTop && info.mouseY <= btnBottom) {
+                if (info.mouseX < screenW * 0.25f && g_favCurrentPage > 0) {
+                    g_favCurrentPage--;
+                    g_favTapConsumed = true;
+                }
+                if (info.mouseX > screenW * 0.75f && g_favCurrentPage < totalPages - 1) {
+                    g_favCurrentPage++;
+                    g_favTapConsumed = true;
+                }
+            }
+
+            // Tap on "Flight History" link
+            if (info.mouseY >= histLinkY - 35.0f && info.mouseY <= histLinkY + 10.0f &&
+                info.mouseX >= screenW * 0.2f && info.mouseX <= screenW * 0.8f) {
+                switcher->setCurrentScene(static_cast<uint32_t>(SceneId::FlightHistory));
+                g_favTapConsumed = true;
+            }
+        }
+
+        // Draw rows
+        int pageStart = g_favCurrentPage * FLIGHTS_PER_PAGE;
+        int pageEnd = std::min(pageStart + FLIGHTS_PER_PAGE, totalFavs);
+
+        for (int fi = pageStart; fi < pageEnd; ++fi) {
+            int i = favIndices[fi]; // actual flight index
+            int rowIdx = fi - pageStart;
+            float rowY = listStartY + rowIdx * rowHeight;
+            float textY = rowY + rowHeight * 0.65f;
+            float rightEdge = screenW - margin;
+            float dotRadius = 16.0f;
+            float starX = margin + 240.0f;
+            float starHalf = 18.0f;
+
+            r->fill(200, 200, 200);
+            r->rect(margin, rowY, screenW - 2.0f * margin, 2.0f);
+            r->rect(margin, rowY + rowHeight - 2.0f, screenW - 2.0f * margin, 2.0f);
+
+            r->fill(50, 50, 50);
+            r->textFont("roboto", 38);
+            r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
+            r->text(g_flightData[i].callsign, margin + 10.0f, textY);
+
+            // Purple square (all favorites are purple)
+            r->fill(128, 0, 128);
+            r->rectMode(ge::RectMode::CORNER);
+            r->rect(starX - starHalf, rowY + rowHeight / 2.0f - starHalf, starHalf * 2.0f, starHalf * 2.0f);
+
+            r->fill(100, 100, 100);
+            r->textFont("roboto", 34);
+            r->textAlign(ge::TextAlignH::RIGHT, ge::TextAlignV::BASELINE);
+            r->text(g_flightData[i].date, rightEdge - dotRadius * 3.0f, textY);
+
+            r->fill(76, 175, 80);
+            r->ellipseMode(ge::EllipseMode::CENTER);
+            r->ellipse(rightEdge - dotRadius, rowY + rowHeight / 2.0f, dotRadius * 2.0f, dotRadius * 2.0f);
+
+            // Tap on star to un-favorite
+            if (info.tapOccurred && !g_favTapConsumed && !widgetShown) {
+                if (info.mouseX >= starX - 30.0f && info.mouseX <= starX + 30.0f &&
+                    info.mouseY >= rowY && info.mouseY <= rowY + rowHeight) {
+                    g_flightFavorites[i] = false;
+                    g_favTapConsumed = true;
+                }
+            }
+
+            // Tap on row to show detail widget
+            if (info.tapOccurred && !g_favTapConsumed && !widgetShown) {
+                if (info.mouseX >= margin && info.mouseX <= rightEdge &&
+                    info.mouseY >= rowY && info.mouseY <= rowY + rowHeight) {
+                    g_favSelectedIndex = i;
+                    g_favTapConsumed = true;
+                }
+            }
+        }
+
+        // Detail widget overlay
+        if (g_favSelectedIndex >= 0 && g_favSelectedIndex < (int)g_flightData.size()) {
+            const auto& flight = g_flightData[g_favSelectedIndex];
+
+            r->fill(0, 0, 0, 80);
+            r->rect(0, 0, screenW, screenH);
+
+            float widgetW = screenW * 0.82f;
+            float widgetH = 380.0f;
+            float widgetX = (screenW - widgetW) / 2.0f;
+            float widgetY = screenH * 0.30f;
+
+            r->fill(76, 175, 80);
+            r->rect(widgetX, widgetY, widgetW, widgetH);
+
+            r->fill(56, 142, 60);
+            r->rect(widgetX, widgetY, widgetW, 80.0f);
+
+            r->fill(255, 255, 255);
+            r->textFont("roboto", 52);
+            r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
+            r->text(flight.callsign, screenW / 2.0f, widgetY + 40.0f);
+
+            float closeX = widgetX + widgetW - 55.0f;
+            float closeY = widgetY + 15.0f;
+            float closeSize = 50.0f;
+            r->fill(255, 255, 255, 200);
+            r->rect(closeX, closeY, closeSize, closeSize);
+            r->fill(56, 142, 60);
+            r->textFont("roboto", 42);
+            r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
+            r->text("X", closeX + closeSize / 2.0f, closeY + closeSize / 2.0f);
+
+            float contentX = widgetX + 30.0f;
+            float rowStart = widgetY + 110.0f;
+            float rowGap = 70.0f;
+            float halfW = (widgetW - 70.0f) / 2.0f;
+
+            r->fill(240, 248, 255);
+            r->rect(contentX, rowStart, halfW, 55.0f);
+            r->rect(contentX + halfW + 10.0f, rowStart, halfW, 55.0f);
+
+            r->fill(30, 30, 30);
+            r->textFont("roboto", 34);
+            r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
+            r->text("Takeoff: " + flight.takeoffTime, contentX + halfW / 2.0f, rowStart + 27.0f);
+            r->text("Landing: " + flight.landingTime, contentX + halfW * 1.5f + 10.0f, rowStart + 27.0f);
+
+            float row2Y = rowStart + rowGap;
+            r->fill(240, 248, 255);
+            r->rect(contentX, row2Y, widgetW - 60.0f, 55.0f);
+            r->fill(30, 30, 30);
+            r->textFont("roboto", 36);
+            r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::CENTER);
+            r->text("Plane Type: " + flight.planeType, contentX + 15.0f, row2Y + 27.0f);
+
+            float row3Y = row2Y + rowGap;
+            r->fill(240, 248, 255);
+            r->rect(contentX, row3Y, widgetW - 60.0f, 55.0f);
+            r->fill(30, 30, 30);
+            r->textFont("roboto", 36);
+            r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::CENTER);
+            r->text("Airspeed: " + std::to_string(flight.airspeed) + " kts", contentX + 15.0f, row3Y + 27.0f);
+
+            if (info.tapOccurred && !g_favTapConsumed) {
+                if (info.mouseX >= closeX && info.mouseX <= closeX + closeSize &&
+                    info.mouseY >= closeY && info.mouseY <= closeY + closeSize) {
+                    g_favSelectedIndex = -1;
+                    g_favTapConsumed = true;
+                }
+                else if (info.mouseX < widgetX || info.mouseX > widgetX + widgetW ||
+                         info.mouseY < widgetY || info.mouseY > widgetY + widgetH) {
+                    g_favSelectedIndex = -1;
+                    g_favTapConsumed = true;
                 }
             }
         }

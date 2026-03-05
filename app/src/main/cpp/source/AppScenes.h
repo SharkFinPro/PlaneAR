@@ -10,6 +10,7 @@ namespace AppScenes {
   void arScene(const SceneInfo& info, SceneSwitcher* switcher);
   void flightHistoryScene(const SceneInfo& info, SceneSwitcher* switcher);
   void settingsScene(const SceneInfo& info, SceneSwitcher* switcher);
+  void favoritesScene(const SceneInfo& info, SceneSwitcher* switcher);
 
   void initialize(const std::unique_ptr<ge::GraphicsEngine>& engine, struct android_app* pApp);
 }
