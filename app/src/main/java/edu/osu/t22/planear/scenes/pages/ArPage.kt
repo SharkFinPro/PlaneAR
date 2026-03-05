@@ -24,5 +24,7 @@ class ArPage : Page {
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER);
             text("AR Scene", width / 2, 250);
         }
+
+        postRender(sceneInfo, sceneSwitcher);
     }
 }

@@ -181,5 +181,7 @@ class FlightHistoryPage : Page {
                 }
             }
         }
+
+        postRender(sceneInfo, sceneSwitcher);
     }
 }

@@ -282,5 +282,7 @@ class HomePage : Page {
                 }
             }
         }
+
+        postRender(sceneInfo, sceneSwitcher);
     }
 }

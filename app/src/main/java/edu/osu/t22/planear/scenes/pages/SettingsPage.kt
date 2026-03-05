@@ -48,6 +48,8 @@ class SettingsPage : Page {
             )
             AppSettings.searchRadiusNm = newRadius
         }
+
+        postRender(sceneInfo, sceneSwitcher);
     }
 
     private fun drawSlider(

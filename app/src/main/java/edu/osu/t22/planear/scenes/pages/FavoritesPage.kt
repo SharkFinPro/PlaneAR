@@ -241,5 +241,7 @@ class FavoritesPage : Page {
                 }
             }
         }
+
+        postRender(sceneInfo, sceneSwitcher);
     }
 }
