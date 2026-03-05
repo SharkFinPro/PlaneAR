@@ -1,6 +1,7 @@
 package edu.osu.t22.planear.scenes
 
 import edu.osu.t22.planear.scenes.pages.ArPage
+import edu.osu.t22.planear.scenes.pages.FavoritesPage
 import edu.osu.t22.planear.scenes.pages.FlightHistoryPage
 import edu.osu.t22.planear.scenes.pages.HomePage
 import edu.osu.t22.planear.scenes.pages.SceneId
@@ -61,6 +62,7 @@ class SceneSwitcher {
         registerScene(SceneId.AR.id, ArPage())
         registerScene(SceneId.FlightHistory.id, FlightHistoryPage())
         registerScene(SceneId.Settings.id, SettingsPage())
+        registerScene(SceneId.Favorites.id, FavoritesPage())
 
         setCurrentScene(SceneId.Home.id)
     }
