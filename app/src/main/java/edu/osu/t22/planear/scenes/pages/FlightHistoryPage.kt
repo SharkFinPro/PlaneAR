@@ -162,6 +162,7 @@ class FlightHistoryPage : Page {
                         sceneInfo.mouseY >= rowY && sceneInfo.mouseY <= rowY + rowHeight) {
                         selectedIndex = i
                         Page.sheetAnimProgress = 0.0f
+                        Page.sheetClosing = false
                         tapConsumed = true
                     }
                 }
@@ -169,12 +170,12 @@ class FlightHistoryPage : Page {
 
             // Detail widget overlay
             if (selectedIndex >= 0 && selectedIndex < totalFlights) {
-                val dismissed = drawFlightDetailWidget(
+                val result = drawFlightDetailWidget(
                     sceneInfo,
                     flightData[selectedIndex],
                     tapConsumed
                 )
-                if (dismissed) {
+                if (result == SheetResult.DISMISSED) {
                     selectedIndex = -1
                     tapConsumed   = true
                 }

@@ -165,6 +165,7 @@ class HomePage : Page {
                         if (tapX >= rawX && tapX <= rawX + rvCardW) {
                             homeSelectedFlight = i
                             Page.sheetAnimProgress = 0.0f
+                            Page.sheetClosing = false
                             homeTapConsumed    = true
                             totalDragDist      = 9999f
                             break
@@ -249,6 +250,7 @@ class HomePage : Page {
                         if (tapX >= rawX && tapX <= rawX + rvCardW) {
                             homeSelectedFlight = idx
                             Page.sheetAnimProgress = 0.0f
+                            Page.sheetClosing = false
                             homeTapConsumed    = true
                             favTotalDragDist   = 9999f
                             break
@@ -259,12 +261,12 @@ class HomePage : Page {
 
             // Detail widget overlay
             if (homeSelectedFlight >= 0 && homeSelectedFlight < flightData.size) {
-                val dismissed = drawFlightDetailWidget(
+                val result = drawFlightDetailWidget(
                     sceneInfo,
                     flightData[homeSelectedFlight],
                     homeTapConsumed
                 )
-                if (dismissed) {
+                if (result == SheetResult.DISMISSED) {
                     homeSelectedFlight = -1
                     homeTapConsumed    = true
                 }

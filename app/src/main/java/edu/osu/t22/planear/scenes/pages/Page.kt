@@ -22,13 +22,22 @@ val sceneIdMap = listOf(SceneId.Home, SceneId.AR, SceneId.FlightHistory, SceneId
 val navLabels = listOf("Home", "AR View", "History", "Settings")
 val navEmojiLabels = listOf("🏠", "📷", "🕒", "⚙️")
 
+// Returned by drawFlightDetailWidget each frame so callers know what to do.
+enum class SheetResult {
+    ANIMATING,   // still opening or closing - keep calling, don't clear selection yet
+    OPEN,        // fully open and idle
+    DISMISSED    // close animation finished - caller should clear its selected index
+}
+
 interface Page : Scene {
     companion object {
         val flightFavorites: MutableList<Boolean> = MutableList(flightData.size) { false }
 
-        // 0.0 = fully offscreen (sheet just opened), 1.0 = fully slid up.
-        // Reset to 0f whenever a new flight is selected, then advances each frame.
+        // Drives both the open and close animations.
+        // 0.0 = fully offscreen, 1.0 = fully open.
+        // Counts up while opening, counts down while closing.
         var sheetAnimProgress: Float = 0.0f
+        var sheetClosing: Boolean = false
     }
 
     val sceneId: SceneId
@@ -40,94 +49,94 @@ interface Page : Scene {
         drawNavButtons(sceneInfo, sceneSwitcher);
     }
 
-    /**
-     * Draws the flight detail popup overlay. Returns true if a dismiss tap was consumed,
-     * so the caller can clear its selectedIndex / homeSelectedFlight state.
-     */
+    // Draws the flight detail bottom sheet overlay.
+    // Returns SheetResult so the caller knows whether to keep rendering, stay idle, or clear its selection.
+    // Call Page.sheetAnimProgress = 0f and Page.sheetClosing = false before showing for the first time.
     fun drawFlightDetailWidget(
         sceneInfo: SceneInfo,
         flight: FlightEntry,
         tapAlreadyConsumed: Boolean
-    ): Boolean {
+    ): SheetResult {
         val screenW = sceneInfo.screenWidth
         val screenH = sceneInfo.screenHeight - navHeight
-        var dismissed = false
+        val step = 0.06f
 
-        // Advance animation each frame (step ≈ 0.06 → ~250 ms at 60 fps)
-        sheetAnimProgress = (sheetAnimProgress + 0.05f).coerceAtMost(1.0f)
+        // Advance progress in whichever direction we're animating
+        if (sheetClosing) {
+            sheetAnimProgress = (sheetAnimProgress - step).coerceAtLeast(0.0f)
+            if (sheetAnimProgress == 0.0f) return SheetResult.DISMISSED
+        } else {
+            sheetAnimProgress = (sheetAnimProgress + step).coerceAtMost(1.0f)
+        }
 
-        // Ease out: fast start, settles smoothly at the top
+        // Ease out: fast start, settles smoothly
         val eased = 1.0f - (1.0f - sheetAnimProgress) * (1.0f - sheetAnimProgress)
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
             rectMode(RectMode.CORNER)
 
-            // Backdrop fades in with the sheet
+            // Backdrop fades in/out with the sheet
             val backdropAlpha = (140 * eased).toInt()
             fill(0, 0, 0, backdropAlpha)
             rect(0, 0, screenW, screenH)
 
-            // Bottom sheet — slides up from offscreen
+            // Bottom sheet - slides up from / down to offscreen
             val sheetH      = screenH * 0.62f
             val sheetRestY  = screenH - sheetH
-            val slideOffset = sheetH * (1.0f - eased)   // 0 when fully open
+            val slideOffset = sheetH * (1.0f - eased)
             val sheetY      = sheetRestY + slideOffset
             val sheetR      = 32.0f
 
             fill(255, 255, 255)
-            rect(0, sheetY + sheetR, screenW, sheetH - sheetR)       // body (square bottom)
-            rect(0, sheetY, screenW, sheetH * 0.4f, sheetR)          // top rounded portion
+            rect(0, sheetY + sheetR, screenW, sheetH - sheetR)
+            rect(0, sheetY, screenW, sheetH * 0.4f, sheetR)
 
             // Drag handle pill
             fill(210, 215, 210)
             ellipseMode(EllipseMode.CENTER)
             ellipse(screenW / 2.0f, sheetY + 22.0f, 60.0f, 10.0f)
 
-            // Callsign — big title
+            // Callsign - big title
             fill(30, 30, 30)
             textFont("roboto", 26)
             textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
             val padX = screenW * 0.08f
             text(flight.callsign, padX, sheetY + 80.0f)
 
-            // Thin accent line under callsign
+            // Thin green accent line under callsign
             fill(76, 175, 80)
             rect(padX, sheetY + 92.0f, 60.0f, 4.0f, 2.0f)
 
-            // Field rows — label left, value right, divider below
+            // Field rows - label left, value right, divider below
             val fieldStartY = sheetY + 140.0f
             val fieldGap    = 100.0f
-            val labelSize   = 11
-            val valueSize   = 17
             val rightEdge   = screenW - padX
 
-            // Helper: draw one field row
             fun drawField(label: String, value: String, y: Float) {
                 fill(150, 160, 150)
-                textFont("roboto", labelSize)
+                textFont("roboto", 11)
                 textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
                 text(label, padX, y)
 
                 fill(30, 30, 30)
-                textFont("roboto", valueSize)
+                textFont("roboto", 17)
                 textAlign(TextAlignH.RIGHT, TextAlignV.BASELINE)
                 text(value, rightEdge, y + 34.0f)
 
-                // Divider
                 fill(230, 235, 230)
                 rect(padX, y + 52.0f, screenW - 2.0f * padX, 1.5f)
             }
 
-            drawField("TAKEOFF",       flight.takeoffTime,         fieldStartY)
-            drawField("LANDING",       flight.landingTime,         fieldStartY + fieldGap)
-            drawField("AIRCRAFT TYPE", flight.planeType,           fieldStartY + fieldGap * 2)
-            drawField("AIRSPEED",      "${flight.airspeed} kts",   fieldStartY + fieldGap * 3)
+            drawField("TAKEOFF",       flight.takeoffTime,       fieldStartY)
+            drawField("LANDING",       flight.landingTime,       fieldStartY + fieldGap)
+            drawField("AIRCRAFT TYPE", flight.planeType,         fieldStartY + fieldGap * 2)
+            drawField("AIRSPEED",      "${flight.airspeed} kts", fieldStartY + fieldGap * 3)
 
-            // Close button — green pill at bottom
-            val btnW   = screenW * 0.55f
-            val btnH   = 72.0f
-            val btnX   = (screenW - btnW) / 2.0f
-            val btnY   = sheetY + sheetH - btnH - 28.0f
+            // Close button - green pill
+            val btnW = screenW * 0.55f
+            val btnH = 72.0f
+            val btnX = (screenW - btnW) / 2.0f
+            val btnY = sheetY + sheetH - btnH - 28.0f
             fill(76, 175, 80)
             rect(btnX, btnY, btnW, btnH, btnH / 2.0f)
             fill(255, 255, 255)
@@ -135,17 +144,17 @@ interface Page : Scene {
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
             text("Close", screenW / 2.0f, btnY + btnH / 2.0f)
 
-            // Dismiss: tap Close button or tap backdrop — only once fully open
-            if (sceneInfo.tapOccurred && !tapAlreadyConsumed && sheetAnimProgress >= 1.0f) {
+            // Only accept taps once fully open and not already closing
+            if (sceneInfo.tapOccurred && !tapAlreadyConsumed && !sheetClosing && sheetAnimProgress >= 1.0f) {
                 val mx = sceneInfo.mouseX
                 val my = sceneInfo.mouseY
-                val tappedClose = mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH
+                val tappedClose   = mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH
                 val tappedBackdrop = my < sheetY
-                if (tappedClose || tappedBackdrop) dismissed = true
+                if (tappedClose || tappedBackdrop) sheetClosing = true
             }
         }
 
-        return dismissed
+        return if (sheetAnimProgress >= 1.0f && !sheetClosing) SheetResult.OPEN else SheetResult.ANIMATING
     }
 
     private fun drawNavButtons(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
