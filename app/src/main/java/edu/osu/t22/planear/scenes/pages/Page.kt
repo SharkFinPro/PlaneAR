@@ -8,8 +8,12 @@ import edu.osu.t22.planear.scenes.Scene
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
 
-// Mapping buttons to Scene IDs
-enum class SceneId { Home, AR, FlightHistory, Settings }
+enum class SceneId(val id: Int) {
+    Home(1),
+    AR(2),
+    FlightHistory(3),
+    Settings(4)
+}
 
 val sceneIdMap = listOf(SceneId.Home, SceneId.AR, SceneId.FlightHistory, SceneId.Settings)
 val navLabels = listOf("Home", "AR View", "History", "Settings")
@@ -72,7 +76,7 @@ interface Page : Scene {
                     sceneInfo.mouseY > buttonTop &&
                     sceneInfo.mouseY < buttonTop + buttonHeight
                 ) {
-                    val targetId = sceneIdMap[i].ordinal
+                    val targetId = sceneIdMap[i].id
                     sceneSwitcher.setCurrentScene(targetId)
                     Log.i("Page", "Button $i clicked! Switching to scene $targetId")
                 }
