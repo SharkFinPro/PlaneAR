@@ -31,27 +31,27 @@ class HomePage : Page {
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         super.render(sceneInfo, sceneSwitcher)
 
-        val screenW = sceneInfo.screenWidth.toFloat()
-        val screenH = (sceneInfo.screenHeight - navHeight).toFloat()
+        val screenW = sceneInfo.screenWidth
+        val screenH = sceneInfo.screenHeight - navHeight
 
         var homeTapConsumed = false
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 
-            // ── Background ──
+            // Background
             rectMode(RectMode.CORNER)
             imageMode(ImageMode.CORNER)
             fill(245, 245, 245)
             rect(0, 0, screenW, screenH)
 
-            // ── Layout constants ──
+            // Layout constants
             val margin   = screenW * 0.05f
             val cardTop  = screenH * 0.05f
             val cardW    = screenW - 2f * margin
             val cardH    = screenH * 0.38f
             val cornerR  = 30f
 
-            // ── Green card (manual rounded rect) ──
+            // Green card (manual rounded rect)
             fill(76, 175, 80)
             rect(margin + cornerR, cardTop, cardW - 2f * cornerR, cardH)
             rect(margin, cardTop + cornerR, cardW, cardH - 2f * cornerR)
@@ -61,7 +61,7 @@ class HomePage : Page {
             ellipse(margin + cornerR,          cardTop + cardH - cornerR,  cornerR * 2f, cornerR * 2f)
             ellipse(margin + cardW - cornerR,  cardTop + cardH - cornerR,  cornerR * 2f, cornerR * 2f)
 
-            // ── "Flights in Air" pill button ──
+            // "Flights in Air" pill button
             val btnW = cardW * 0.75f
             val btnH = 80f
             val btnX = margin + (cardW - btnW) / 2f
@@ -82,7 +82,7 @@ class HomePage : Page {
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
             text("Flights in Air", screenW / 2f, btnY + btnH / 2f)
 
-            // ── Plane image panel ──
+            // Plane image panel
             val imgPad     = cardW * 0.08f
             val imgTop     = btnY + btnH + cardH * 0.06f
             val imgW       = cardW - 2f * imgPad
@@ -99,7 +99,7 @@ class HomePage : Page {
             ellipse(margin + imgPad + imgW - imgCornerR,   imgTop + imgH - imgCornerR,  imgCornerR * 2f, imgCornerR * 2f)
             image("plane", margin + imgPad, imgTop, imgW, imgH)
 
-            // ── Recently Viewed section ──
+            // Recently Viewed section
             val rvSectionY = cardTop + cardH + 80f
             fill(30, 30, 30)
             textFont("roboto", 15)
@@ -184,7 +184,7 @@ class HomePage : Page {
                 }
             }
 
-            // ── Favorites section ──
+            // Favorites section
             val favSectionY = rvTop + rvImgH + 160f
             fill(30, 30, 30)
             textFont("roboto", 15)
@@ -267,7 +267,7 @@ class HomePage : Page {
                 }
             }
 
-            // ── Detail widget overlay ──
+            // Detail widget overlay
             if (homeSelectedFlight >= 0 && homeSelectedFlight < flightData.size) {
                 val flight = flightData[homeSelectedFlight]
 
@@ -344,7 +344,7 @@ class HomePage : Page {
                 }
             }
 
-            // ── "Flights in Air" button tap → switch to AR scene ──
+            // "Flights in Air" button tap > switch to AR scene
             if (sceneInfo.tapOccurred && homeSelectedFlight < 0) {
                 val mx = sceneInfo.mouseX
                 val my = sceneInfo.mouseY
