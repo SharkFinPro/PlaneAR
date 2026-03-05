@@ -22,6 +22,9 @@ val navEmojiLabels = listOf("🏠", "📷", "🕒", "⚙️")
 interface Page : Scene {
     val sceneId: SceneId
 
+    val navHeight: Float
+        get() = 250.0f
+
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         drawNavButtons(sceneInfo, sceneSwitcher);
     }
@@ -31,15 +34,14 @@ interface Page : Scene {
         val screenHeight = sceneInfo.screenHeight;
 
         val buttonWidth = screenWidth / 4.0f
-        val buttonHeight = 250.0f
-        val buttonTop = screenHeight - buttonHeight
+        val buttonTop = screenHeight - navHeight
 
         val activeNavIndex = sceneId.ordinal;
 
         with (GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
             // Navigation Background
             fill(255)
-            rect(0f, buttonTop, screenWidth, buttonHeight)
+            rect(0f, buttonTop, screenWidth, navHeight)
 
             for (i in navLabels.indices) {
                 val offsetX = i.toFloat() * buttonWidth
@@ -47,7 +49,7 @@ interface Page : Scene {
                 // Active Button Background
                 if (i == activeNavIndex) {
                     fill(76, 217, 100)
-                    rect(offsetX, buttonTop, buttonWidth, buttonHeight)
+                    rect(offsetX, buttonTop, buttonWidth, navHeight)
                 }
 
                 // Button Text
@@ -60,21 +62,21 @@ interface Page : Scene {
                 text(
                     navLabels[i],
                     offsetX + buttonWidth / 2.0f,
-                    screenHeight - buttonHeight / 2.0f + yOffset
+                    screenHeight - navHeight / 2.0f + yOffset
                 )
 
                 textFont("emoji", 70)
                 text(
                     navEmojiLabels[i],
                     offsetX + buttonWidth / 2.0f,
-                    screenHeight - buttonHeight / 2.0f - yOffset
+                    screenHeight - navHeight / 2.0f - yOffset
                 )
 
                 // Check for and handle button press
                 if (sceneInfo.mouseX > offsetX &&
                     sceneInfo.mouseX < offsetX + buttonWidth &&
                     sceneInfo.mouseY > buttonTop &&
-                    sceneInfo.mouseY < buttonTop + buttonHeight
+                    sceneInfo.mouseY < buttonTop + navHeight
                 ) {
                     val targetId = sceneIdMap[i].id
                     sceneSwitcher.setCurrentScene(targetId)
@@ -84,7 +86,7 @@ interface Page : Scene {
 
             // Small bar above buttons
             fill(100)
-            rect(0, screenHeight - buttonHeight, screenWidth, 1)
+            rect(0, screenHeight - navHeight, screenWidth, 1)
         }
     }
 }
