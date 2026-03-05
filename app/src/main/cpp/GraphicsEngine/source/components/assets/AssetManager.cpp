@@ -5,8 +5,9 @@
 
 namespace ge {
   AssetManager::AssetManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                             AAssetManager* aassetManager)
-    : m_logicalDevice(std::move(logicalDevice)), m_aassetManager(aassetManager)
+                             AAssetManager* aassetManager,
+                             float dpiScale)
+    : m_logicalDevice(std::move(logicalDevice)), m_aassetManager(aassetManager), m_dpiScale(dpiScale)
   {
     createCommandPool();
 
@@ -41,23 +42,27 @@ namespace ge {
   void AssetManager::preloadFont(const std::string& fontName,
                                  const uint32_t fontSize)
   {
-    const FontKey key { fontName, fontSize };
+    uint32_t scaledFontSize = fontSize * m_dpiScale;
+
+    const FontKey key { fontName, scaledFontSize };
     if (m_fonts.find(key) == m_fonts.end())
     {
-      loadFont(fontName, fontSize);
+      loadFont(fontName, scaledFontSize);
     }
   }
 
   std::shared_ptr<Font> AssetManager::getFont(const std::string& fontName,
                                               uint32_t fontSize)
   {
-    const FontKey key { fontName, fontSize };
+    uint32_t scaledFontSize = fontSize * m_dpiScale;
+
+    const FontKey key { fontName, scaledFontSize };
 
     auto font = m_fonts.find(key);
 
     if (font == m_fonts.end())
     {
-      loadFont(fontName, fontSize);
+      loadFont(fontName, scaledFontSize);
 
       font = m_fonts.find(key);
     }
@@ -147,7 +152,7 @@ namespace ge {
   }
 
   void AssetManager::loadFont(const std::string& fontName,
-                              uint32_t fontSize)
+                              uint32_t scaledFontSize)
   {
     const auto fontEntry = m_fontNames.find(fontName);
 
@@ -160,14 +165,14 @@ namespace ge {
       m_logicalDevice,
       m_aassetManager,
       fontEntry->second.path,
-      fontSize,
+      scaledFontSize,
       m_commandPool,
       m_descriptorPool,
       m_fontDescriptorSetLayout,
       fontEntry->second.charsetMode
     );
 
-    m_fonts.emplace(FontKey{ fontName, fontSize }, std::move(font));
+    m_fonts.emplace(FontKey{ fontName, scaledFontSize }, std::move(font));
   }
 
   void AssetManager::loadImage(const std::string& imageName)

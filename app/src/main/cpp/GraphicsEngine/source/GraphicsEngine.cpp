@@ -75,9 +75,11 @@ namespace ge {
 
   void GraphicsEngine::createComponents()
   {
+    const float density = static_cast<float>(AConfiguration_getDensity(m_app->config)) / static_cast<float>(ACONFIGURATION_DENSITY_MEDIUM);
     m_assetManager = std::make_shared<AssetManager>(
       m_logicalDevice,
-      m_app->activity->assetManager
+      m_app->activity->assetManager,
+      density
     );
 
     m_renderingManager = std::make_shared<RenderingManager>(

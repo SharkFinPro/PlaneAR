@@ -96,7 +96,7 @@ void drawNavButtons(const SceneInfo& info, SceneSwitcher* switcher) {
   auto screenHeight = static_cast<float>(ANativeWindow_getHeight(info.pApp->window));
 
   auto buttonWidth = screenWidth / 4.0f;
-  float buttonHeight = 250.0f;
+  float buttonHeight = 225.0f;
 
   float buttonTop = screenHeight - buttonHeight;
 
@@ -120,13 +120,13 @@ void drawNavButtons(const SceneInfo& info, SceneSwitcher* switcher) {
       r->fill(100);
     }
 
-    float yOffset = 40.0f;
+    float yOffset = 30.0f;
 
     r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
-    r->textFont("roboto", 42);
+    r->textFont("roboto", 12);
     r->text(navLabels[i], offsetX + buttonWidth / 2.0f, screenHeight - buttonHeight / 2.0f + yOffset);
 
-    r->textFont("emoji", 70);
+    r->textFont("emoji", 20);
     r->text(navEmojiLabels[i], offsetX + buttonWidth / 2.0f, screenHeight - buttonHeight / 2.0f - yOffset);
 
     // Check for and handle button press
@@ -185,17 +185,14 @@ namespace AppScenes {
         am->registerFont("emoji", "fonts/NotoEmoji-VariableFont_wght.ttf", ge::CharsetMode::FULL);
         am->registerImage("plane", "images/plane.jpg");
 
-        am->preloadFont("roboto", 30);
-        am->preloadFont("roboto", 34);
-        am->preloadFont("roboto", 36);
-        am->preloadFont("roboto", 38);
-        am->preloadFont("roboto", 42);
-        am->preloadFont("roboto", 48);
-        am->preloadFont("roboto", 52);
-        am->preloadFont("roboto", 64);
-        am->preloadFont("roboto", 100);
-        am->preloadFont("emoji", 70);
-        am->preloadFont("emoji", 150);
+        am->preloadFont("roboto", 9);
+        am->preloadFont("roboto", 10);
+        am->preloadFont("roboto", 11);
+        am->preloadFont("roboto", 12);
+        am->preloadFont("roboto", 14);
+        am->preloadFont("roboto", 15);
+        am->preloadFont("roboto", 18);
+        am->preloadFont("emoji", 20);
     }
 
     void homeScene(const SceneInfo& info, SceneSwitcher* switcher) {
@@ -246,7 +243,7 @@ namespace AppScenes {
         r->rect(btnX + btnR, btnY, btnW - 2.0f * btnR, btnH);
 
         r->fill(76, 175, 80);
-        r->textFont("roboto", 48);
+        r->textFont("roboto", 14);
         r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
         r->text("Flights in Air", screenW / 2.0f, btnY + btnH / 2.0f);
 
@@ -269,7 +266,7 @@ namespace AppScenes {
         // Recently viewed
         float rvSectionY = cardTop + cardH + 80.0f;
         r->fill(30, 30, 30);
-        r->textFont("roboto", 52);
+        r->textFont("roboto", 15);
         r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
         r->text("Recently Viewed", margin, rvSectionY);
 
@@ -348,12 +345,12 @@ namespace AppScenes {
 
             float textY = rvTop + rvImgH + 30.0f;
             r->fill(50, 50, 50);
-            r->textFont("roboto", 34);
+            r->textFont("roboto", 10);
             r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
             r->text(g_flightData[i].callsign, rawX, textY);
 
             r->fill(120, 120, 120);
-            r->textFont("roboto", 30);
+            r->textFont("roboto", 9);
             r->text(g_flightData[i].date, rawX, textY + 36.0f);
 
             // Tap detection on card (only if not dragging)
@@ -382,7 +379,7 @@ namespace AppScenes {
         // ── Favorites Section ──
         float favSectionY = rvTop + rvImgH + 160.0f;
         r->fill(30, 30, 30);
-        r->textFont("roboto", 52);
+        r->textFont("roboto", 15);
         r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
         r->text("Favorites", margin, favSectionY);
 
@@ -454,12 +451,12 @@ namespace AppScenes {
 
             float ftextY = favTop + rvImgH + 30.0f;
             r->fill(50, 50, 50);
-            r->textFont("roboto", 34);
+            r->textFont("roboto", 10);
             r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
             r->text(g_flightData[idx].callsign, rawX, ftextY);
 
             r->fill(120, 120, 120);
-            r->textFont("roboto", 30);
+            r->textFont("roboto", 9);
             r->text(g_flightData[idx].date, rawX, ftextY + 36.0f);
         }
 
@@ -498,7 +495,7 @@ namespace AppScenes {
             r->rect(widgetX, widgetY, widgetW, 80.0f);
 
             r->fill(255, 255, 255);
-            r->textFont("roboto", 52);
+            r->textFont("roboto", 15);
             r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
             r->text(flight.callsign, screenW / 2.0f, widgetY + 40.0f);
 
@@ -508,7 +505,7 @@ namespace AppScenes {
             r->fill(255, 255, 255, 200);
             r->rect(closeX, closeY, closeSize, closeSize);
             r->fill(56, 142, 60);
-            r->textFont("roboto", 42);
+            r->textFont("roboto", 12);
             r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
             r->text("X", closeX + closeSize / 2.0f, closeY + closeSize / 2.0f);
 
@@ -521,7 +518,7 @@ namespace AppScenes {
             r->rect(contentX, rowStart, halfW, 55.0f);
             r->rect(contentX + halfW + 10.0f, rowStart, halfW, 55.0f);
             r->fill(30, 30, 30);
-            r->textFont("roboto", 34);
+            r->textFont("roboto", 10);
             r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
             r->text("Takeoff: " + flight.takeoffTime, contentX + halfW / 2.0f, rowStart + 27.0f);
             r->text("Landing: " + flight.landingTime, contentX + halfW * 1.5f + 10.0f, rowStart + 27.0f);
@@ -530,7 +527,7 @@ namespace AppScenes {
             r->fill(240, 248, 255);
             r->rect(contentX, row2Y, widgetW - 60.0f, 55.0f);
             r->fill(30, 30, 30);
-            r->textFont("roboto", 36);
+            r->textFont("roboto", 10);
             r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::CENTER);
             r->text("Plane Type: " + flight.planeType, contentX + 15.0f, row2Y + 27.0f);
 
@@ -538,7 +535,7 @@ namespace AppScenes {
             r->fill(240, 248, 255);
             r->rect(contentX, row3Y, widgetW - 60.0f, 55.0f);
             r->fill(30, 30, 30);
-            r->textFont("roboto", 36);
+            r->textFont("roboto", 10);
             r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::CENTER);
             r->text("Airspeed: " + std::to_string(flight.airspeed) + " kts", contentX + 15.0f, row3Y + 27.0f);
 
@@ -591,29 +588,29 @@ namespace AppScenes {
         r->rect(0, 0, screenW, screenH);
 
         r->fill(76, 175, 80);
-        r->textFont("roboto", 42);
+        r->textFont("roboto", 12);
         r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
         r->text("Back", margin, titleY);
 
         r->fill(30, 30, 30);
-        r->textFont("roboto", 64);
+        r->textFont("roboto", 18);
         r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::BASELINE);
         r->text("Flight History", screenW / 2.0f, titleY);
 
         r->fill(76, 175, 80);
-        r->textFont("roboto", 42);
+        r->textFont("roboto", 12);
         r->textAlign(ge::TextAlignH::RIGHT, ge::TextAlignV::BASELINE);
         r->text("Next", screenW - margin, titleY);
 
         r->fill(120, 120, 120);
-        r->textFont("roboto", 36);
+        r->textFont("roboto", 10);
         r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::BASELINE);
         r->text("Page " + std::to_string(g_flightCurrentPage + 1) + " / " + std::to_string(totalPages),
                 screenW / 2.0f, subtitleY);
 
         // "Favorites" link
         r->fill(76, 175, 80);
-        r->textFont("roboto", 38);
+        r->textFont("roboto", 11);
         r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::BASELINE);
         r->text("Favorites", screenW / 2.0f, favLinkY);
 
@@ -657,7 +654,7 @@ namespace AppScenes {
             r->rect(margin, rowY + rowHeight - 2.0f, screenW - 2.0f * margin, 2.0f);
 
             r->fill(50, 50, 50);
-            r->textFont("roboto", 38);
+            r->textFont("roboto", 11);
             r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
             r->text(g_flightData[i].callsign, margin + 10.0f, textY);
 
@@ -671,7 +668,7 @@ namespace AppScenes {
             r->rect(starX - starHalf, rowY + rowHeight / 2.0f - starHalf, starHalf * 2.0f, starHalf * 2.0f);
 
             r->fill(100, 100, 100);
-            r->textFont("roboto", 34);
+            r->textFont("roboto", 10);
             r->textAlign(ge::TextAlignH::RIGHT, ge::TextAlignV::BASELINE);
             r->text(g_flightData[i].date, rightEdge - dotRadius * 3.0f, textY);
 
@@ -719,7 +716,7 @@ namespace AppScenes {
             r->rect(widgetX, widgetY, widgetW, 80.0f);
 
             r->fill(255, 255, 255);
-            r->textFont("roboto", 52);
+            r->textFont("roboto", 15);
             r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
             r->text(flight.callsign, screenW / 2.0f, widgetY + 40.0f);
 
@@ -729,7 +726,7 @@ namespace AppScenes {
             r->fill(255, 255, 255, 200);
             r->rect(closeX, closeY, closeSize, closeSize);
             r->fill(56, 142, 60);
-            r->textFont("roboto", 42);
+            r->textFont("roboto", 12);
             r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
             r->text("X", closeX + closeSize / 2.0f, closeY + closeSize / 2.0f);
 
@@ -743,7 +740,7 @@ namespace AppScenes {
             r->rect(contentX + halfW + 10.0f, rowStart, halfW, 55.0f);
 
             r->fill(30, 30, 30);
-            r->textFont("roboto", 34);
+            r->textFont("roboto", 10);
             r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
             r->text("Takeoff: " + flight.takeoffTime, contentX + halfW / 2.0f, rowStart + 27.0f);
             r->text("Landing: " + flight.landingTime, contentX + halfW * 1.5f + 10.0f, rowStart + 27.0f);
@@ -752,7 +749,7 @@ namespace AppScenes {
             r->fill(240, 248, 255);
             r->rect(contentX, row2Y, widgetW - 60.0f, 55.0f);
             r->fill(30, 30, 30);
-            r->textFont("roboto", 36);
+            r->textFont("roboto", 10);
             r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::CENTER);
             r->text("Plane Type: " + flight.planeType, contentX + 15.0f, row2Y + 27.0f);
 
@@ -760,7 +757,7 @@ namespace AppScenes {
             r->fill(240, 248, 255);
             r->rect(contentX, row3Y, widgetW - 60.0f, 55.0f);
             r->fill(30, 30, 30);
-            r->textFont("roboto", 36);
+            r->textFont("roboto", 10);
             r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::CENTER);
             r->text("Airspeed: " + std::to_string(flight.airspeed) + " kts", contentX + 15.0f, row3Y + 27.0f);
 
@@ -815,30 +812,30 @@ namespace AppScenes {
 
         // Header: Back / Title / Next
         r->fill(76, 175, 80);
-        r->textFont("roboto", 42);
+        r->textFont("roboto", 12);
         r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
         r->text("Back", margin, titleY);
 
         r->fill(30, 30, 30);
-        r->textFont("roboto", 64);
+        r->textFont("roboto", 18);
         r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::BASELINE);
         r->text("Favorites", screenW / 2.0f, titleY);
 
         r->fill(76, 175, 80);
-        r->textFont("roboto", 42);
+        r->textFont("roboto", 12);
         r->textAlign(ge::TextAlignH::RIGHT, ge::TextAlignV::BASELINE);
         r->text("Next", screenW - margin, titleY);
 
         // Page indicator
         r->fill(120, 120, 120);
-        r->textFont("roboto", 36);
+        r->textFont("roboto", 10);
         r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::BASELINE);
         r->text("Page " + std::to_string(g_favCurrentPage + 1) + " / " + std::to_string(totalPages),
                 screenW / 2.0f, subtitleY);
 
         // "Flight History" link
         r->fill(76, 175, 80);
-        r->textFont("roboto", 38);
+        r->textFont("roboto", 11);
         r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::BASELINE);
         r->text("Flight History", screenW / 2.0f, histLinkY);
 
@@ -884,7 +881,7 @@ namespace AppScenes {
             r->rect(margin, rowY + rowHeight - 2.0f, screenW - 2.0f * margin, 2.0f);
 
             r->fill(50, 50, 50);
-            r->textFont("roboto", 38);
+            r->textFont("roboto", 11);
             r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::BASELINE);
             r->text(g_flightData[i].callsign, margin + 10.0f, textY);
 
@@ -894,7 +891,7 @@ namespace AppScenes {
             r->rect(starX - starHalf, rowY + rowHeight / 2.0f - starHalf, starHalf * 2.0f, starHalf * 2.0f);
 
             r->fill(100, 100, 100);
-            r->textFont("roboto", 34);
+            r->textFont("roboto", 10);
             r->textAlign(ge::TextAlignH::RIGHT, ge::TextAlignV::BASELINE);
             r->text(g_flightData[i].date, rightEdge - dotRadius * 3.0f, textY);
 
@@ -940,7 +937,7 @@ namespace AppScenes {
             r->rect(widgetX, widgetY, widgetW, 80.0f);
 
             r->fill(255, 255, 255);
-            r->textFont("roboto", 52);
+            r->textFont("roboto", 15);
             r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
             r->text(flight.callsign, screenW / 2.0f, widgetY + 40.0f);
 
@@ -950,7 +947,7 @@ namespace AppScenes {
             r->fill(255, 255, 255, 200);
             r->rect(closeX, closeY, closeSize, closeSize);
             r->fill(56, 142, 60);
-            r->textFont("roboto", 42);
+            r->textFont("roboto", 12);
             r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
             r->text("X", closeX + closeSize / 2.0f, closeY + closeSize / 2.0f);
 
@@ -964,7 +961,7 @@ namespace AppScenes {
             r->rect(contentX + halfW + 10.0f, rowStart, halfW, 55.0f);
 
             r->fill(30, 30, 30);
-            r->textFont("roboto", 34);
+            r->textFont("roboto", 10);
             r->textAlign(ge::TextAlignH::CENTER, ge::TextAlignV::CENTER);
             r->text("Takeoff: " + flight.takeoffTime, contentX + halfW / 2.0f, rowStart + 27.0f);
             r->text("Landing: " + flight.landingTime, contentX + halfW * 1.5f + 10.0f, rowStart + 27.0f);
@@ -973,7 +970,7 @@ namespace AppScenes {
             r->fill(240, 248, 255);
             r->rect(contentX, row2Y, widgetW - 60.0f, 55.0f);
             r->fill(30, 30, 30);
-            r->textFont("roboto", 36);
+            r->textFont("roboto", 10);
             r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::CENTER);
             r->text("Plane Type: " + flight.planeType, contentX + 15.0f, row2Y + 27.0f);
 
@@ -981,7 +978,7 @@ namespace AppScenes {
             r->fill(240, 248, 255);
             r->rect(contentX, row3Y, widgetW - 60.0f, 55.0f);
             r->fill(30, 30, 30);
-            r->textFont("roboto", 36);
+            r->textFont("roboto", 10);
             r->textAlign(ge::TextAlignH::LEFT, ge::TextAlignV::CENTER);
             r->text("Airspeed: " + std::to_string(flight.airspeed) + " kts", contentX + 15.0f, row3Y + 27.0f);
 
