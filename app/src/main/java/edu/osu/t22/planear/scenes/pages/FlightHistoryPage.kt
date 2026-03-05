@@ -20,8 +20,6 @@ class FlightHistoryPage : Page {
     private var selectedIndex = -1 // -1 = no selection, widget hidden
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
-        super.render(sceneInfo, sceneSwitcher)
-
         val screenW = sceneInfo.screenWidth
         val screenH = sceneInfo.screenHeight - navHeight
 

@@ -29,8 +29,6 @@ class HomePage : Page {
     private var favTotalDragDist = 0f
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
-        super.render(sceneInfo, sceneSwitcher)
-
         val screenW = sceneInfo.screenWidth
         val screenH = sceneInfo.screenHeight - navHeight
 

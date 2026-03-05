@@ -10,8 +10,6 @@ class ArPage : Page {
     override val sceneId = SceneId.AR
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
-        super.render(sceneInfo, sceneSwitcher)
-
         val width = sceneInfo.screenWidth;
         val height = sceneInfo.screenHeight - navHeight;
 
