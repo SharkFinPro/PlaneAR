@@ -1,6 +1,7 @@
 package edu.osu.t22.planear.adsb
 
 import android.util.Log
+import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.geo.GeoPoint
 import edu.osu.t22.planear.geo.GeoUtils
 import edu.osu.t22.planear.location.AppLocationManager
@@ -21,18 +22,23 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
         val lat = loc.latitude
         val lon = loc.longitude
 
+        // Read the current radius (in km) from shared settings
+        val radiusKm = AppSettings.searchRadiusKm
+
         coroutineScope {
             val nearby = async(Dispatchers.IO) {
-                api.getNearbyAircraft(lat, lon, 50)
+                api.getNearbyAircraft(lat, lon, radiusKm)
             }
 
             val closest = async(Dispatchers.IO) {
-                api.getClosestAircraft(lat, lon, 250)
+                // Use a larger bubble for "closest" so we always get at least one result
+                api.getClosestAircraft(lat, lon, radiusKm * 5)
             }
 
-            val nearbyData = nearby.await()
+            val nearbyData  = nearby.await()
             val closestData = closest.await()
 
+            Log.d("AdsbManager", "Radius: ${AppSettings.searchRadiusNm} nm (${radiusKm} km)")
             Log.d("AdsbManager", "Got ${nearbyData.total} aircraft")
             Log.d("AdsbManager", "Timing data: (now: ${nearbyData.now}, cTime: ${nearbyData.cTime}, pTime: ${nearbyData.pTime})")
 
@@ -40,16 +46,16 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
             Log.d("AdsbManager", "Closest aircraft: $closestAircraft")
 
             // will be replaced with arcore geolocation
-            val userAltM = 0.0
-            val userHeadingDeg = 90.0 //facing east
+            val userAltM       = 0.0
+            val userHeadingDeg = 90.0 // facing east
 
-            val acLat = closestAircraft.lat
-            val acLon = closestAircraft.lon
+            val acLat    = closestAircraft.lat
+            val acLon    = closestAircraft.lon
             val acAltFeet = closestAircraft.alt_baro.toDoubleOrNull() ?: 0.0
-            val acAltM = acAltFeet * 0.3048
+            val acAltM   = acAltFeet * 0.3048
 
             val userPoint = GeoPoint(lat, lon, userAltM)
-            val acPoint = GeoPoint(acLat, acLon, acAltM)
+            val acPoint   = GeoPoint(acLat, acLon, acAltM)
 
             val dir = GeoUtils.relativeDirection(
                 user = userPoint,
