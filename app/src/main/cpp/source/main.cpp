@@ -45,7 +45,6 @@ void android_main(struct android_app* pApp)
         AppScenes::initialize(engine, pApp);
 
         if (!scenesLoaded) {
-          switcher.loadScene(static_cast<uint32_t>(SceneId::FlightHistory), AppScenes::flightHistoryScene);
           switcher.loadScene(static_cast<uint32_t>(SceneId::Favorites), AppScenes::favoritesScene);
 
           scenesLoaded = true;
