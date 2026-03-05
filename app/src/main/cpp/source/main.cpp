@@ -50,11 +50,11 @@ void android_main(struct android_app* pApp)
       {
         engine.reset();
       }
+    }
 
-      if (pApp->destroyRequested != 0)
-      {
-        return;
-      }
+    if (pApp->destroyRequested != 0)
+    {
+      return;
     }
 
     if (engine)
