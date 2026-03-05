@@ -73,7 +73,8 @@ interface Page : Scene {
                 )
 
                 // Check for and handle button press
-                if (sceneInfo.mouseX > offsetX &&
+                if (sceneInfo.tapOccurred &&
+                    sceneInfo.mouseX > offsetX &&
                     sceneInfo.mouseX < offsetX + buttonWidth &&
                     sceneInfo.mouseY > buttonTop &&
                     sceneInfo.mouseY < buttonTop + navHeight
