@@ -183,14 +183,15 @@ namespace {
                   jfloat x,
                   jfloat y,
                   jfloat width,
-                  jfloat height)
+                  jfloat height,
+                  jfloat radius)
   {
     ge::Renderer2D* renderer = getRenderer(env, thiz);
     if (renderer == nullptr)
     {
       return;
     }
-    renderer->rect(x, y, width, height);
+    renderer->rect(x, y, width, height, radius);
   }
 
   void nativeTriangle(JNIEnv* env,
@@ -355,7 +356,7 @@ namespace {
     {"rectMode",    "(I)V",                       (void*)nativeRectMode},
     {"ellipseMode", "(I)V",                       (void*)nativeEllipseMode},
     {"imageMode",   "(I)V",                       (void*)nativeImageMode},
-    {"rect",        "(FFFF)V",                    (void*)nativeRect},
+    {"rect",        "(FFFFF)V",                    (void*)nativeRect},
     {"triangle",    "(FFFFFF)V",                  (void*)nativeTriangle},
     {"ellipse",     "(FFFF)V",                    (void*)nativeEllipse},
     {"textFont",    "(Ljava/lang/String;I)V",     (void*)nativeTextFont},
