@@ -59,14 +59,14 @@ interface Page : Scene {
                 val yOffset = 40.0f
 
                 textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-                textFont("roboto", 42)
+                textFont("roboto", 12)
                 text(
                     navLabels[i],
                     offsetX + buttonWidth / 2.0f,
                     screenHeight - navHeight / 2.0f + yOffset
                 )
 
-                textFont("emoji", 70)
+                textFont("emoji", 20)
                 text(
                     navEmojiLabels[i],
                     offsetX + buttonWidth / 2.0f,
