@@ -47,14 +47,18 @@ class SceneSwitcher {
                 nativeInit(instance!!)
             }
 
-            instance!!.registerScene(SceneId.AR.id, ArPage())
-            instance!!.registerScene(SceneId.Settings.id, SettingsPage())
+            instance!!.registerScenes()
 
             return instance!!
         }
     }
 
-    fun registerScene(sceneId: Int, scene: Scene) {
+    private fun registerScenes() {
+        registerScene(SceneId.AR.id, ArPage())
+        registerScene(SceneId.Settings.id, SettingsPage())
+    }
+
+    private fun registerScene(sceneId: Int, scene: Scene) {
         if (scenes.containsKey(sceneId)) {
             return
         }
