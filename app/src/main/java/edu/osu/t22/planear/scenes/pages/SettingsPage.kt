@@ -50,7 +50,7 @@ class SettingsPage : Page {
         }
     }
 
-    private fun Renderer2D.drawSlider(
+    private fun drawSlider(
         sceneInfo: SceneInfo,
         cardX: Float,
         cardY: Float,
@@ -64,83 +64,85 @@ class SettingsPage : Page {
         onDragStart: () -> Unit,
         onDragEnd: () -> Unit
     ): Int {
-        val cardH   = 220f
-        val cornerR = 20f
+        with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
+            val cardH = 220f
+            val cornerR = 20f
 
-        // Card background
-        fill(255)
-        rect(cardX, cardY, cardW, cardH, cornerR)
+            // Card background
+            fill(255)
+            rect(cardX, cardY, cardW, cardH, cornerR)
 
-        // Title label
-        fill(30)
-        textFont("roboto", 14)
-        textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
-        text(title, cardX + 30f, cardY + 55f)
+            // Title label
+            fill(30)
+            textFont("roboto", 14)
+            textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
+            text(title, cardX + 30f, cardY + 55f)
 
-        // Current value label
-        fill(76, 175, 80)
-        textFont("roboto", 14)
-        textAlign(TextAlignH.RIGHT, TextAlignV.BASELINE)
-        text("$current $units", cardX + cardW - 30f, cardY + 55f)
+            // Current value label
+            fill(76, 175, 80)
+            textFont("roboto", 14)
+            textAlign(TextAlignH.RIGHT, TextAlignV.BASELINE)
+            text("$current $units", cardX + cardW - 30f, cardY + 55f)
 
-        // Track geometry
-        val trackPad   = 40f
-        val trackLeft  = cardX + trackPad
-        val trackRight = cardX + cardW - trackPad
-        val trackWidth = trackRight - trackLeft
-        val trackY     = cardY + 130f
-        val trackH     = 8f
+            // Track geometry
+            val trackPad = 40f
+            val trackLeft = cardX + trackPad
+            val trackRight = cardX + cardW - trackPad
+            val trackWidth = trackRight - trackLeft
+            val trackY = cardY + 130f
+            val trackH = 8f
 
-        val fraction = (current - min).toFloat() / (max - min).toFloat()
-        val thumbX   = trackLeft + fraction * trackWidth
+            val fraction = (current - min).toFloat() / (max - min).toFloat()
+            val thumbX = trackLeft + fraction * trackWidth
 
-        // Track background
-        fill(220)
-        rect(trackLeft, trackY - trackH / 2f, trackWidth, trackH, trackH / 2f)
+            // Track background
+            fill(220)
+            rect(trackLeft, trackY - trackH / 2f, trackWidth, trackH, trackH / 2f)
 
-        // Filled portion up to thumb
-        fill(76, 175, 80)
-        rect(trackLeft, trackY - trackH / 2f, thumbX - trackLeft, trackH, trackH / 2f)
+            // Filled portion up to thumb
+            fill(76, 175, 80)
+            rect(trackLeft, trackY - trackH / 2f, thumbX - trackLeft, trackH, trackH / 2f)
 
-        // Thumb outer circle
-        val thumbR = 28f
-        fill(76, 175, 80)
-        rect(thumbX - thumbR, trackY - thumbR, thumbR * 2f, thumbR * 2f, thumbR)
+            // Thumb outer circle
+            val thumbR = 28f
+            fill(76, 175, 80)
+            rect(thumbX - thumbR, trackY - thumbR, thumbR * 2f, thumbR * 2f, thumbR)
 
-        // Thumb inner circle
-        val innerR = 14f
-        fill(255)
-        rect(thumbX - innerR, trackY - innerR, innerR * 2f, innerR * 2f, innerR)
+            // Thumb inner circle
+            val innerR = 14f
+            fill(255)
+            rect(thumbX - innerR, trackY - innerR, innerR * 2f, innerR * 2f, innerR)
 
-        // Min / max labels
-        fill(150)
-        textFont("roboto", 10)
-        textAlign(TextAlignH.LEFT, TextAlignV.TOP)
-        text("$min $units", trackLeft, trackY + 20f)
-        textAlign(TextAlignH.RIGHT, TextAlignV.TOP)
-        text("$max $units", trackRight, trackY + 20f)
+            // Min / max labels
+            fill(150)
+            textFont("roboto", 10)
+            textAlign(TextAlignH.LEFT, TextAlignV.TOP)
+            text("$min $units", trackLeft, trackY + 20f)
+            textAlign(TextAlignH.RIGHT, TextAlignV.TOP)
+            text("$max $units", trackRight, trackY + 20f)
 
-        // Hit area is taller than the track to make it easier to grab
-        val hitTop    = trackY - 44f
-        val hitBottom = trackY + 44f
+            // Hit area is taller than the track to make it easier to grab
+            val hitTop = trackY - 44f
+            val hitBottom = trackY + 44f
 
-        if (sceneInfo.tapOccurred &&
-            sceneInfo.mouseY in hitTop..hitBottom &&
-            sceneInfo.mouseX in trackLeft..trackRight
-        ) {
-            onDragStart()
+            if (sceneInfo.tapOccurred &&
+                sceneInfo.mouseY in hitTop..hitBottom &&
+                sceneInfo.mouseX in trackLeft..trackRight
+            ) {
+                onDragStart()
+            }
+
+            if (!sceneInfo.isTouching) {
+                onDragEnd()
+            }
+
+            if (dragging && sceneInfo.isTouching) {
+                val clamped = sceneInfo.mouseX.coerceIn(trackLeft, trackRight)
+                val newFrac = (clamped - trackLeft) / trackWidth
+                return (min + newFrac * (max - min)).toInt().coerceIn(min, max)
+            }
+
+            return current
         }
-
-        if (!sceneInfo.isTouching) {
-            onDragEnd()
-        }
-
-        if (dragging && sceneInfo.isTouching) {
-            val clamped = sceneInfo.mouseX.coerceIn(trackLeft, trackRight)
-            val newFrac = (clamped - trackLeft) / trackWidth
-            return (min + newFrac * (max - min)).toInt().coerceIn(min, max)
-        }
-
-        return current
     }
 }
