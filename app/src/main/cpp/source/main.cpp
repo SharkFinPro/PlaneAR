@@ -16,7 +16,6 @@ void android_main(struct android_app* pApp)
   // Register the switcher with the JNI bridge
   JNISceneBridge::setSceneSwitcher(&switcher);
 
-  bool scenesLoaded = false;
   int events;
   struct android_poll_source* source;
 
@@ -43,12 +42,6 @@ void android_main(struct android_app* pApp)
 
         // Assets and UI setup
         AppScenes::initialize(engine, pApp);
-
-        if (!scenesLoaded) {
-          switcher.loadScene(static_cast<uint32_t>(SceneId::Favorites), AppScenes::favoritesScene);
-
-          scenesLoaded = true;
-        }
       }
 
       if (pApp->window == nullptr && engine)
