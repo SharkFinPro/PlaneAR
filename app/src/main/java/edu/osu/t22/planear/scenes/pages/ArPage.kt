@@ -20,7 +20,7 @@ class ArPage : Page {
             rect(0, 0, width, height);
 
             fill(0);
-            textFont("roboto", 64);
+            textFont("roboto", 18);
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER);
             text("AR Scene", width / 2, 250);
         }
