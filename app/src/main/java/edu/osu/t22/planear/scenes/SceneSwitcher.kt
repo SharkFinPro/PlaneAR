@@ -55,6 +55,10 @@ class SceneSwitcher {
     }
 
     fun registerScene(sceneId: Int, scene: Scene) {
+        if (scenes.containsKey(sceneId)) {
+            return
+        }
+
         scenes[sceneId] = scene
         nativeRegisterSceneCallback(sceneId)
     }
