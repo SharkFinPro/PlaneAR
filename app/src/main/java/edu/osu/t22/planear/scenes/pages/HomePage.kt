@@ -164,6 +164,7 @@ class HomePage : Page {
                         val rawX = margin + i * (rvCardW + rvCardGap) - scrollOffset
                         if (tapX >= rawX && tapX <= rawX + rvCardW) {
                             homeSelectedFlight = i
+                            Page.sheetAnimProgress = 0.0f
                             homeTapConsumed    = true
                             totalDragDist      = 9999f
                             break
@@ -247,6 +248,7 @@ class HomePage : Page {
                         val rawX = margin + fi * (rvCardW + rvCardGap) - favScrollOffset
                         if (tapX >= rawX && tapX <= rawX + rvCardW) {
                             homeSelectedFlight = idx
+                            Page.sheetAnimProgress = 0.0f
                             homeTapConsumed    = true
                             favTotalDragDist   = 9999f
                             break

@@ -1,6 +1,7 @@
 package edu.osu.t22.planear.scenes.pages
 
 import android.util.Log
+import edu.osu.t22.planear.graphicsEngine.EllipseMode
 import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
 import edu.osu.t22.planear.graphicsEngine.RectMode
 import edu.osu.t22.planear.graphicsEngine.TextAlignH
@@ -24,6 +25,10 @@ val navEmojiLabels = listOf("🏠", "📷", "🕒", "⚙️")
 interface Page : Scene {
     companion object {
         val flightFavorites: MutableList<Boolean> = MutableList(flightData.size) { false }
+
+        // 0.0 = fully offscreen (sheet just opened), 1.0 = fully slid up.
+        // Reset to 0f whenever a new flight is selected, then advances each frame.
+        var sheetAnimProgress: Float = 0.0f
     }
 
     val sceneId: SceneId
@@ -48,84 +53,95 @@ interface Page : Scene {
         val screenH = sceneInfo.screenHeight - navHeight
         var dismissed = false
 
+        // Advance animation each frame (step ≈ 0.06 → ~250 ms at 60 fps)
+        sheetAnimProgress = (sheetAnimProgress + 0.05f).coerceAtMost(1.0f)
+
+        // Ease out: fast start, settles smoothly at the top
+        val eased = 1.0f - (1.0f - sheetAnimProgress) * (1.0f - sheetAnimProgress)
+
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
-            // Dimmed backdrop
             rectMode(RectMode.CORNER)
-            fill(0, 0, 0, 80)
+
+            // Backdrop fades in with the sheet
+            val backdropAlpha = (140 * eased).toInt()
+            fill(0, 0, 0, backdropAlpha)
             rect(0, 0, screenW, screenH)
 
-            val widgetW = screenW * 0.82f
-            val widgetH = 380.0f
-            val widgetX = (screenW - widgetW) / 2.0f
-            val widgetY = screenH * 0.30f
+            // Bottom sheet — slides up from offscreen
+            val sheetH      = screenH * 0.62f
+            val sheetRestY  = screenH - sheetH
+            val slideOffset = sheetH * (1.0f - eased)   // 0 when fully open
+            val sheetY      = sheetRestY + slideOffset
+            val sheetR      = 32.0f
 
-            // Widget body
+            fill(255, 255, 255)
+            rect(0, sheetY + sheetR, screenW, sheetH - sheetR)       // body (square bottom)
+            rect(0, sheetY, screenW, sheetH * 0.4f, sheetR)          // top rounded portion
+
+            // Drag handle pill
+            fill(210, 215, 210)
+            ellipseMode(EllipseMode.CENTER)
+            ellipse(screenW / 2.0f, sheetY + 22.0f, 60.0f, 10.0f)
+
+            // Callsign — big title
+            fill(30, 30, 30)
+            textFont("roboto", 26)
+            textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
+            val padX = screenW * 0.08f
+            text(flight.callsign, padX, sheetY + 80.0f)
+
+            // Thin accent line under callsign
             fill(76, 175, 80)
-            rect(widgetX, widgetY, widgetW, widgetH)
+            rect(padX, sheetY + 92.0f, 60.0f, 4.0f, 2.0f)
 
-            // Dark green header bar
-            fill(56, 142, 60)
-            rect(widgetX, widgetY, widgetW, 80.0f)
+            // Field rows — label left, value right, divider below
+            val fieldStartY = sheetY + 140.0f
+            val fieldGap    = 100.0f
+            val labelSize   = 11
+            val valueSize   = 17
+            val rightEdge   = screenW - padX
 
-            // Callsign
+            // Helper: draw one field row
+            fun drawField(label: String, value: String, y: Float) {
+                fill(150, 160, 150)
+                textFont("roboto", labelSize)
+                textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
+                text(label, padX, y)
+
+                fill(30, 30, 30)
+                textFont("roboto", valueSize)
+                textAlign(TextAlignH.RIGHT, TextAlignV.BASELINE)
+                text(value, rightEdge, y + 34.0f)
+
+                // Divider
+                fill(230, 235, 230)
+                rect(padX, y + 52.0f, screenW - 2.0f * padX, 1.5f)
+            }
+
+            drawField("TAKEOFF",       flight.takeoffTime,         fieldStartY)
+            drawField("LANDING",       flight.landingTime,         fieldStartY + fieldGap)
+            drawField("AIRCRAFT TYPE", flight.planeType,           fieldStartY + fieldGap * 2)
+            drawField("AIRSPEED",      "${flight.airspeed} kts",   fieldStartY + fieldGap * 3)
+
+            // Close button — green pill at bottom
+            val btnW   = screenW * 0.55f
+            val btnH   = 72.0f
+            val btnX   = (screenW - btnW) / 2.0f
+            val btnY   = sheetY + sheetH - btnH - 28.0f
+            fill(76, 175, 80)
+            rect(btnX, btnY, btnW, btnH, btnH / 2.0f)
             fill(255, 255, 255)
             textFont("roboto", 15)
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-            text(flight.callsign, screenW / 2.0f, widgetY + 40.0f)
+            text("Close", screenW / 2.0f, btnY + btnH / 2.0f)
 
-            // Close button
-            val closeX    = widgetX + widgetW - 55.0f
-            val closeY    = widgetY + 15.0f
-            val closeSize = 50.0f
-            fill(255, 255, 255, 200)
-            rect(closeX, closeY, closeSize, closeSize)
-            fill(56, 142, 60)
-            textFont("roboto", 12)
-            textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-            text("X", closeX + closeSize / 2.0f, closeY + closeSize / 2.0f)
-
-            // Content rows
-            val contentX = widgetX + 30.0f
-            val rowStart = widgetY + 110.0f
-            val rowGap   = 70.0f
-            val halfW    = (widgetW - 70.0f) / 2.0f
-
-            // Row 1: Takeoff / Landing
-            fill(240, 248, 255)
-            rect(contentX, rowStart, halfW, 55.0f)
-            rect(contentX + halfW + 10.0f, rowStart, halfW, 55.0f)
-            fill(30, 30, 30)
-            textFont("roboto", 10)
-            textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-            text("Takeoff: ${flight.takeoffTime}", contentX + halfW / 2.0f, rowStart + 27.0f)
-            text("Landing: ${flight.landingTime}", contentX + halfW * 1.5f + 10.0f, rowStart + 27.0f)
-
-            // Row 2: Plane type
-            val row2Y = rowStart + rowGap
-            fill(240, 248, 255)
-            rect(contentX, row2Y, widgetW - 60.0f, 55.0f)
-            fill(30, 30, 30)
-            textFont("roboto", 10)
-            textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
-            text("Plane Type: ${flight.planeType}", contentX + 15.0f, row2Y + 27.0f)
-
-            // Row 3: Airspeed
-            val row3Y = row2Y + rowGap
-            fill(240, 248, 255)
-            rect(contentX, row3Y, widgetW - 60.0f, 55.0f)
-            fill(30, 30, 30)
-            textFont("roboto", 10)
-            textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
-            text("Airspeed: ${flight.airspeed} kts", contentX + 15.0f, row3Y + 27.0f)
-
-            // Dismiss: tap X or tap outside the widget
-            if (sceneInfo.tapOccurred && !tapAlreadyConsumed) {
+            // Dismiss: tap Close button or tap backdrop — only once fully open
+            if (sceneInfo.tapOccurred && !tapAlreadyConsumed && sheetAnimProgress >= 1.0f) {
                 val mx = sceneInfo.mouseX
                 val my = sceneInfo.mouseY
-                if ((mx >= closeX && mx <= closeX + closeSize && my >= closeY && my <= closeY + closeSize) ||
-                    (mx < widgetX || mx > widgetX + widgetW || my < widgetY || my > widgetY + widgetH)) {
-                    dismissed = true
-                }
+                val tappedClose = mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH
+                val tappedBackdrop = my < sheetY
+                if (tappedClose || tappedBackdrop) dismissed = true
             }
         }
 

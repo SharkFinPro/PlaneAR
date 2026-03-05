@@ -161,6 +161,7 @@ class FlightHistoryPage : Page {
                     if (sceneInfo.mouseX >= margin && sceneInfo.mouseX <= rightEdge &&
                         sceneInfo.mouseY >= rowY && sceneInfo.mouseY <= rowY + rowHeight) {
                         selectedIndex = i
+                        Page.sheetAnimProgress = 0.0f
                         tapConsumed = true
                     }
                 }
