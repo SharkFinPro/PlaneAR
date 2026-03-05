@@ -22,23 +22,20 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
         val lat = loc.latitude
         val lon = loc.longitude
 
-        // Read the current radius (in km) from shared settings
-        val radiusKm = AppSettings.searchRadiusKm
-
         coroutineScope {
             val nearby = async(Dispatchers.IO) {
-                api.getNearbyAircraft(lat, lon, radiusKm)
+                api.getNearbyAircraft(lat, lon, AppSettings.searchRadiusNm)
             }
 
             val closest = async(Dispatchers.IO) {
                 // Use a larger bubble for "closest" so we always get at least one result
-                api.getClosestAircraft(lat, lon, radiusKm * 5)
+                api.getClosestAircraft(lat, lon, AppSettings.searchRadiusNm * 5)
             }
 
             val nearbyData  = nearby.await()
             val closestData = closest.await()
 
-            Log.d("AdsbManager", "Radius: ${AppSettings.searchRadiusNm} nm (${radiusKm} km)")
+            Log.d("AdsbManager", "Radius: ${AppSettings.searchRadiusNm} nm (${AppSettings.searchRadiusNm} km)")
             Log.d("AdsbManager", "Got ${nearbyData.total} aircraft")
             Log.d("AdsbManager", "Timing data: (now: ${nearbyData.now}, cTime: ${nearbyData.cTime}, pTime: ${nearbyData.pTime})")
 
