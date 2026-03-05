@@ -65,11 +65,11 @@ class Renderer2D(private val ptr: Long) {
     private external fun imageMode(mode: Int)
 
     /* Shapes */
-    fun rect(x: Number, y: Number, width: Number, height: Number) = rect(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
+    fun rect(x: Number, y: Number, width: Number, height: Number, radius: Number = 0) = rect(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat(), radius.toFloat())
     fun ellipse(x: Number, y: Number, width: Number, height: Number) = ellipse(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
     fun triangle(x1: Number, y1: Number, x2: Number, y2: Number, x3: Number, y3: Number) = triangle(x1.toFloat(), y1.toFloat(), x2.toFloat(), y2.toFloat(), x3.toFloat(), y3.toFloat())
 
-    private external fun rect(x: Float, y: Float, width: Float, height: Float)
+    private external fun rect(x: Float, y: Float, width: Float, height: Float, radius: Float)
     private external fun triangle(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float, y3: Float)
     private external fun ellipse(x: Float, y: Float, width: Float, height: Float)
 
