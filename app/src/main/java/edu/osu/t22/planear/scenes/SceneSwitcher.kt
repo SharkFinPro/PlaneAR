@@ -1,5 +1,7 @@
 package edu.osu.t22.planear.scenes
 
+import edu.osu.t22.planear.scenes.pages.ArPage
+
 interface Scene {
     fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher)
 }
@@ -42,6 +44,8 @@ class SceneSwitcher {
                 instance = SceneSwitcher()
                 nativeInit(instance!!)
             }
+
+            instance!!.registerScene(2, ArPage())
 
             return instance!!
         }
