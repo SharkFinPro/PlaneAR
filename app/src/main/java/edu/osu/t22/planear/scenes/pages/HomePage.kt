@@ -108,7 +108,7 @@ class HomePage : Page {
             val rvZoneTop    = rvTop - 10f
             val rvZoneBottom = rvTop + rvImgH + 80f
             val inZone = sceneInfo.mouseY >= rvZoneTop && sceneInfo.mouseY <= rvZoneBottom &&
-                         sceneInfo.mouseX >= margin && sceneInfo.mouseX <= margin + cardW
+                    sceneInfo.mouseX >= margin && sceneInfo.mouseX <= margin + cardW
 
             if (sceneInfo.tapOccurred && inZone && homeSelectedFlight < 0) {
                 dragging       = true
@@ -191,7 +191,7 @@ class HomePage : Page {
             val favZoneTop    = favTop - 10f
             val favZoneBottom = favTop + rvImgH + 80f
             val inFavZone = sceneInfo.mouseY >= favZoneTop && sceneInfo.mouseY <= favZoneBottom &&
-                            sceneInfo.mouseX >= margin     && sceneInfo.mouseX <= margin + cardW
+                    sceneInfo.mouseX >= margin     && sceneInfo.mouseX <= margin + cardW
 
             if (sceneInfo.tapOccurred && inFavZone && homeSelectedFlight < 0) {
                 favDragging      = true
@@ -257,78 +257,14 @@ class HomePage : Page {
 
             // Detail widget overlay
             if (homeSelectedFlight >= 0 && homeSelectedFlight < flightData.size) {
-                val flight = flightData[homeSelectedFlight]
-
-                fill(0, 0, 0, 80)
-                rect(0, 0, screenW, screenH)
-
-                val widgetW = screenW * 0.82f
-                val widgetH = 380f
-                val widgetX = (screenW - widgetW) / 2f
-                val widgetY = screenH * 0.30f
-
-                fill(76, 175, 80)
-                rect(widgetX, widgetY, widgetW, widgetH)
-                fill(56, 142, 60)
-                rect(widgetX, widgetY, widgetW, 80f)
-
-                fill(255, 255, 255)
-                textFont("roboto", 15)
-                textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-                text(flight.callsign, screenW / 2f, widgetY + 40f)
-
-                val closeX    = widgetX + widgetW - 55f
-                val closeY    = widgetY + 15f
-                val closeSize = 50f
-                fill(255, 255, 255, 200)
-                rect(closeX, closeY, closeSize, closeSize)
-                fill(56, 142, 60)
-                textFont("roboto", 12)
-                textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-                text("X", closeX + closeSize / 2f, closeY + closeSize / 2f)
-
-                val contentX  = widgetX + 30f
-                val rowStart  = widgetY + 110f
-                val rowGap    = 70f
-                val halfW     = (widgetW - 70f) / 2f
-
-                fill(240, 248, 255)
-                rect(contentX,              rowStart, halfW, 55f)
-                rect(contentX + halfW + 10f, rowStart, halfW, 55f)
-                fill(30, 30, 30)
-                textFont("roboto", 10)
-                textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-                text("Takeoff: ${flight.takeoffTime}", contentX + halfW / 2f,          rowStart + 27f)
-                text("Landing: ${flight.landingTime}", contentX + halfW * 1.5f + 10f,  rowStart + 27f)
-
-                val row2Y = rowStart + rowGap
-                fill(240, 248, 255)
-                rect(contentX, row2Y, widgetW - 60f, 55f)
-                fill(30, 30, 30)
-                textFont("roboto", 10)
-                textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
-                text("Plane Type: ${flight.planeType}", contentX + 15f, row2Y + 27f)
-
-                val row3Y = row2Y + rowGap
-                fill(240, 248, 255)
-                rect(contentX, row3Y, widgetW - 60f, 55f)
-                fill(30, 30, 30)
-                textFont("roboto", 10)
-                textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
-                text("Airspeed: ${flight.airspeed} kts", contentX + 15f, row3Y + 27f)
-
-                if (sceneInfo.tapOccurred && !homeTapConsumed) {
-                    val mx = sceneInfo.mouseX
-                    val my = sceneInfo.mouseY
-                    if (mx >= closeX && mx <= closeX + closeSize &&
-                        my >= closeY && my <= closeY + closeSize) {
-                        homeSelectedFlight = -1
-                        homeTapConsumed    = true
-                    } else if (mx < widgetX || mx > widgetX + widgetW ||
-                        my < widgetY || my > widgetY + widgetH) {
-                        homeSelectedFlight = -1
-                        homeTapConsumed    = true
-                    }
+                val dismissed = drawFlightDetailWidget(
+                    sceneInfo,
+                    flightData[homeSelectedFlight],
+                    homeTapConsumed
+                )
+                if (dismissed) {
+                    homeSelectedFlight = -1
+                    homeTapConsumed    = true
                 }
             }
 
