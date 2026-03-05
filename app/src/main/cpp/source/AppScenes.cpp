@@ -192,8 +192,7 @@ namespace AppScenes {
         am->preloadFont("roboto", 14);
         am->preloadFont("roboto", 15);
         am->preloadFont("roboto", 18);
-        am->preloadFont("emoji", 70);
-        am->preloadFont("emoji", 150);
+        am->preloadFont("emoji", 20);
     }
 
     void homeScene(const SceneInfo& info, SceneSwitcher* switcher) {
