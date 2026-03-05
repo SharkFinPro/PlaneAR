@@ -28,6 +28,7 @@ void android_main(struct android_app* pApp)
   {
     int result = ALooper_pollOnce(0, nullptr, &events, (void**)&source);
 
+    bool tapOccurred = false;
     if (result >= 0)
     {
       if (source != nullptr)
@@ -36,7 +37,7 @@ void android_main(struct android_app* pApp)
       }
 
       // Input processing
-      bool tapOccurred = InputUtils::handleTouchInput(pApp, &mouseX, &mouseY);
+      tapOccurred = InputUtils::handleTouchInput(pApp, &mouseX, &mouseY);
 
       if (pApp->window != nullptr && !engine)
       {
@@ -54,12 +55,12 @@ void android_main(struct android_app* pApp)
       {
         return;
       }
+    }
 
-      if (engine)
-      {
-        SceneInfo info{engine, pApp, mouseX, mouseY, tapOccurred, InputUtils::isTouching()};
-        switcher.renderCurrentScene(info);
-      }
+    if (engine)
+    {
+      SceneInfo info{engine, pApp, mouseX, mouseY, tapOccurred, InputUtils::isTouching()};
+      switcher.renderCurrentScene(info);
     }
   }
 }
