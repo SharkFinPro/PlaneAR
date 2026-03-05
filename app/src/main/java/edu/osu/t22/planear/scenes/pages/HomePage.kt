@@ -51,15 +51,9 @@ class HomePage : Page {
             val cardH    = screenH * 0.38f
             val cornerR  = 30f
 
-            // Green card (manual rounded rect)
+            // Green card
             fill(76, 175, 80)
-            rect(margin + cornerR, cardTop, cardW - 2f * cornerR, cardH)
-            rect(margin, cardTop + cornerR, cardW, cardH - 2f * cornerR)
-            ellipseMode(EllipseMode.CENTER)
-            ellipse(margin + cornerR,          cardTop + cornerR,          cornerR * 2f, cornerR * 2f)
-            ellipse(margin + cardW - cornerR,  cardTop + cornerR,          cornerR * 2f, cornerR * 2f)
-            ellipse(margin + cornerR,          cardTop + cardH - cornerR,  cornerR * 2f, cornerR * 2f)
-            ellipse(margin + cardW - cornerR,  cardTop + cardH - cornerR,  cornerR * 2f, cornerR * 2f)
+            rect(margin, cardTop, cardW, cardH, cornerR);
 
             // "Flights in Air" pill button
             val btnW = cardW * 0.75f
@@ -69,13 +63,7 @@ class HomePage : Page {
             val btnR = btnH / 2f
 
             fill(255, 255, 255)
-            rect(btnX + btnR, btnY, btnW - 2f * btnR, btnH)
-            rect(btnX,        btnY, btnW,              btnH)
-            ellipseMode(EllipseMode.CENTER)
-            ellipse(btnX + btnR,       btnY + btnR, btnH, btnH)
-            ellipse(btnX + btnW - btnR, btnY + btnR, btnH, btnH)
-            fill(255, 255, 255)
-            rect(btnX + btnR, btnY, btnW - 2f * btnR, btnH)
+            rect(btnX, btnY, btnW, btnH, btnR);
 
             fill(76, 175, 80)
             textFont("roboto", 14)
