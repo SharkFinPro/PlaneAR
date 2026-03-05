@@ -38,7 +38,8 @@ namespace ge {
   {
   public:
     AssetManager(std::shared_ptr<LogicalDevice> logicalDevice,
-                 AAssetManager* aassetManager);
+                 AAssetManager* aassetManager,
+                 float dpiScale);
 
     ~AssetManager();
 
@@ -68,6 +69,8 @@ namespace ge {
 
     AAssetManager* m_aassetManager = nullptr;
 
+    float m_dpiScale = 1.0f;
+
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
     VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
@@ -94,7 +97,7 @@ namespace ge {
     void createImageDescriptorSetLayout();
 
     void loadFont(const std::string& fontName,
-                  uint32_t fontSize);
+                  uint32_t scaledFontSize);
 
     void loadImage(const std::string& imageName);
 
