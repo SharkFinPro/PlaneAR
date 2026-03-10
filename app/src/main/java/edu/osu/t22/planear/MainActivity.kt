@@ -20,6 +20,8 @@ import edu.osu.t22.planear.scenes.SceneSwitcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import edu.osu.t22.planear.adsb.AircraftOverlayStore
+import edu.osu.t22.planear.adsb.AircraftScreenPoint
 
 class MainActivity : GameActivity() {
 
@@ -34,7 +36,7 @@ class MainActivity : GameActivity() {
 
         @JvmStatic
         external fun nativeSetArReady(ready: Boolean)
-
+/*
         @JvmStatic
         external fun nativeSetAircraftDots(dots: FloatArray)
 
@@ -44,6 +46,7 @@ class MainActivity : GameActivity() {
             ys: FloatArray,
             labels: Array<String>
         )
+ */
     }
 
     private lateinit var sceneSwitcher: SceneSwitcher
@@ -51,7 +54,6 @@ class MainActivity : GameActivity() {
     private lateinit var adsbManager: AdsbManager
     private lateinit var arManager: ArManager
 
-    // Keep these only if you're actually updating them from sensors somewhere else.
     @Volatile private var deviceAzimuthDeg = 0.0
     @Volatile private var devicePitchDeg = 0.0
     @Volatile private var deviceRollDeg = 0.0
@@ -87,17 +89,24 @@ class MainActivity : GameActivity() {
                             )
 
                             if (result != null) {
-                                nativeSetAircraftDots(result.dots)
-                                nativeSetAircraftLabels(
-                                    result.xs,
-                                    result.ys,
-                                    result.labels
-                                )
+
+                                AircraftOverlayStore.points =
+                                    result.xs.indices.map { i ->
+                                        AircraftScreenPoint(
+                                            x = result.xs[i],
+                                            y = result.ys[i],
+                                            label = result.labels[i]
+                                        )
+                                    }
+                            } else {
+                                AircraftOverlayStore.points = emptyList()
                             }
                         } else {
+                            AircraftOverlayStore.points = emptyList()
                             Log.w("ADSB_EXECUTION", "No location available yet")
                         }
                     } catch (e: Exception) {
+                        AircraftOverlayStore.points = emptyList()
                         Log.e("ADSB_EXECUTION", "ADS-B polling failed", e)
                     }
 
