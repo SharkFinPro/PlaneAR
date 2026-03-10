@@ -15,8 +15,6 @@ class SettingsPage : Page {
     private var radiusSliderDragging = false
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
-        super.render(sceneInfo, sceneSwitcher)
-
         val width  = sceneInfo.screenWidth
         val height = sceneInfo.screenHeight - navHeight
 
@@ -48,6 +46,8 @@ class SettingsPage : Page {
             )
             AppSettings.searchRadiusNm = newRadius
         }
+
+        postRender(sceneInfo, sceneSwitcher);
     }
 
     private fun drawSlider(
