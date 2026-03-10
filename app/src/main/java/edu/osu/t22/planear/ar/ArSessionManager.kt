@@ -1,5 +1,7 @@
 package edu.osu.t22.planear.ar
 
+import android.hardware.HardwareBuffer
+import android.util.Log
 import com.google.ar.core.Anchor
 import com.google.ar.core.Frame
 import com.google.ar.core.Session
@@ -16,6 +18,9 @@ class ARSessionManager(
     private var viewportWidth: Int = 1
     private var viewportHeight: Int = 1
 
+    private var nullHbCount = 0
+    private var validHbCount = 0
+
     fun updateViewport(width: Int, height: Int) {
         viewportWidth = width
         viewportHeight = height
@@ -27,6 +32,8 @@ class ARSessionManager(
 
 
     fun onUpdateFrame() {
+        session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
+
         val frame: Frame
         try {
             frame = session.update()
@@ -35,15 +42,30 @@ class ARSessionManager(
             return
         }
 
-        session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
 
         val camera = frame.camera
-        if (camera.trackingState != TrackingState.TRACKING) {
-            // Inform native side that tracking is limited or lost
-            nativeOnTrackingStateChanged(camera.trackingState.ordinal)
-            return
-        }
 
+        nativeOnTrackingStateChanged(camera.trackingState.ordinal)
+
+        if (camera.trackingState != TrackingState.TRACKING)  return
+
+        val hb: HardwareBuffer? = frame.hardwareBuffer
+        if (hb != null) {
+            validHbCount++
+            if (validHbCount % 60 == 0) {
+                Log.i("ARSessionManager", "HB frames received: $validHbCount")
+            }
+            try {
+                nativeOnHardwareBuffer(hb, frame.timestamp)
+            } finally {
+                hb.close()
+            }
+        } else {
+            nullHbCount++
+            if (nullHbCount % 60 == 0) {
+                Log.w("ARSessionManager", "HardwareBuffer was null $nullHbCount times")
+            }
+        }
 
         // Camera pose -> 4x4 matrix
         val cameraMatrix = FloatArray(16)
@@ -95,4 +117,8 @@ class ARSessionManager(
     private external fun nativeOnTrackingStateChanged(
         trackingState: Int
     )
+
+    private external fun nativeOnHardwareBuffer(hardwareBuffer: HardwareBuffer, timestamp: Long)
+
+    private external fun nativeGetHardwareBufferFrameCount(): Long
 }

@@ -2,6 +2,10 @@ package edu.osu.t22.planear
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
 import android.view.Surface
@@ -54,6 +58,10 @@ class MainActivity : GameActivity() {
     private lateinit var adsbManager: AdsbManager
     private lateinit var arManager: ArManager
 
+    private lateinit var sensorManager: SensorManager
+    private var rotationVectorSensor: Sensor? = null
+    private val rotationMatrix    = FloatArray(9)
+    private val orientationAngles = FloatArray(3)
     @Volatile private var deviceAzimuthDeg = 0.0
     @Volatile private var devicePitchDeg = 0.0
     @Volatile private var deviceRollDeg = 0.0
@@ -61,6 +69,9 @@ class MainActivity : GameActivity() {
     @Suppress("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
         appLocationManager = AppLocationManager(this, lifecycleScope)
         adsbManager = AdsbManager()
@@ -140,6 +151,10 @@ class MainActivity : GameActivity() {
     override fun onResume() {
         super.onResume()
 
+        rotationVectorSensor?.also { sensor ->
+            sensorManager.registerListener(sensorListener, sensor, SensorManager.SENSOR_DELAY_GAME)
+        }
+
         if (!hasCameraPermission()) {
             requestCameraPermission()
             return
@@ -169,8 +184,24 @@ class MainActivity : GameActivity() {
 
     override fun onPause() {
         super.onPause()
+        sensorManager.unregisterListener(sensorListener)
         appLocationManager.stop()
         arManager.pause()
+    }
+
+    private val sensorListener = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent) {
+            if (event.sensor.type != Sensor.TYPE_ROTATION_VECTOR) return
+            SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+            SensorManager.getOrientation(rotationMatrix, orientationAngles)
+
+            deviceAzimuthDeg = Math.toDegrees(orientationAngles[0].toDouble())
+                .let { if (it < 0) it + 360.0 else it }
+            devicePitchDeg   = Math.toDegrees(orientationAngles[1].toDouble())
+            deviceRollDeg    = Math.toDegrees(orientationAngles[2].toDouble())
+        }
+
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
     }
 
     @RequiresPermission(
