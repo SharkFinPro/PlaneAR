@@ -123,14 +123,15 @@ class FlightHistoryPage : Page {
                 textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
                 text(flightData[i].callsign, margin + 10.0f, textY)
 
-                // Favorite indicator square (purple = favorited, grey = not)
+                // Favorite indicator star
                 if (i < Page.flightFavorites.size && Page.flightFavorites[i]) {
-                    fill(128, 0, 128)
+                    fill(239, 191, 4)
                 } else {
-                    fill(180, 180, 180)
+                    fill(180)
                 }
-                rectMode(RectMode.CORNER)
-                rect(starX - starHalf, rowY + rowHeight / 2.0f - starHalf, starHalf * 2.0f, starHalf * 2.0f)
+                textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+                textFont("emoji", 20)
+                text("⭐", starX, rowY + rowHeight / 2.0f)
 
                 // Date
                 fill(100, 100, 100)
