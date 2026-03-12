@@ -196,6 +196,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   );
 
   env->DeleteLocalRef(sceneSwitcherClass);
+
   return result == 0 ? JNI_VERSION_1_6 : JNI_ERR;
 }
 
