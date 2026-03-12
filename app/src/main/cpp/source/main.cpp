@@ -1,6 +1,5 @@
 #include "ArBridge.h"
 #include "SceneSwitcher.h"
-#include "InputUtils.h"
 #include "JNISceneBridge.h"
 #include "SceneIds.h"
 #include <source/GraphicsEngine.h>
@@ -28,16 +27,12 @@ void android_main(struct android_app* pApp)
   {
     int result = ALooper_pollOnce(0, nullptr, &events, (void**)&source);
 
-    bool tapOccurred = false;
     if (result >= 0)
     {
       if (source != nullptr)
       {
         source->process(pApp, source);
       }
-
-      // Input processing
-      tapOccurred = InputUtils::handleTouchInput(pApp, &mouseX, &mouseY);
 
       if (pApp->window != nullptr && !engine)
       {
@@ -59,7 +54,7 @@ void android_main(struct android_app* pApp)
 
     if (engine)
     {
-      SceneInfo info{engine, pApp, mouseX, mouseY, tapOccurred, InputUtils::isTouching()};
+      SceneInfo info{engine, pApp};
       switcher.renderCurrentScene(info);
     }
   }

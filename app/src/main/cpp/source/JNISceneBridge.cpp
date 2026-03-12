@@ -48,8 +48,8 @@ namespace {
       return;
     }
 
-    const auto enginePtr = reinterpret_cast<jlong>(sceneInfo.engine.get());
-    const auto screenWidth = (jfloat)ANativeWindow_getWidth(sceneInfo.pApp->window);
+    const auto enginePtr    = reinterpret_cast<jlong>(sceneInfo.engine.get());
+    const auto screenWidth  = (jfloat)ANativeWindow_getWidth(sceneInfo.pApp->window);
     const auto screenHeight = (jfloat)ANativeWindow_getHeight(sceneInfo.pApp->window);
 
     env->CallStaticVoidMethod(
@@ -57,12 +57,8 @@ namespace {
       g_renderSceneMethod,
       (jint)sceneId,
       enginePtr,
-      (jfloat)sceneInfo.mouseX,
-      (jfloat)sceneInfo.mouseY,
-      (jboolean)sceneInfo.tapOccurred,
       screenWidth,
-      screenHeight,
-      sceneInfo.isTouching
+      screenHeight
     );
 
     if (env->ExceptionCheck())
@@ -95,7 +91,7 @@ namespace {
     g_renderSceneMethod = env->GetStaticMethodID(
       g_sceneSwitcherClass,
       "renderScene",
-      "(IJFFZFFZ)V"
+      "(IJFF)V"
     );
 
     if (!g_renderSceneMethod)
@@ -158,19 +154,11 @@ namespace {
     return JNI_FALSE;
   }
 
-  void nativeSetSceneSwitcher(JNIEnv* env, jclass, jlong switcherPtr)
-  {
-    std::lock_guard<std::recursive_mutex> lock(g_jniBridgeMutex);
-
-    g_sceneSwitcher = reinterpret_cast<SceneSwitcher*>(switcherPtr);
-  }
-
   const JNINativeMethod sceneSwitcherMethods[] = {
     {"nativeInit", "(Ledu/osu/t22/planear/scenes/SceneSwitcher;)V", (void*)nativeInit},
     {"nativeRegisterSceneCallback", "(I)V", (void*)nativeRegisterSceneCallback},
     {"nativeSetCurrentScene", "(I)V", (void*)nativeSetCurrentScene},
-    {"nativeCheckIfSceneExists", "(I)Z", (void*)nativeCheckIfSceneExists}//,
-//    {"nativeSetSceneSwitcher", "(J)V", (void*)nativeSetSceneSwitcher}
+    {"nativeCheckIfSceneExists", "(I)Z", (void*)nativeCheckIfSceneExists}
   };
 
 } // anonymous namespace
@@ -208,13 +196,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved)
   );
 
   env->DeleteLocalRef(sceneSwitcherClass);
-
-  if (result != 0)
-  {
-    return JNI_ERR;
-  }
-
-  return JNI_VERSION_1_6;
+  return result == 0 ? JNI_VERSION_1_6 : JNI_ERR;
 }
 
 } // extern "C"
