@@ -1,6 +1,8 @@
 package edu.osu.t22.planear.scenes.pages
 
+import edu.osu.t22.planear.AppColors
 import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
+import edu.osu.t22.planear.graphicsEngine.RectMode
 import edu.osu.t22.planear.graphicsEngine.TextAlignH
 import edu.osu.t22.planear.graphicsEngine.TextAlignV
 import edu.osu.t22.planear.scenes.SceneInfo
@@ -10,19 +12,22 @@ class ArPage : Page {
     override val sceneId = SceneId.AR
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
-        val width = sceneInfo.screenWidth;
-        val height = sceneInfo.screenHeight - navHeight;
+        val screenW = sceneInfo.screenWidth
+        val screenH = sceneInfo.screenHeight - navHeight
+        val c       = AppColors.current
 
-        with (GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
-            fill(245);
-            rect(0, 0, width, height);
+        with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 
-            fill(0);
-            textFont("roboto", 18);
-            textAlign(TextAlignH.CENTER, TextAlignV.CENTER);
-            text("AR Scene", width / 2, 250);
+            rectMode(RectMode.CORNER)
+            fill(c.background)
+            rect(0, 0, screenW, screenH)
+
+            fill(c.textPrimary)
+            textFont("roboto", 18)
+            textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+            text("AR Scene", screenW / 2, 250)
         }
 
-        postRender(sceneInfo, sceneSwitcher);
+        postRender(sceneInfo, sceneSwitcher)
     }
 }
