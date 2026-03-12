@@ -1,5 +1,10 @@
 package edu.osu.t22.planear.graphicsEngine
 
+import edu.osu.t22.planear.Color
+import edu.osu.t22.planear.r
+import edu.osu.t22.planear.g
+import edu.osu.t22.planear.b
+
 // Enums mirror the C++ ge:: enums exactly — ordinal values are passed over JNI via static_cast<int>.
 // Declaration order must not change without updating the C++ side as well.
 
@@ -40,6 +45,10 @@ class Renderer2D(private val ptr: Long) {
     /* Fill */
     external fun fill(r: Int, g: Int, b: Int, a: Int = 255)
     external fun fill(rgb: Int, a: Int = 255)
+
+    fun fill(color: Color, alpha: Int = 255) {
+        fill(color.r, color.g, color.b, alpha)
+    }
 
     /* Transforms */
     fun rotate(angle: Number) = rotate(angle.toFloat())
