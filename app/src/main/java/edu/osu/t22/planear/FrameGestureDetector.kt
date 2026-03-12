@@ -13,7 +13,7 @@ import android.view.ScaleGestureDetector
  */
 class FrameGestureDetector(context: Context) {
 
-    // ---- Tap ----------------------------------------------------------------
+    /* Tap */
     /** Fires immediately on finger-lift. No double-tap delay. Use for most UI buttons/rows. */
     var singleTapUp: Boolean = false
         private set
@@ -31,13 +31,13 @@ class FrameGestureDetector(context: Context) {
     var doubleTapPosition: Pair<Float, Float>? = null
         private set
 
-    // ---- Long Press ---------------------------------------------------------
+    /* Long Press */
     var longPress: Boolean = false
         private set
     var longPressPosition: Pair<Float, Float>? = null
         private set
 
-    // ---- Scroll / Drag ------------------------------------------------------
+    /* Scroll / Drag */
     var isScrolling: Boolean = false
         private set
     /** Accumulated scroll delta for the frame. Positive X = finger moved left. */
@@ -47,7 +47,7 @@ class FrameGestureDetector(context: Context) {
     var scrollPosition: Pair<Float, Float>? = null
         private set
 
-    // ---- Fling --------------------------------------------------------------
+    /* Fling */
     var flung: Boolean = false
         private set
     var flingVelocity: Pair<Float, Float>? = null
@@ -58,7 +58,7 @@ class FrameGestureDetector(context: Context) {
     var flingStartPosition: Pair<Float, Float>? = null
         private set
 
-    // ---- Pinch / Scale ------------------------------------------------------
+    /* Pinch / Scale */
     var isScaling: Boolean = false
         private set
     /** Accumulated scale factor product for the frame (1.0 = no change). */
@@ -67,7 +67,7 @@ class FrameGestureDetector(context: Context) {
     var scaleFocusPosition: Pair<Float, Float>? = null
         private set
 
-    // ---- Raw pointer state --------------------------------------------------
+    /* Raw pointer state */
     /** Number of fingers currently on screen. Persists until next ACTION_UP/CANCEL. */
     var fingerCount: Int = 0
         private set
@@ -80,7 +80,7 @@ class FrameGestureDetector(context: Context) {
     var touchDownPosition: Pair<Float, Float>? = null
         private set
 
-    // ---- Internals ----------------------------------------------------------
+    /* Internals */
 
     private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
 
@@ -155,7 +155,7 @@ class FrameGestureDetector(context: Context) {
         }
     )
 
-    // ---- Public API ---------------------------------------------------------
+    /* Public API */
 
     /** Feed a MotionEvent from Activity.onTouchEvent. */
     fun onTouchEvent(event: MotionEvent) {
@@ -223,7 +223,7 @@ class FrameGestureDetector(context: Context) {
     val hasMovement: Boolean
         get() = isScrolling || isScaling || flung
 
-    // ---- Helpers ------------------------------------------------------------
+    /* Helpers */
 
     enum class FlingDirection { UP, DOWN, LEFT, RIGHT }
 
