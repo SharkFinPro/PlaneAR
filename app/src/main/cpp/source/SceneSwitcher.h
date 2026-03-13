@@ -9,10 +9,6 @@
 struct SceneInfo {
   const std::unique_ptr<ge::GraphicsEngine>& engine;
   struct android_app* pApp;
-  float mouseX;
-  float mouseY;
-  bool tapOccurred;
-  bool isTouching;
 };
 
 class SceneSwitcher
