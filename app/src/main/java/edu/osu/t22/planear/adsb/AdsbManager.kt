@@ -19,7 +19,8 @@ data class AircraftOverlayResult(
     val labels: Array<String>
 )
 
-class AdsbManager {
+class AdsbManager(private val appLocationManager: AppLocationManager) {
+
 
     private val api = AdsbModule.provideApi()
 
@@ -29,7 +30,7 @@ class AdsbManager {
     }
 
     suspend fun pollAndProject(
-        location: Location,
+        location: Location?,
         azimuthDeg: Double,
         pitchDeg: Double,
         rollDeg: Double,
@@ -37,9 +38,15 @@ class AdsbManager {
         screenH: Int
     ): AircraftOverlayResult? = coroutineScope {
 
-        val lat = location.latitude
-        val lon = location.longitude
-        val alt = location.altitude
+        val loc = location ?: appLocationManager.lastKnownLocation
+        if (loc == null) {
+            Log.w("ADSB", "No location available")
+            return@coroutineScope null
+        }
+
+        val lat = loc.latitude
+        val lon = loc.longitude
+        val alt = loc.altitude
 
         val nearby = async(Dispatchers.IO) {
             api.getNearbyAircraft(lat, lon, 50)

@@ -40,17 +40,17 @@ class MainActivity : GameActivity() {
 
         @JvmStatic
         external fun nativeSetArReady(ready: Boolean)
-/*
-        @JvmStatic
-        external fun nativeSetAircraftDots(dots: FloatArray)
+        /*
+                @JvmStatic
+                external fun nativeSetAircraftDots(dots: FloatArray)
 
-        @JvmStatic
-        external fun nativeSetAircraftLabels(
-            xs: FloatArray,
-            ys: FloatArray,
-            labels: Array<String>
-        )
- */
+                @JvmStatic
+                external fun nativeSetAircraftLabels(
+                    xs: FloatArray,
+                    ys: FloatArray,
+                    labels: Array<String>
+                )
+         */
     }
 
     private lateinit var sceneSwitcher: SceneSwitcher
@@ -74,7 +74,7 @@ class MainActivity : GameActivity() {
         rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
         appLocationManager = AppLocationManager(this, lifecycleScope)
-        adsbManager = AdsbManager()
+        adsbManager = AdsbManager(appLocationManager)
         arManager = ArManager(this)
 
         sceneSwitcher = SceneSwitcher.initialize()
@@ -131,10 +131,7 @@ class MainActivity : GameActivity() {
         ) {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 LOCATION_PERMISSION_CODE
             )
         } else {
@@ -142,12 +139,7 @@ class MainActivity : GameActivity() {
         }
     }
 
-    @RequiresPermission(
-        allOf = [
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ]
-    )
+    @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     override fun onResume() {
         super.onResume()
 
@@ -204,12 +196,7 @@ class MainActivity : GameActivity() {
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
     }
 
-    @RequiresPermission(
-        allOf = [
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ]
-    )
+    @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -257,10 +244,7 @@ class MainActivity : GameActivity() {
     private fun requestLocationPermission() {
         ActivityCompat.requestPermissions(
             this,
-            arrayOf(
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ),
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
             LOCATION_PERMISSION_CODE
         )
     }
