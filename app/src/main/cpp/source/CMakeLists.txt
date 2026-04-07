@@ -4,7 +4,6 @@ add_library(${PROJECT_NAME} SHARED
   main.cpp
   ArBridge.cpp
   SceneSwitcher.cpp
-  InputUtils.cpp
   JNISceneBridge.cpp
 )
 

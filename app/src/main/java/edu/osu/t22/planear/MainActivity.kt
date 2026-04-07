@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Surface
 import android.view.View
+import android.view.MotionEvent
 import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -58,13 +59,7 @@ class MainActivity : GameActivity() {
     private lateinit var adsbManager: AdsbManager
     private lateinit var arManager: ArManager
 
-    private lateinit var sensorManager: SensorManager
-    private var rotationVectorSensor: Sensor? = null
-    private val rotationMatrix    = FloatArray(9)
-    private val orientationAngles = FloatArray(3)
-    @Volatile private var deviceAzimuthDeg = 0.0
-    @Volatile private var devicePitchDeg = 0.0
-    @Volatile private var deviceRollDeg = 0.0
+    private lateinit var frameGestureDetector: FrameGestureDetector
 
     @Suppress("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,6 +73,10 @@ class MainActivity : GameActivity() {
         arManager = ArManager(this)
 
         sceneSwitcher = SceneSwitcher.initialize()
+
+        // Gesture Detector Setup
+        frameGestureDetector = FrameGestureDetector(this)
+        SceneSwitcher.gestureDetector = frameGestureDetector
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -139,7 +138,12 @@ class MainActivity : GameActivity() {
         }
     }
 
-    @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        frameGestureDetector.onTouchEvent(event)
+        return super.onTouchEvent(event)
+    }
+
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     override fun onResume() {
         super.onResume()
 

@@ -1,7 +1,9 @@
 package edu.osu.t22.planear.scenes.pages
 
 import edu.osu.t22.planear.adsb.AircraftOverlayStore
+import edu.osu.t22.planear.AppColors
 import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
+import edu.osu.t22.planear.graphicsEngine.RectMode
 import edu.osu.t22.planear.graphicsEngine.TextAlignH
 import edu.osu.t22.planear.graphicsEngine.TextAlignV
 import edu.osu.t22.planear.scenes.SceneInfo
@@ -11,33 +13,20 @@ class ArPage : Page {
     override val sceneId = SceneId.AR
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
-        val width = sceneInfo.screenWidth
-        val height = sceneInfo.screenHeight - navHeight
-        val points = AircraftOverlayStore.points
+        val screenW = sceneInfo.screenWidth
+        val screenH = sceneInfo.screenHeight - navHeight
+        val c       = AppColors.current
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
-            fill(245)
-            rect(0, 0, width, height)
 
-            fill(0)
+            rectMode(RectMode.CORNER)
+            fill(c.background)
+            rect(0, 0, screenW, screenH)
+
+            fill(c.textPrimary)
             textFont("roboto", 18)
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-            text("AR Scene", width / 2, 40)
-
-            textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
-            textFont("roboto", 14)
-
-            for (point in points) {
-                val x = point.x.toInt()
-                val y = point.y.toInt()
-
-                if (x >= 0 && x <= width && y >= 0 && y <= height) {
-                    fill(0)
-                    ellipse(x, y, 12, 12)
-
-                    text(point.label, x + 14, y)
-                }
-            }
+            text("AR Scene", screenW / 2, 250)
         }
 
         postRender(sceneInfo, sceneSwitcher)
