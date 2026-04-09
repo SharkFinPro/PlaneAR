@@ -61,6 +61,14 @@ class MainActivity : GameActivity() {
 
     private lateinit var frameGestureDetector: FrameGestureDetector
 
+    private lateinit var sensorManager: SensorManager
+    private var rotationVectorSensor: Sensor? = null
+    private val rotationMatrix    = FloatArray(9)
+    private val orientationAngles = FloatArray(3)
+    @Volatile private var deviceAzimuthDeg = 0.0
+    @Volatile private var devicePitchDeg = 0.0
+    @Volatile private var deviceRollDeg = 0.0
+
     @Suppress("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
