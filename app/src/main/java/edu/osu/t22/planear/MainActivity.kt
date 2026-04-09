@@ -229,6 +229,7 @@ class MainActivity : GameActivity() {
             grantResults.isNotEmpty() &&
             grantResults[0] == PackageManager.PERMISSION_GRANTED
         ) {
+            @SuppressWarnings("MissingPermission") // suppress Lint errors for if the user has removed permissions
             if (hasLocationPermission()) {
                 appLocationManager.start()
             }
