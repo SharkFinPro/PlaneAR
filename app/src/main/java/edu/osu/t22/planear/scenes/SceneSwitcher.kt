@@ -1,5 +1,6 @@
 package edu.osu.t22.planear.scenes
 
+import edu.osu.t22.planear.FrameGestureDetector
 import edu.osu.t22.planear.scenes.pages.ArPage
 import edu.osu.t22.planear.scenes.pages.FavoritesPage
 import edu.osu.t22.planear.scenes.pages.FlightHistoryPage
@@ -13,12 +14,9 @@ interface Scene {
 
 data class SceneInfo(
     val enginePtr: Long,
-    val mouseX: Float,
-    val mouseY: Float,
-    val tapOccurred: Boolean,
     val screenWidth: Float,
     val screenHeight: Float,
-    val isTouching: Boolean
+    val gestures: FrameGestureDetector
 )
 
 class SceneSwitcher {
@@ -35,24 +33,25 @@ class SceneSwitcher {
         private external fun nativeSetCurrentScene(sceneId: Int)
 
         @JvmStatic
-        private external fun nativeCheckIfSceneExists(sceneId: Int) : Boolean
+        private external fun nativeCheckIfSceneExists(sceneId: Int): Boolean
 
         // This will be called from C++ via JNI
         @JvmStatic
-        fun renderScene(sceneId: Int, enginePtr: Long, mouseX: Float, mouseY: Float, tapOccurred: Boolean, screenWidth: Float, screenHeight: Float, isTouching: Boolean) {
-            instance?.renderSceneInternal(sceneId, enginePtr, mouseX, mouseY, tapOccurred, screenWidth, screenHeight, isTouching)
+        fun renderScene(sceneId: Int, enginePtr: Long, screenWidth: Float, screenHeight: Float) {
+            instance?.renderSceneInternal(sceneId, enginePtr, screenWidth, screenHeight)
         }
 
         private var instance: SceneSwitcher? = null
+
+        // gestureDetector must be set by MainActivity before any frame renders
+        var gestureDetector: FrameGestureDetector? = null
 
         fun initialize(): SceneSwitcher {
             if (instance == null) {
                 instance = SceneSwitcher()
                 nativeInit(instance!!)
             }
-
             instance!!.registerScenes()
-
             return instance!!
         }
     }
@@ -63,15 +62,11 @@ class SceneSwitcher {
         registerScene(SceneId.FlightHistory.id, FlightHistoryPage())
         registerScene(SceneId.Settings.id, SettingsPage())
         registerScene(SceneId.Favorites.id, FavoritesPage())
-
         setCurrentScene(SceneId.Home.id)
     }
 
     private fun registerScene(sceneId: Int, scene: Scene) {
-        if (scenes.containsKey(sceneId)) {
-            return
-        }
-
+        if (scenes.containsKey(sceneId)) return
         scenes[sceneId] = scene
         nativeRegisterSceneCallback(sceneId)
     }
@@ -83,9 +78,11 @@ class SceneSwitcher {
         nativeSetCurrentScene(sceneId)
     }
 
-    private fun renderSceneInternal(sceneId: Int, enginePtr: Long, mouseX: Float, mouseY: Float, tapOccurred: Boolean, screenWidth: Float, screenHeight: Float, isTouching: Boolean) {
+    private fun renderSceneInternal(sceneId: Int, enginePtr: Long, screenWidth: Float, screenHeight: Float) {
         val scene = scenes[sceneId] ?: return
-        val sceneInfo = SceneInfo(enginePtr, mouseX, mouseY, tapOccurred, screenWidth, screenHeight, isTouching)
+        val detector = gestureDetector ?: return
+        val sceneInfo = SceneInfo(enginePtr, screenWidth, screenHeight, detector)
         scene.render(sceneInfo, this)
+        detector.reset()
     }
 }
