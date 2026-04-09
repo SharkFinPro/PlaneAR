@@ -170,7 +170,9 @@ class MainActivity : GameActivity() {
             )
         }
 
-        appLocationManager.start()
+        if (hasLocationPermission()) {
+            appLocationManager.start()
+        }
         hideSystemUi()
     }
 
@@ -215,7 +217,9 @@ class MainActivity : GameActivity() {
             grantResults.isNotEmpty() &&
             grantResults[0] == PackageManager.PERMISSION_GRANTED
         ) {
-            appLocationManager.start()
+            if (hasLocationPermission()) {
+                appLocationManager.start()
+            }
         }
     }
 
