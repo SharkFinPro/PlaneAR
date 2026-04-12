@@ -43,10 +43,11 @@ object Planeprojector {
         val ry1 =  wY
         val rz1 = -sinAz * wX + cosAz * wZ
 
-        val cosPit = cos(-pit).toFloat(); val sinPit = sin(-pit).toFloat()
-        val rx2 =  rx1
-        val ry2 =  cosPit * ry1 - sinPit * rz1
-        val rz2 =  sinPit * ry1 + cosPit * rz1
+        val cosPit = cos(pit).toFloat()
+        val sinPit = sin(pit).toFloat()
+        val rx2 = rx1
+        val ry2 = cosPit * ry1 - sinPit * rz1
+        val rz2 = sinPit * ry1 + cosPit * rz1
 
         val cosRol = cos(-rol).toFloat()
         val sinRol = sin(-rol).toFloat()
