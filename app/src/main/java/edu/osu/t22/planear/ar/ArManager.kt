@@ -26,6 +26,8 @@ class ArManager(private val context: Context) {
                 Log.i("ArManager", "ARCore session created")
 
                 val config = Config(arSession).apply {
+                    textureUpdateMode = Config.TextureUpdateMode.EXPOSE_HARDWARE_BUFFER
+
                     planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
                     depthMode =
                         if (arSession!!.isDepthModeSupported(Config.DepthMode.AUTOMATIC))

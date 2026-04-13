@@ -10,33 +10,47 @@ data class AdsbResponse(
 
 data class AdsbAircraft(
     // Identifiers
-    val hex: String, // ICAO address
-    val flight: String, // callsign
-    val r: String, // regristration
-    val t: String, // aircraft type
+    val hex: String? = "", // ICAO address
+    val flight: String? = null, // callsign
+    val r: String? = null, // regristration
+    val t: String? = null, // aircraft type
 
     // Altitude
-    val alt_baro: String, // barometric altitude
-    val alt_geom: Int, // geometric altitude
+    val alt_baro: String? = null, // barometric altitude
+    val alt_geom: Int? = null, // geometric altitude
 
     // Speed
-    val gs: Float, // ground speed
-    val ias: Int, // indicated air speed
-    val tas: Int, // true air speed
-    val mach: Double, // mach number
+    val gs: Float? = null, // ground speed
+    val ias: Int? = null, // indicated air speed
+    val tas: Int? = null, // true air speed
+    val mach: Double? = null, // mach number
 
     // Heading
-    val track: Double, // ground track angle
-    val track_rate: Double, // rate of change for track
+    val track: Double? = null, // ground track angle
+    val track_rate: Double? = null, // rate of change for track
 
     // Position
-    val lat: Double, // latitude in decimal degrees
-    val lon: Double, // longitude in decimal degrees
+    val lat: Double? = null, // latitude in decimal degrees
+    val lon: Double? = null, // longitude in decimal degrees
 
     // Visibility
-    val seen: Float, // seconds since this aircraft was last seen
-    val seen_pos: Float, // seconds since this aircraft's position was updated
+    val seen: Float? = null, // seconds since this aircraft was last seen
+    val seen_pos: Float? = null, // seconds since this aircraft's position was updated
 
     // Misc
-    val squawk: String // squawk code
-)
+    val squawk: String? = null // squawk code
+) {
+    val altitudeMeters: Double?
+        get() {
+            val feet = alt_baro?.toDoubleOrNull() ?: return null
+            return feet * 0.3048
+        }
+
+    val isProjectable: Boolean
+        get() = lat != null && lon != null && altitudeMeters != null
+
+    val label: String
+        get() = flight?.trim()?.takeIf { it.isNotEmpty() }
+            ?: hex?.trim()?.takeIf { it.isNotEmpty() }
+            ?: "UNKNOWN"
+}
