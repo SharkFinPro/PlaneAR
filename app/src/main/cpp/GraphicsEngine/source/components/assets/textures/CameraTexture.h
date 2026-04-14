@@ -35,14 +35,11 @@ namespace ge {
       VkImageView    imageView = VK_NULL_HANDLE;
     };
 
-    std::unordered_map<AHardwareBuffer*, ImportedBuffer> m_bufferPool;
+    ImportedBuffer m_imageData;
     AHardwareBuffer* m_currentBuffer = nullptr;
 
     VkSampler m_ycbcrSampler = VK_NULL_HANDLE;
     VkSamplerYcbcrConversion m_ycbcrConversion = VK_NULL_HANDLE;
-
-    uint32_t m_width;
-    uint32_t m_height;
 
     ImportedBuffer importBuffer(AHardwareBuffer* buffer);
 

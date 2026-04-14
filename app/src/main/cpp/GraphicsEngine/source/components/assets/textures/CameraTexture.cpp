@@ -15,48 +15,53 @@ namespace ge {
                                uint32_t height)
     : ImageTexture(std::move(logicalDevice)),
       m_commandPool(commandPool),
-      m_descriptorPool(descriptorPool),
-      m_width(width),
-      m_height(height)
+      m_descriptorPool(descriptorPool)
   {}
 
   CameraTexture::~CameraTexture()
   {
-    for (auto& [ahb, slot] : m_bufferPool)
+    if (m_currentBuffer)
     {
-      m_logicalDevice->destroyImageView(slot.imageView);
-      m_logicalDevice->destroyImage(slot.image);
-      m_logicalDevice->freeMemory(slot.memory);
-      AHardwareBuffer_release(ahb);
+      m_logicalDevice->destroyImageView(m_imageData.imageView);
+      m_logicalDevice->destroyImage(m_imageData.image);
+      m_logicalDevice->freeMemory(m_imageData.memory);
+      AHardwareBuffer_release(m_currentBuffer);
     }
 
     if (m_ycbcrConversion != VK_NULL_HANDLE)
+    {
       vkDestroySamplerYcbcrConversion(
-        m_logicalDevice->getDevice(), m_ycbcrConversion, nullptr);
-
-    m_textureImage       = VK_NULL_HANDLE;
-    m_textureImageMemory = VK_NULL_HANDLE;
-    m_textureImageView   = VK_NULL_HANDLE;
+        m_logicalDevice->getDevice(),
+        m_ycbcrConversion,
+        nullptr
+      );
+    }
   }
 
   void CameraTexture::updateFromHardwareBuffer(AHardwareBuffer* buffer)
   {
-    // DO NOT early-return — camera often reuses the same AHB
-    if (m_bufferPool.find(buffer) == m_bufferPool.end())
+    if (m_currentBuffer == buffer)
     {
-      m_bufferPool[buffer] = importBuffer(buffer);
-      AHardwareBuffer_acquire(buffer);
+      return;
     }
 
+    if (m_currentBuffer)
+    {
+      m_logicalDevice->destroyImageView(m_imageData.imageView);
+      m_logicalDevice->destroyImage(m_imageData.image);
+      m_logicalDevice->freeMemory(m_imageData.memory);
+      AHardwareBuffer_release(m_currentBuffer);
+    }
+
+    m_imageData = importBuffer(buffer);
     m_currentBuffer = buffer;
-    const auto& slot = m_bufferPool[buffer];
 
     // Point base Texture state at this image
-    m_textureImage     = slot.image;
-    m_textureImageView = slot.imageView;
+    m_textureImage     = m_imageData.image;
+    m_textureImageView = m_imageData.imageView;
 
     // Camera images must be sampled from GENERAL
-    m_imageInfo.imageView   = slot.imageView;
+    m_imageInfo.imageView   = m_imageData.imageView;
     m_imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 
     if (!m_descriptorSet)
