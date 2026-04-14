@@ -140,6 +140,8 @@ namespace ge {
                float width,
                float height);
 
+    [[nodiscard]] std::shared_ptr<AssetManager> getAssetManager() const;
+
   private:
     struct GlyphCommand {
       Glyph glyph;

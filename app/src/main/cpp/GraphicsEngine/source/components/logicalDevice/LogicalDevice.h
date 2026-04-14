@@ -18,6 +18,8 @@ namespace ge {
     explicit LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
     ~LogicalDevice();
 
+    [[nodiscard]] VkDevice getDevice() const;
+
     [[nodiscard]] std::shared_ptr<PhysicalDevice> getPhysicalDevice() const;
 
     void waitIdle() const;

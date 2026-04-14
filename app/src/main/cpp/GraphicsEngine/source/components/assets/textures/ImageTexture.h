@@ -11,7 +11,7 @@ namespace ge {
 
   class DescriptorSet;
 
-  class ImageTexture final : public Texture
+  class ImageTexture : public Texture
   {
   public:
     ImageTexture(std::shared_ptr<LogicalDevice> logicalDevice,
@@ -21,10 +21,21 @@ namespace ge {
                  VkDescriptorPool descriptorPool,
                  VkDescriptorSetLayout descriptorSetLayout);
 
+    ImageTexture(std::shared_ptr<LogicalDevice> logicalDevice,
+                 VkDescriptorPool descriptorPool,
+                 VkDescriptorSetLayout descriptorSetLayout);
+
     [[nodiscard]] VkDescriptorSet getDescriptorSet(uint32_t currentFrame) const;
 
-  private:
+  protected:
     std::shared_ptr<DescriptorSet> m_descriptorSet;
+
+    void createImageView() override;
+
+    void createDescriptorSet(VkDescriptorPool descriptorPool,
+                             VkDescriptorSetLayout descriptorSetLayout);
+
+  private:
 
     static std::vector<uint8_t> loadImageFromFile(AAssetManager* assetManager,
                                                   const std::string& fileName);
@@ -39,11 +50,6 @@ namespace ge {
                            VkBuffer& stagingBuffer);
 
     void transitionImageToShaderReadable(const VkCommandPool& commandPool);
-
-    void createImageView() override;
-
-    void createDescriptorSet(VkDescriptorPool descriptorPool,
-                             VkDescriptorSetLayout descriptorSetLayout);
   };
 
 } // ge

@@ -67,6 +67,14 @@ namespace ge {
     createDescriptorSet(descriptorPool, descriptorSetLayout);
   }
 
+  ImageTexture::ImageTexture(std::shared_ptr<LogicalDevice> logicalDevice,
+                             VkDescriptorPool descriptorPool,
+                             VkDescriptorSetLayout descriptorSetLayout)
+    : Texture(std::move(logicalDevice), VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
+  {
+    createDescriptorSet(descriptorPool, descriptorSetLayout);
+  }
+
   VkDescriptorSet ImageTexture::getDescriptorSet(const uint32_t currentFrame) const
   {
     return m_descriptorSet->getDescriptorSet(currentFrame);

@@ -90,6 +90,8 @@ class MainActivity : GameActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (isActive) {
                     try {
+                        arManager.onUpdateFrame()
+
                         val loc = appLocationManager.lastKnownLocation
 
                         if (loc != null) {
@@ -128,7 +130,7 @@ class MainActivity : GameActivity() {
                         Log.e("ADSB_EXECUTION", "ADS-B polling failed", e)
                     }
 
-                    delay(5_000L)
+                    delay(500L)
                 }
             }
         }

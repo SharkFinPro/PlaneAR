@@ -1,6 +1,7 @@
 #include "Renderer2D.h"
 #include "../../assets/AssetManager.h"
 #include "../../assets/fonts/Font.h"
+#include "../../assets/textures/CameraTexture.h"
 #include "../../assets/textures/ImageTexture.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../pipelines/GraphicsPipeline.h"
@@ -8,6 +9,8 @@
 #include "../LegacyRenderer.h"
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "../../../../Logger.h"
 
 namespace ge {
   Renderer2D::Renderer2D(std::shared_ptr<AssetManager> assetManager)
@@ -87,6 +90,42 @@ namespace ge {
         }
       }, entry.command);
     }
+
+    //
+
+    if (!m_assetManager->getCameraTexture())
+    {
+      LOGW("No camera texture found!");
+      return;
+    }
+
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      PipelineType::image,
+      m_assetManager->getCameraTexture()->getDescriptorSet(renderInfo->currentFrame),
+      0
+    );
+
+    Image image {
+      .bounds {
+        100, 100, 800, 800
+      },
+      .transform = glm::mat4(1.0),
+      .z = 0.99f
+    };
+
+    const auto imagePC = image.createPushConstant(renderInfo->extent);
+
+    pipelineManager->pushGraphicsPipelineConstants(
+      renderInfo->commandBuffer,
+      PipelineType::image,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(imagePC),
+      &imagePC
+    );
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
   }
 
   void Renderer2D::fill(const float r,
@@ -422,6 +461,11 @@ namespace ge {
     });
 
     increaseCurrentZ();
+  }
+
+  std::shared_ptr<AssetManager> Renderer2D::getAssetManager() const
+  {
+    return m_assetManager;
   }
 
   glm::vec4 Renderer2D::resolveRectBounds(float a,

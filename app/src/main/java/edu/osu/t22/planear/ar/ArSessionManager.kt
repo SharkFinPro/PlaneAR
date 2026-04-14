@@ -7,6 +7,7 @@ import com.google.ar.core.Frame
 import com.google.ar.core.Session
 import com.google.ar.core.TrackingState
 import com.google.ar.core.exceptions.CameraNotAvailableException
+import edu.osu.t22.planear.AppSettings
 
 class ARSessionManager(
     private val session: Session,
@@ -32,20 +33,21 @@ class ARSessionManager(
 
 
     fun onUpdateFrame() {
+        Log.i("updateframe", "onupdateframe")
         session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
 
         val frame: Frame
         try {
             frame = session.update()
         } catch (e: CameraNotAvailableException) {
-            nativeOnTrackingStateChanged(TrackingState.STOPPED.ordinal)
+//            nativeOnTrackingStateChanged(TrackingState.STOPPED.ordinal)
             return
         }
 
 
         val camera = frame.camera
 
-        nativeOnTrackingStateChanged(camera.trackingState.ordinal)
+//        nativeOnTrackingStateChanged(camera.trackingState.ordinal)
 
         if (camera.trackingState != TrackingState.TRACKING)  return
 
@@ -55,12 +57,18 @@ class ARSessionManager(
             if (validHbCount % 60 == 0) {
                 Log.i("ARSessionManager", "HB frames received: $validHbCount")
             }
+
+            Log.i("ARSessionManager", "HB Received")
+            AppSettings.hb = hb;
+
             try {
-                nativeOnHardwareBuffer(hb, frame.timestamp)
+//                nativeOnHardwareBuffer(hb, frame.timestamp)
             } finally {
-                hb.close()
+//                hb.close()
             }
+
         } else {
+            Log.w("ARSessionManager", "HW buffer null")
             nullHbCount++
             if (nullHbCount % 60 == 0) {
                 Log.w("ARSessionManager", "HardwareBuffer was null $nullHbCount times")
@@ -70,9 +78,6 @@ class ARSessionManager(
         // Camera pose -> 4x4 matrix
         val cameraMatrix = FloatArray(16)
         camera.pose.toMatrix(cameraMatrix, 0)
-
-        // Send camera pose to native rendering engine
-        nativeUpdateCameraPose(cameraMatrix)
 
         // Update any anchors we’re tracking (e.g., aircraft positions in AR space)
         val iterator = anchors.iterator()
@@ -85,12 +90,6 @@ class ARSessionManager(
 
             val anchorMatrix = FloatArray(16)
             anchor.pose.toMatrix(anchorMatrix, 0)
-
-            nativeUpdateAnchorPose(
-                anchor.hashCode(),               // simple ID for demo purposes
-                anchorMatrix,
-                anchor.trackingState.ordinal     // tracking state flag
-            )
         }
     }
 
@@ -98,27 +97,5 @@ class ARSessionManager(
         anchors.add(anchor)
         val matrix = FloatArray(16)
         anchor.pose.toMatrix(matrix, 0)
-        nativeOnNewAircraftAnchor(anchor.hashCode(), matrix)
     }
-
-    private external fun nativeOnNewAircraftAnchor(
-        anchorId: Int,
-        poseMatrix: FloatArray
-    )
-
-    private external fun nativeUpdateCameraPose(poseMatrix: FloatArray)
-
-    private external fun nativeUpdateAnchorPose(
-        anchorId: Int,
-        poseMatrix: FloatArray,
-        trackingState: Int
-    )
-
-    private external fun nativeOnTrackingStateChanged(
-        trackingState: Int
-    )
-
-    private external fun nativeOnHardwareBuffer(hardwareBuffer: HardwareBuffer, timestamp: Long)
-
-    private external fun nativeGetHardwareBufferFrameCount(): Long
 }
