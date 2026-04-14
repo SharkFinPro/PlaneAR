@@ -51,14 +51,12 @@ namespace ge {
 
     // Rewrite descriptor every frame (safe & correct)
     m_descriptorSet->updateDescriptorSets(
-      [this](VkDescriptorSet descriptorSet, size_t)
-      {
-        return std::vector<VkWriteDescriptorSet>{
-          getWriteDescriptorSet(0, descriptorSet)
-        };
-      });
-
-    m_ready = true;
+    [this](VkDescriptorSet descriptorSet, size_t)
+    {
+      return std::vector<VkWriteDescriptorSet>{
+        getWriteDescriptorSet(0, descriptorSet)
+      };
+    });
   }
 
 // ------------------------------------------------------------
