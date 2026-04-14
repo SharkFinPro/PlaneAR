@@ -7,10 +7,6 @@
 
 namespace ge {
 
-// ------------------------------------------------------------
-// Constructor
-// ------------------------------------------------------------
-
   CameraTexture::CameraTexture(std::shared_ptr<LogicalDevice> logicalDevice,
                                VkDescriptorPool descriptorPool,
                                VkDescriptorSetLayout descriptorSetLayout,
@@ -26,9 +22,24 @@ namespace ge {
   {
   }
 
-// ------------------------------------------------------------
-// Per-frame update
-// ------------------------------------------------------------
+  CameraTexture::~CameraTexture()
+  {
+    for (auto& [ahb, slot] : m_bufferPool)
+    {
+      m_logicalDevice->destroyImageView(slot.imageView);
+      m_logicalDevice->destroyImage(slot.image);
+      m_logicalDevice->freeMemory(slot.memory);
+      AHardwareBuffer_release(ahb);
+    }
+
+    if (m_ycbcrConversion != VK_NULL_HANDLE)
+      vkDestroySamplerYcbcrConversion(
+        m_logicalDevice->getDevice(), m_ycbcrConversion, nullptr);
+
+    m_textureImage       = VK_NULL_HANDLE;
+    m_textureImageMemory = VK_NULL_HANDLE;
+    m_textureImageView   = VK_NULL_HANDLE;
+  }
 
   void CameraTexture::updateFromHardwareBuffer(AHardwareBuffer* buffer)
   {
@@ -60,12 +71,7 @@ namespace ge {
     });
   }
 
-// ------------------------------------------------------------
-// Import AHardwareBuffer into Vulkan
-// ------------------------------------------------------------
-
-  CameraTexture::ImportedBuffer
-  CameraTexture::importBuffer(AHardwareBuffer* hardware_buffer)
+  CameraTexture::ImportedBuffer CameraTexture::importBuffer(AHardwareBuffer* hardware_buffer)
   {
     ImportedBuffer slot{};
 
@@ -207,29 +213,6 @@ namespace ge {
     VK_CHECK(vkCreateImageView(m_logicalDevice->getDevice(), &view_info, nullptr, &slot.imageView));
 
     return slot;
-  }
-
-// ------------------------------------------------------------
-// Destructor
-// ------------------------------------------------------------
-
-  CameraTexture::~CameraTexture()
-  {
-    for (auto& [ahb, slot] : m_bufferPool)
-    {
-      m_logicalDevice->destroyImageView(slot.imageView);
-      m_logicalDevice->destroyImage(slot.image);
-      m_logicalDevice->freeMemory(slot.memory);
-      AHardwareBuffer_release(ahb);
-    }
-
-    if (m_ycbcrConversion != VK_NULL_HANDLE)
-      vkDestroySamplerYcbcrConversion(
-        m_logicalDevice->getDevice(), m_ycbcrConversion, nullptr);
-
-    m_textureImage       = VK_NULL_HANDLE;
-    m_textureImageMemory = VK_NULL_HANDLE;
-    m_textureImageView   = VK_NULL_HANDLE;
   }
 
 } // namespace ge
