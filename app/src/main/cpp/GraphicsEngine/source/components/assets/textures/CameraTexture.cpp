@@ -148,53 +148,13 @@ namespace ge {
 
 
 // 6
-    VkExternalFormatANDROID ycbcr_ext_format = {
-      .sType          = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID,
-      .externalFormat = format_props.externalFormat
-    };
-
-    VkSamplerYcbcrConversionCreateInfo ycbcr_info = {
-      .sType          = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO,
-      .pNext          = &ycbcr_ext_format,
-      .format         = VK_FORMAT_UNDEFINED,
-      .ycbcrModel     = format_props.suggestedYcbcrModel,
-      .ycbcrRange     = format_props.suggestedYcbcrRange,
-      .components     = format_props.samplerYcbcrConversionComponents,
-      .xChromaOffset  = format_props.suggestedXChromaOffset,
-      .yChromaOffset  = format_props.suggestedYChromaOffset,
-      .chromaFilter   = VK_FILTER_LINEAR,
-      .forceExplicitReconstruction = VK_FALSE
-    };
-
-    VkSamplerYcbcrConversion ycbcr_conversion;
-    VK_CHECK(vkCreateSamplerYcbcrConversion(m_logicalDevice->getDevice(), &ycbcr_info, nullptr, &ycbcr_conversion));
+    createYCBCRResources(format_props);
 
     VkSamplerYcbcrConversionInfo conversion_info = {
       .sType      = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
-      .conversion = ycbcr_conversion
+      .conversion = m_ycbcrConversion
     };
 
-// Immutable sampler — REQUIRED for YCbCr
-    VkSamplerCreateInfo sampler_info = {
-      .sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-      .pNext                   = &conversion_info,
-      .magFilter               = VK_FILTER_LINEAR,   // must match chromaFilter
-      .minFilter               = VK_FILTER_LINEAR,   // must match chromaFilter
-      .mipmapMode              = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-      .addressModeU            = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,  // required
-      .addressModeV            = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,  // required
-      .addressModeW            = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,  // required
-      .mipLodBias              = 0.0f,
-      .anisotropyEnable        = VK_FALSE,   // required
-      .compareEnable           = VK_FALSE,
-      .minLod                  = 0.0f,
-      .maxLod                  = 0.0f,
-      .unnormalizedCoordinates = VK_FALSE    // required
-    };
-    VkSampler ycbcr_sampler;
-    VK_CHECK(vkCreateSampler(m_logicalDevice->getDevice(), &sampler_info, nullptr, &ycbcr_sampler));
-
-// Image view
     VkImageViewCreateInfo view_info = {
       .sType      = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,  // was missing
       .pNext      = &conversion_info,
@@ -213,6 +173,60 @@ namespace ge {
     VK_CHECK(vkCreateImageView(m_logicalDevice->getDevice(), &view_info, nullptr, &slot.imageView));
 
     return slot;
+  }
+
+  void CameraTexture::createYCBCRResources(const VkAndroidHardwareBufferFormatPropertiesANDROID& format_props)
+  {
+    if (m_ycbcrConversion != VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    VkExternalFormatANDROID ycbcr_ext_format = {
+      .sType          = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID,
+      .externalFormat = format_props.externalFormat
+    };
+
+    VkSamplerYcbcrConversionCreateInfo ycbcr_info = {
+      .sType          = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO,
+      .pNext          = &ycbcr_ext_format,
+      .format         = VK_FORMAT_UNDEFINED,
+      .ycbcrModel     = format_props.suggestedYcbcrModel,
+      .ycbcrRange     = format_props.suggestedYcbcrRange,
+      .components     = format_props.samplerYcbcrConversionComponents,
+      .xChromaOffset  = format_props.suggestedXChromaOffset,
+      .yChromaOffset  = format_props.suggestedYChromaOffset,
+      .chromaFilter   = VK_FILTER_LINEAR,
+      .forceExplicitReconstruction = VK_FALSE
+    };
+
+    VK_CHECK(vkCreateSamplerYcbcrConversion(m_logicalDevice->getDevice(), &ycbcr_info, nullptr, &m_ycbcrConversion));
+
+    VkSamplerYcbcrConversionInfo conversion_info = {
+      .sType      = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
+      .conversion = m_ycbcrConversion
+    };
+
+// Immutable sampler - REQUIRED for YCbCr
+    VkSamplerCreateInfo sampler_info = {
+      .sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+      .pNext                   = &conversion_info,
+      .magFilter               = VK_FILTER_LINEAR,   // must match chromaFilter
+      .minFilter               = VK_FILTER_LINEAR,   // must match chromaFilter
+      .mipmapMode              = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+      .addressModeU            = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,  // required
+      .addressModeV            = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,  // required
+      .addressModeW            = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,  // required
+      .mipLodBias              = 0.0f,
+      .anisotropyEnable        = VK_FALSE,   // required
+      .compareEnable           = VK_FALSE,
+      .minLod                  = 0.0f,
+      .maxLod                  = 0.0f,
+      .unnormalizedCoordinates = VK_FALSE    // required
+    };
+
+    VkSampler ycbcr_sampler;
+    VK_CHECK(vkCreateSampler(m_logicalDevice->getDevice(), &sampler_info, nullptr, &ycbcr_sampler));
   }
 
 } // namespace ge
