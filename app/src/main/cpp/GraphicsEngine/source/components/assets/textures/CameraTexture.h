@@ -26,8 +26,6 @@ namespace ge {
   private:
     VkCommandPool m_commandPool;
 
-    bool m_ready = false;
-
     struct ImportedBuffer {
       VkImage        image     = VK_NULL_HANDLE;
       VkDeviceMemory memory    = VK_NULL_HANDLE;
