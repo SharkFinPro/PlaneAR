@@ -26,6 +26,9 @@ namespace ge {
   private:
     VkCommandPool m_commandPool;
 
+    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+    VkDescriptorSetLayout m_descriptorSetLayout = VK_NULL_HANDLE;
+
     struct ImportedBuffer {
       VkImage        image     = VK_NULL_HANDLE;
       VkDeviceMemory memory    = VK_NULL_HANDLE;
@@ -35,7 +38,7 @@ namespace ge {
     std::unordered_map<AHardwareBuffer*, ImportedBuffer> m_bufferPool;
     AHardwareBuffer* m_currentBuffer = nullptr;
 
-    VkSampler m_ycbcrSampler;
+    VkSampler m_ycbcrSampler = VK_NULL_HANDLE;
     VkSamplerYcbcrConversion m_ycbcrConversion = VK_NULL_HANDLE;
 
     uint32_t m_width;

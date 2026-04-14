@@ -67,17 +67,13 @@ namespace ge {
     createDescriptorSet(descriptorPool, descriptorSetLayout);
   }
 
-  ImageTexture::ImageTexture(std::shared_ptr<LogicalDevice> logicalDevice,
-                             VkDescriptorPool descriptorPool,
-                             VkDescriptorSetLayout descriptorSetLayout)
+  ImageTexture::ImageTexture(std::shared_ptr<LogicalDevice> logicalDevice)
     : Texture(std::move(logicalDevice), VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
-  {
-    createDescriptorSet(descriptorPool, descriptorSetLayout);
-  }
+  {}
 
   VkDescriptorSet ImageTexture::getDescriptorSet(const uint32_t currentFrame) const
   {
-    return m_descriptorSet->getDescriptorSet(currentFrame);
+    return m_descriptorSet ? m_descriptorSet->getDescriptorSet(currentFrame) : VK_NULL_HANDLE;
   }
 
   std::vector<uint8_t> ImageTexture::loadImageFromFile(AAssetManager* assetManager,

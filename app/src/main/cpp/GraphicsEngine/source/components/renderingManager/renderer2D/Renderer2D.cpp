@@ -93,9 +93,9 @@ namespace ge {
 
     //
 
-    if (!m_assetManager->getCameraTexture())
+    if (!m_assetManager->getCameraTexture() ||
+        m_assetManager->getCameraTexture()->getDescriptorSet(renderInfo->currentFrame) == VK_NULL_HANDLE)
     {
-      LOGW("No camera texture found!");
       return;
     }
 

@@ -13,14 +13,12 @@ namespace ge {
                                VkCommandPool commandPool,
                                uint32_t width,
                                uint32_t height)
-    : ImageTexture(std::move(logicalDevice),
-                   descriptorPool,
-                   descriptorSetLayout),
+    : ImageTexture(std::move(logicalDevice)),
       m_commandPool(commandPool),
+      m_descriptorPool(descriptorPool),
       m_width(width),
       m_height(height)
-  {
-  }
+  {}
 
   CameraTexture::~CameraTexture()
   {
@@ -60,6 +58,31 @@ namespace ge {
     // Camera images must be sampled from GENERAL
     m_imageInfo.imageView   = slot.imageView;
     m_imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+    if (!m_descriptorSet)
+    {
+      const VkDescriptorSetLayoutBinding imageDescriptorSetLayoutBinding {
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+        .pImmutableSamplers = &m_ycbcrSampler
+      };
+
+      const std::array descriptorSetLayoutBindings {
+        imageDescriptorSetLayoutBinding
+      };
+
+      const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size()),
+        .pBindings = descriptorSetLayoutBindings.data()
+      };
+
+      m_descriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
+
+      createDescriptorSet(m_descriptorPool, m_descriptorSetLayout);
+    }
 
     // Rewrite descriptor every frame (safe & correct)
     m_descriptorSet->updateDescriptorSets(

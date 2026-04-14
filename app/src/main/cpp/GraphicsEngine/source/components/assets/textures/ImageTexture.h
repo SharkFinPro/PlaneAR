@@ -21,9 +21,7 @@ namespace ge {
                  VkDescriptorPool descriptorPool,
                  VkDescriptorSetLayout descriptorSetLayout);
 
-    ImageTexture(std::shared_ptr<LogicalDevice> logicalDevice,
-                 VkDescriptorPool descriptorPool,
-                 VkDescriptorSetLayout descriptorSetLayout);
+    ImageTexture(std::shared_ptr<LogicalDevice> logicalDevice);
 
     [[nodiscard]] VkDescriptorSet getDescriptorSet(uint32_t currentFrame) const;
 
