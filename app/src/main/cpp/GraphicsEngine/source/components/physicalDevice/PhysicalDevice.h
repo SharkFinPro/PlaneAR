@@ -2,6 +2,7 @@
 #define PLANEAR_PHYSICALDEVICE_H
 
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_android.h>
 #include <optional>
 #include <array>
 #include <vector>
@@ -12,8 +13,15 @@ namespace ge {
   struct Instance;
   struct Surface;
 
-  constexpr std::array<const char*, 1> deviceExtensions {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME
+  constexpr std::array deviceExtensions {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+
+    VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME,
+    VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME,
+    VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_EXTENSION_NAME,
+    VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME,
+    VK_KHR_BIND_MEMORY_2_EXTENSION_NAME,
+    VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME
   };
 
   struct QueueFamilyIndices {

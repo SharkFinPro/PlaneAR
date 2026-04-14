@@ -40,7 +40,6 @@ namespace ge {
     uint32_t m_height;
 
     ImportedBuffer importBuffer(AHardwareBuffer* buffer);
-    void createYcbcrSampler(const VkAndroidHardwareBufferFormatPropertiesANDROID& formatProps);
   };
 
 } // ge
