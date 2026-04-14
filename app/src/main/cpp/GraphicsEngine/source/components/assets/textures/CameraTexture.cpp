@@ -225,8 +225,7 @@ namespace ge {
       .unnormalizedCoordinates = VK_FALSE    // required
     };
 
-    VkSampler ycbcr_sampler;
-    VK_CHECK(vkCreateSampler(m_logicalDevice->getDevice(), &sampler_info, nullptr, &ycbcr_sampler));
+    VK_CHECK(vkCreateSampler(m_logicalDevice->getDevice(), &sampler_info, nullptr, &m_ycbcrSampler));
   }
 
 } // namespace ge
