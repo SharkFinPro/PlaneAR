@@ -33,6 +33,11 @@ namespace ge {
     }
 
     m_logicalDevice->destroySampler(m_ycbcrSampler);
+
+    if (m_descriptorSetLayout != VK_NULL_HANDLE)
+    {
+      m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
+    }
   }
 
   void CameraTexture::updateFromHardwareBuffer(AHardwareBuffer* buffer)
