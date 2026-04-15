@@ -90,8 +90,6 @@ class MainActivity : GameActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (isActive) {
                     try {
-                        arManager.onUpdateFrame()
-
                         val loc = appLocationManager.lastKnownLocation
 
                         if (loc != null) {
@@ -128,6 +126,21 @@ class MainActivity : GameActivity() {
                     } catch (e: Exception) {
                         AircraftOverlayStore.points = emptyList()
                         Log.e("ADSB_EXECUTION", "ADS-B polling failed", e)
+                    }
+
+                    delay(500L)
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (isActive) {
+                    try {
+                        arManager.onUpdateFrame()
+                    } catch (e: Exception) {
+                        AircraftOverlayStore.points = emptyList()
+                        Log.e("ARCORE_EXECUTION", "ARCore update failed", e)
                     }
 
                     delay(32L)
