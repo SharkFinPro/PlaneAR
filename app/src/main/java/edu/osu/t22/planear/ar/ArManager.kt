@@ -28,6 +28,9 @@ class ArManager(private val context: Context) {
                     textureUpdateMode = Config.TextureUpdateMode.EXPOSE_HARDWARE_BUFFER
 
                     planeFindingMode = Config.PlaneFindingMode.HORIZONTAL
+
+                    focusMode = Config.FocusMode.AUTO
+
                     depthMode =
                         if (arSession!!.isDepthModeSupported(Config.DepthMode.AUTOMATIC))
                             Config.DepthMode.AUTOMATIC
