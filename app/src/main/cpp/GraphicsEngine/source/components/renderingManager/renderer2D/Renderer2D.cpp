@@ -100,9 +100,14 @@ namespace ge {
       return;
     }
 
+    if (!pipelineManager->hasCameraPipeline())
+    {
+      pipelineManager->createCameraPipeline(m_assetManager->getCameraTexture()->getDescriptorSetLayout());
+    }
+
     pipelineManager->bindGraphicsPipelineDescriptorSet(
       renderInfo->commandBuffer,
-      PipelineType::image,
+      PipelineType::camera,
       m_assetManager->getCameraTexture()->getDescriptorSet(renderInfo->currentFrame),
       0
     );

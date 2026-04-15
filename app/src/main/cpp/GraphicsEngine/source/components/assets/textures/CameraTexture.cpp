@@ -99,6 +99,11 @@ namespace ge {
     });
   }
 
+  VkDescriptorSetLayout CameraTexture::getDescriptorSetLayout() const
+  {
+    return m_descriptorSetLayout;
+  }
+
   CameraTexture::ImportedBuffer CameraTexture::importBuffer(AHardwareBuffer* hardware_buffer)
   {
     ImportedBuffer slot{};

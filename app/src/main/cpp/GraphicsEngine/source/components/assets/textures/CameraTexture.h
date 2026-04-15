@@ -23,6 +23,8 @@ namespace ge {
     // Call each ARCore frame
     void updateFromHardwareBuffer(AHardwareBuffer* buffer);
 
+    [[nodiscard]] VkDescriptorSetLayout getDescriptorSetLayout() const;
+
   private:
     VkCommandPool m_commandPool;
 

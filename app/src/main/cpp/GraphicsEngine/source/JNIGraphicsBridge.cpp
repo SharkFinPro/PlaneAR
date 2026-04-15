@@ -371,8 +371,6 @@ namespace {
     LOGI("HB Updating...");
 
     renderer->getAssetManager()->getCameraTexture()->updateFromHardwareBuffer(ahb);
-
-    AHardwareBuffer_release(ahb);
   }
 
   const JNINativeMethod renderer2DMethods[] = {
