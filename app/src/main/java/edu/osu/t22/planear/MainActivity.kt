@@ -292,12 +292,4 @@ class MainActivity : GameActivity() {
                         or View.SYSTEM_UI_FLAG_FULLSCREEN
                 )
     }
-
-    fun onArUpdateFrame() {
-        arManager.onUpdateFrame()
-    }
-
-    fun setCameraTexture(textureId: Int) {
-        arManager.setCameraTexture(textureId)
-    }
 }
