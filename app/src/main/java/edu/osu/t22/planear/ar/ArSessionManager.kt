@@ -27,28 +27,19 @@ class ARSessionManager(
         viewportHeight = height
     }
 
-    fun setCameraTextureName(tex: Int) {
-        session.setCameraTextureName(tex)
-    }
-
-
     fun onUpdateFrame() {
         Log.i("updateframe", "onupdateframe")
-//        session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
         session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
 
         val frame: Frame
         try {
             frame = session.update()
         } catch (e: CameraNotAvailableException) {
-//            nativeOnTrackingStateChanged(TrackingState.STOPPED.ordinal)
             return
         }
 
 
         val camera = frame.camera
-
-//        nativeOnTrackingStateChanged(camera.trackingState.ordinal)
 
         if (camera.trackingState != TrackingState.TRACKING)  return
 

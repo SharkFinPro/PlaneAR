@@ -1,4 +1,3 @@
-#include "ArBridge.h"
 #include "SceneSwitcher.h"
 #include "JNISceneBridge.h"
 #include "SceneIds.h"

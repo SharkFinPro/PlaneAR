@@ -17,7 +17,6 @@ class ArManager(private val context: Context) {
             val availability = ArCoreApk.getInstance().checkAvailability(context)
             if (!availability.isSupported) {
                 Log.e("ArManager", "ARCore not supported")
-                MainActivity.nativeSetArReady(false)
                 return false
             }
 
@@ -40,15 +39,12 @@ class ArManager(private val context: Context) {
                     session = arSession!!,
                     displayRotation = displayRotation
                 )
-
-                MainActivity.nativeSetArReady(true)
             }
 
             return true
 
         } catch (e: Exception) {
             Log.e("ArManager", "Failed to create ARCore session", e)
-            MainActivity.nativeSetArReady(false)
             return false
         }
     }
@@ -75,10 +71,6 @@ class ArManager(private val context: Context) {
 
     fun onUpdateFrame() {
         sessionManager?.onUpdateFrame()
-    }
-
-    fun setCameraTexture(textureId: Int) {
-        sessionManager?.setCameraTextureName(textureId)
     }
 
     fun hasSession(): Boolean = arSession != null
