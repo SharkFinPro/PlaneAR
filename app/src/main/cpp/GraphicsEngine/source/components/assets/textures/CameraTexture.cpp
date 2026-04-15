@@ -33,6 +33,8 @@ namespace ge {
         nullptr
       );
     }
+
+    m_logicalDevice->destroySampler(m_ycbcrSampler);
   }
 
   void CameraTexture::updateFromHardwareBuffer(AHardwareBuffer* buffer)
