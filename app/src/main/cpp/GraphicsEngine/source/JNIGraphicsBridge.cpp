@@ -7,8 +7,6 @@
 #include <android/hardware_buffer.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 
-#include "../Logger.h"
-
 namespace {
   inline ge::Renderer2D* getRenderer(JNIEnv* env,
                                      jobject thiz)
@@ -356,14 +354,12 @@ namespace {
     ge::Renderer2D* renderer = getRenderer(env, thiz);
     if (renderer == nullptr)
     {
-      LOGE("HB - renderer not found!");
       return;
     }
 
     AHardwareBuffer* ahb = AHardwareBuffer_fromHardwareBuffer(env, hardwareBuffer);
     if (ahb == nullptr)
     {
-      LOGW("HB Not Available!");
       return;
     }
 
