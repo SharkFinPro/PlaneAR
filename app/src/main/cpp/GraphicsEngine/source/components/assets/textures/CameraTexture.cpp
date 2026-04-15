@@ -53,6 +53,8 @@ namespace ge {
       AHardwareBuffer_release(m_currentBuffer);
     }
 
+    AHardwareBuffer_acquire(buffer);
+
     m_imageData = importBuffer(buffer);
     m_currentBuffer = buffer;
 
