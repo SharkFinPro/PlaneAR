@@ -113,7 +113,7 @@ namespace ge {
 
     Image image {
       .bounds {
-        100, 100, 800, 800
+        100, 100, 800, 1422
       },
       .transform = glm::mat4(1.0),
       .z = 0.99f
