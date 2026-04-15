@@ -57,12 +57,10 @@ namespace ge {
     m_imageData = importBuffer(buffer);
     m_currentBuffer = buffer;
 
-    // Point base Texture state at this image
-    m_textureImage     = m_imageData.image;
+    m_textureImage = m_imageData.image;
     m_textureImageView = m_imageData.imageView;
 
-    // Camera images must be sampled from GENERAL
-    m_imageInfo.imageView   = m_imageData.imageView;
+    m_imageInfo.imageView = m_imageData.imageView;
     m_imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
     m_imageInfo.sampler = VK_NULL_HANDLE;
 
@@ -91,7 +89,6 @@ namespace ge {
       createDescriptorSet(m_descriptorPool, m_descriptorSetLayout);
     }
 
-    // Rewrite descriptor every frame (safe & correct)
     m_descriptorSet->updateDescriptorSets(
     [this](VkDescriptorSet descriptorSet, size_t)
     {
@@ -106,96 +103,87 @@ namespace ge {
     return m_descriptorSetLayout;
   }
 
-  CameraTexture::ImportedBuffer CameraTexture::importBuffer(AHardwareBuffer* hardware_buffer)
+  CameraTexture::ImportedBuffer CameraTexture::importBuffer(AHardwareBuffer* hardwareBuffer)
   {
     ImportedBuffer slot{};
 
-// 2
-    AHardwareBuffer_Desc ahb_desc = {};
-    AHardwareBuffer_describe(hardware_buffer, &ahb_desc);
+    AHardwareBuffer_Desc ahbDesc = {};
+    AHardwareBuffer_describe(hardwareBuffer, &ahbDesc);
 
-// 3
-    VkAndroidHardwareBufferFormatPropertiesANDROID format_props = {
+    VkAndroidHardwareBufferFormatPropertiesANDROID formatProperties = {
       .sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_ANDROID
     };
-    VkAndroidHardwareBufferPropertiesANDROID ahb_props = {
+    VkAndroidHardwareBufferPropertiesANDROID ahbProperties = {
       .sType = VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID,
-      .pNext = &format_props
+      .pNext = &formatProperties
     };
 
-    vkGetAndroidHardwareBufferPropertiesANDROID(m_logicalDevice->getDevice(), hardware_buffer, &ahb_props);
+    vkGetAndroidHardwareBufferPropertiesANDROID(m_logicalDevice->getDevice(), hardwareBuffer, &ahbProperties);
 
-// 4
-    // If format is VK_FORMAT_UNDEFINED (YCbCr), use external format
-    VkExternalFormatANDROID external_format = {
-      .sType  = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID,
-      .externalFormat = format_props.externalFormat  // use 0 if format != UNDEFINED
+    createYCBCRResources(formatProperties);
+
+    VkExternalFormatANDROID externalFormat = {
+      .sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID,
+      .externalFormat = formatProperties.externalFormat
     };
 
-    VkExternalMemoryImageCreateInfo ext_mem_image_info = {
-      .sType       = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
-      .pNext       = (format_props.format == VK_FORMAT_UNDEFINED) ? &external_format : nullptr,
+    VkExternalMemoryImageCreateInfo extMemImageInfo = {
+      .sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
+      .pNext = (formatProperties.format == VK_FORMAT_UNDEFINED) ? &externalFormat : nullptr,
       .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID
     };
 
-    VkImageCreateInfo image_info = {
-      .sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-      .pNext         = &ext_mem_image_info,
-      .imageType     = VK_IMAGE_TYPE_2D,
-      .format        = format_props.format,  // May be VK_FORMAT_UNDEFINED
-      .extent        = { ahb_desc.width, ahb_desc.height, 1 },
-      .mipLevels     = 1,
-      .arrayLayers   = 1,
-      .samples       = VK_SAMPLE_COUNT_1_BIT,
-      .tiling        = VK_IMAGE_TILING_OPTIMAL,
-      .usage         = VK_IMAGE_USAGE_SAMPLED_BIT,
-      .sharingMode   = VK_SHARING_MODE_EXCLUSIVE,
+    VkImageCreateInfo imageInfo = {
+      .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+      .pNext = &extMemImageInfo,
+      .imageType = VK_IMAGE_TYPE_2D,
+      .format = formatProperties.format,
+      .extent = { ahbDesc.width, ahbDesc.height, 1 },
+      .mipLevels = 1,
+      .arrayLayers = 1,
+      .samples = VK_SAMPLE_COUNT_1_BIT,
+      .tiling = VK_IMAGE_TILING_OPTIMAL,
+      .usage = VK_IMAGE_USAGE_SAMPLED_BIT,
+      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
       .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
     };
 
-    vkCreateImage(m_logicalDevice->getDevice(), &image_info, nullptr, &slot.image);
+    vkCreateImage(m_logicalDevice->getDevice(), &imageInfo, nullptr, &slot.image);
 
-
-// 5
-    VkImportAndroidHardwareBufferInfoANDROID import_info = {
-      .sType  = VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
-      .buffer = hardware_buffer
+    VkImportAndroidHardwareBufferInfoANDROID importInfo = {
+      .sType = VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
+      .buffer = hardwareBuffer
     };
 
-    VkMemoryDedicatedAllocateInfo dedicated_info = {
-      .sType  = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
-      .pNext  = &import_info,
-      .image  = slot.image
+    VkMemoryDedicatedAllocateInfo dedicatedInfo = {
+      .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
+      .pNext = &importInfo,
+      .image = slot.image
     };
 
-// Find the right memory type index from ahb_props.memoryTypeBits
-    VkMemoryAllocateInfo mem_alloc = {
-      .sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-      .pNext           = &dedicated_info,
-      .allocationSize  = ahb_props.allocationSize,
+    VkMemoryAllocateInfo memoryAllocateInfo = {
+      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+      .pNext = &dedicatedInfo,
+      .allocationSize = ahbProperties.allocationSize,
       .memoryTypeIndex = m_logicalDevice->getPhysicalDevice()->findMemoryType(
-                           ahb_props.memoryTypeBits,
+                           ahbProperties.memoryTypeBits,
                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
     };
 
-    vkAllocateMemory(m_logicalDevice->getDevice(), &mem_alloc, nullptr, &slot.memory);
+    vkAllocateMemory(m_logicalDevice->getDevice(), &memoryAllocateInfo, nullptr, &slot.memory);
     vkBindImageMemory(m_logicalDevice->getDevice(), slot.image, slot.memory, 0);
 
-
-// 6
-    createYCBCRResources(format_props);
-
-    VkSamplerYcbcrConversionInfo conversion_info = {
-      .sType      = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
+    VkSamplerYcbcrConversionInfo conversionInfo = {
+      .sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
       .conversion = m_ycbcrConversion
     };
 
-    VkImageViewCreateInfo view_info = {
-      .sType      = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,  // was missing
-      .pNext      = &conversion_info,
-      .image      = slot.image,                                // was missing
-      .viewType   = VK_IMAGE_VIEW_TYPE_2D,
-      .format     = VK_FORMAT_UNDEFINED,
+    VkImageViewCreateInfo viewInfo = {
+      .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+      .pNext = &conversionInfo,
+      .image = slot.image,
+      .viewType = VK_IMAGE_VIEW_TYPE_2D,
+      .format = VK_FORMAT_UNDEFINED,
       .components = {
         VK_COMPONENT_SWIZZLE_IDENTITY,
         VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -205,62 +193,61 @@ namespace ge {
       .subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
     };
 
-    vkCreateImageView(m_logicalDevice->getDevice(), &view_info, nullptr, &slot.imageView);
+    vkCreateImageView(m_logicalDevice->getDevice(), &viewInfo, nullptr, &slot.imageView);
 
     return slot;
   }
 
-  void CameraTexture::createYCBCRResources(const VkAndroidHardwareBufferFormatPropertiesANDROID& format_props)
+  void CameraTexture::createYCBCRResources(const VkAndroidHardwareBufferFormatPropertiesANDROID& formatProperties)
   {
     if (m_ycbcrConversion != VK_NULL_HANDLE)
     {
       return;
     }
 
-    VkExternalFormatANDROID ycbcr_ext_format = {
-      .sType          = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID,
-      .externalFormat = format_props.externalFormat
+    VkExternalFormatANDROID ycbcrExtFormat = {
+      .sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID,
+      .externalFormat = formatProperties.externalFormat
     };
 
-    VkSamplerYcbcrConversionCreateInfo ycbcr_info = {
-      .sType          = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO,
-      .pNext          = &ycbcr_ext_format,
-      .format         = VK_FORMAT_UNDEFINED,
-      .ycbcrModel     = format_props.suggestedYcbcrModel,
-      .ycbcrRange     = format_props.suggestedYcbcrRange,
-      .components     = format_props.samplerYcbcrConversionComponents,
-      .xChromaOffset  = format_props.suggestedXChromaOffset,
-      .yChromaOffset  = format_props.suggestedYChromaOffset,
-      .chromaFilter   = VK_FILTER_LINEAR,
+    VkSamplerYcbcrConversionCreateInfo ycbcrInfo = {
+      .sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO,
+      .pNext = &ycbcrExtFormat,
+      .format = VK_FORMAT_UNDEFINED,
+      .ycbcrModel = formatProperties.suggestedYcbcrModel,
+      .ycbcrRange = formatProperties.suggestedYcbcrRange,
+      .components = formatProperties.samplerYcbcrConversionComponents,
+      .xChromaOffset = formatProperties.suggestedXChromaOffset,
+      .yChromaOffset = formatProperties.suggestedYChromaOffset,
+      .chromaFilter = VK_FILTER_LINEAR,
       .forceExplicitReconstruction = VK_FALSE
     };
 
-    vkCreateSamplerYcbcrConversion(m_logicalDevice->getDevice(), &ycbcr_info, nullptr, &m_ycbcrConversion);
+    vkCreateSamplerYcbcrConversion(m_logicalDevice->getDevice(), &ycbcrInfo, nullptr, &m_ycbcrConversion);
 
-    VkSamplerYcbcrConversionInfo conversion_info = {
-      .sType      = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
+    VkSamplerYcbcrConversionInfo conversionInfo = {
+      .sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
       .conversion = m_ycbcrConversion
     };
 
-// Immutable sampler - REQUIRED for YCbCr
-    VkSamplerCreateInfo sampler_info = {
-      .sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-      .pNext                   = &conversion_info,
-      .magFilter               = VK_FILTER_LINEAR,   // must match chromaFilter
-      .minFilter               = VK_FILTER_LINEAR,   // must match chromaFilter
-      .mipmapMode              = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-      .addressModeU            = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,  // required
-      .addressModeV            = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,  // required
-      .addressModeW            = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,  // required
-      .mipLodBias              = 0.0f,
-      .anisotropyEnable        = VK_FALSE,   // required
-      .compareEnable           = VK_FALSE,
-      .minLod                  = 0.0f,
-      .maxLod                  = 0.0f,
-      .unnormalizedCoordinates = VK_FALSE    // required
+    VkSamplerCreateInfo samplerInfo = {
+      .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+      .pNext = &conversionInfo,
+      .magFilter = VK_FILTER_LINEAR,
+      .minFilter = VK_FILTER_LINEAR,
+      .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+      .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+      .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+      .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+      .mipLodBias = 0.0f,
+      .anisotropyEnable = VK_FALSE,
+      .compareEnable = VK_FALSE,
+      .minLod = 0.0f,
+      .maxLod = 0.0f,
+      .unnormalizedCoordinates = VK_FALSE
     };
 
-    vkCreateSampler(m_logicalDevice->getDevice(), &sampler_info, nullptr, &m_ycbcrSampler);
+    vkCreateSampler(m_logicalDevice->getDevice(), &samplerInfo, nullptr, &m_ycbcrSampler);
   }
 
 } // namespace ge

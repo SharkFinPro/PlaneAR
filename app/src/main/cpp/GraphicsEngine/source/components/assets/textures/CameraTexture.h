@@ -17,7 +17,6 @@ namespace ge {
 
     ~CameraTexture() override;
 
-    // Call each ARCore frame
     void updateFromHardwareBuffer(AHardwareBuffer* buffer);
 
     [[nodiscard]] VkDescriptorSetLayout getDescriptorSetLayout() const;
@@ -29,9 +28,9 @@ namespace ge {
     VkDescriptorSetLayout m_descriptorSetLayout = VK_NULL_HANDLE;
 
     struct ImportedBuffer {
-      VkImage        image     = VK_NULL_HANDLE;
-      VkDeviceMemory memory    = VK_NULL_HANDLE;
-      VkImageView    imageView = VK_NULL_HANDLE;
+      VkImage image = VK_NULL_HANDLE;
+      VkDeviceMemory memory = VK_NULL_HANDLE;
+      VkImageView imageView = VK_NULL_HANDLE;
     };
 
     ImportedBuffer m_imageData;
@@ -42,7 +41,7 @@ namespace ge {
 
     ImportedBuffer importBuffer(AHardwareBuffer* buffer);
 
-    void createYCBCRResources(const VkAndroidHardwareBufferFormatPropertiesANDROID& format_props);
+    void createYCBCRResources(const VkAndroidHardwareBufferFormatPropertiesANDROID& formatProperties);
   };
 
 } // ge
