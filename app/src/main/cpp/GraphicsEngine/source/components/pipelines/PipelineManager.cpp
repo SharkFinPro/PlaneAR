@@ -62,7 +62,7 @@ namespace ge {
     const auto renderPass = m_renderer->getRenderPass();
 
     createGraphicsPipeline(PipelineType::camera,
-      PipelineConfig::createImagePipelineOptions(
+      PipelineConfig::createCameraPipelineOptions(
         m_logicalDevice,
         renderPass,
         m_assetManager->getAAssetManager(),

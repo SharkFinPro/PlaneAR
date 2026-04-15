@@ -34,6 +34,7 @@ class ARSessionManager(
 
     fun onUpdateFrame() {
         Log.i("updateframe", "onupdateframe")
+//        session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
         session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
 
         val frame: Frame
