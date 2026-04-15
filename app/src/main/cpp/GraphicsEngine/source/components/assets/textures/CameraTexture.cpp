@@ -47,6 +47,7 @@ namespace ge {
 
     if (m_currentBuffer)
     {
+      m_logicalDevice->waitIdle();
       m_logicalDevice->destroyImageView(m_imageData.imageView);
       m_logicalDevice->destroyImage(m_imageData.image);
       m_logicalDevice->freeMemory(m_imageData.memory);
