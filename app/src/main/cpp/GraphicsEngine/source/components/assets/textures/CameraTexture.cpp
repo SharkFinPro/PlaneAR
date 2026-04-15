@@ -2,7 +2,6 @@
 #include "../../descriptorSet/DescriptorSet.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../../utilities/Buffers.h"
-#include "../../../utilities/Images.h"
 
 namespace ge {
 
