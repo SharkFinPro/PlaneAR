@@ -3,7 +3,6 @@
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../../utilities/Buffers.h"
 #include "../../../utilities/Images.h"
-#include "VKCheck.h"
 
 namespace ge {
 
@@ -124,7 +123,7 @@ namespace ge {
       .pNext = &format_props
     };
 
-    VK_CHECK(vkGetAndroidHardwareBufferPropertiesANDROID(m_logicalDevice->getDevice(), hardware_buffer, &ahb_props));
+    vkGetAndroidHardwareBufferPropertiesANDROID(m_logicalDevice->getDevice(), hardware_buffer, &ahb_props);
 
 // 4
     // If format is VK_FORMAT_UNDEFINED (YCbCr), use external format
@@ -154,7 +153,7 @@ namespace ge {
       .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
     };
 
-    VK_CHECK(vkCreateImage(m_logicalDevice->getDevice(), &image_info, nullptr, &slot.image));
+    vkCreateImage(m_logicalDevice->getDevice(), &image_info, nullptr, &slot.image);
 
 
 // 5
@@ -179,8 +178,8 @@ namespace ge {
                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
     };
 
-    VK_CHECK(vkAllocateMemory(m_logicalDevice->getDevice(), &mem_alloc, nullptr, &slot.memory));
-    VK_CHECK(vkBindImageMemory(m_logicalDevice->getDevice(), slot.image, slot.memory, 0));
+    vkAllocateMemory(m_logicalDevice->getDevice(), &mem_alloc, nullptr, &slot.memory);
+    vkBindImageMemory(m_logicalDevice->getDevice(), slot.image, slot.memory, 0);
 
 
 // 6
@@ -206,7 +205,7 @@ namespace ge {
       .subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
     };
 
-    VK_CHECK(vkCreateImageView(m_logicalDevice->getDevice(), &view_info, nullptr, &slot.imageView));
+    vkCreateImageView(m_logicalDevice->getDevice(), &view_info, nullptr, &slot.imageView);
 
     return slot;
   }
@@ -236,7 +235,7 @@ namespace ge {
       .forceExplicitReconstruction = VK_FALSE
     };
 
-    VK_CHECK(vkCreateSamplerYcbcrConversion(m_logicalDevice->getDevice(), &ycbcr_info, nullptr, &m_ycbcrConversion));
+    vkCreateSamplerYcbcrConversion(m_logicalDevice->getDevice(), &ycbcr_info, nullptr, &m_ycbcrConversion);
 
     VkSamplerYcbcrConversionInfo conversion_info = {
       .sType      = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
@@ -261,7 +260,7 @@ namespace ge {
       .unnormalizedCoordinates = VK_FALSE    // required
     };
 
-    VK_CHECK(vkCreateSampler(m_logicalDevice->getDevice(), &sampler_info, nullptr, &m_ycbcrSampler));
+    vkCreateSampler(m_logicalDevice->getDevice(), &sampler_info, nullptr, &m_ycbcrSampler);
   }
 
 } // namespace ge
