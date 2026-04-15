@@ -123,7 +123,7 @@ namespace ge {
 
     pipelineManager->pushGraphicsPipelineConstants(
       renderInfo->commandBuffer,
-      PipelineType::image,
+      PipelineType::camera,
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
       0,
       sizeof(imagePC),
