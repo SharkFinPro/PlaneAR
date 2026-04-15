@@ -65,6 +65,7 @@ namespace ge {
     // Camera images must be sampled from GENERAL
     m_imageInfo.imageView   = m_imageData.imageView;
     m_imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+    m_imageInfo.sampler = VK_NULL_HANDLE;
 
     if (!m_descriptorSet)
     {
