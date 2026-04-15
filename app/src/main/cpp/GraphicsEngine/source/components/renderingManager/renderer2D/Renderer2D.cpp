@@ -88,51 +88,12 @@ namespace ge {
           bindIfNeeded(PipelineType::image);
           renderImage(pipelineManager, renderInfo, cmd);
         }
+        else if constexpr (std::is_same_v<T, Camera>)
+        {
+          renderCamera(pipelineManager, renderInfo, cmd);
+        }
       }, entry.command);
     }
-
-    //
-
-    if (!m_assetManager->getCameraTexture() ||
-        m_assetManager->getCameraTexture()->getDescriptorSet(renderInfo->currentFrame) == VK_NULL_HANDLE)
-    {
-      return;
-    }
-
-    if (!pipelineManager->hasCameraPipeline())
-    {
-      pipelineManager->createCameraPipeline(m_assetManager->getCameraTexture()->getDescriptorSetLayout());
-    }
-
-    bindIfNeeded(PipelineType::camera);
-
-    pipelineManager->bindGraphicsPipelineDescriptorSet(
-      renderInfo->commandBuffer,
-      PipelineType::camera,
-      m_assetManager->getCameraTexture()->getDescriptorSet(renderInfo->currentFrame),
-      0
-    );
-
-    Image image {
-      .bounds {
-        100, 100, 800, 1422
-      },
-      .transform = glm::mat4(1.0),
-      .z = 0.99f
-    };
-
-    const auto imagePC = image.createPushConstant(renderInfo->extent);
-
-    pipelineManager->pushGraphicsPipelineConstants(
-      renderInfo->commandBuffer,
-      PipelineType::camera,
-      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-      0,
-      sizeof(imagePC),
-      &imagePC
-    );
-
-    renderInfo->commandBuffer->draw(4, 1, 0, 0);
   }
 
   void Renderer2D::fill(const float r,
@@ -475,6 +436,25 @@ namespace ge {
     return m_assetManager;
   }
 
+  void Renderer2D::camera(float x,
+                          float y,
+                          float width,
+                          float height)
+  {
+    const auto bounds = resolveImageBounds(x, y, width, height);
+
+    m_drawList.push_back({
+      Camera{
+        .bounds = bounds,
+        .transform = m_currentTransform,
+        .z = m_currentZ
+      },
+      m_currentZ
+    });
+
+    increaseCurrentZ();
+  }
+
   glm::vec4 Renderer2D::resolveRectBounds(float a,
                                           float b,
                                           float c,
@@ -680,6 +660,44 @@ namespace ge {
       0,
       sizeof(imagePC),
       &imagePC
+    );
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
+  }
+
+  void Renderer2D::renderCamera(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                const RenderInfo* renderInfo,
+                                const Camera& camera) const
+  {
+    if (!m_assetManager->getCameraTexture() ||
+        m_assetManager->getCameraTexture()->getDescriptorSet(renderInfo->currentFrame) == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    if (!pipelineManager->hasCameraPipeline())
+    {
+      pipelineManager->createCameraPipeline(m_assetManager->getCameraTexture()->getDescriptorSetLayout());
+    }
+
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::camera);
+
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      PipelineType::camera,
+      m_assetManager->getCameraTexture()->getDescriptorSet(renderInfo->currentFrame),
+      0
+    );
+
+    const auto cameraPC = camera.createPushConstant(renderInfo->extent);
+
+    pipelineManager->pushGraphicsPipelineConstants(
+      renderInfo->commandBuffer,
+      PipelineType::camera,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(cameraPC),
+      &cameraPC
     );
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);

@@ -102,6 +102,10 @@ class Renderer2D(private val ptr: Long) {
 
     /* Camera */
     external fun updateCameraBuffer(buffer: android.hardware.HardwareBuffer)
+
+    fun camera(x: Number, y: Number, width: Number, height: Number) = camera(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
+
+    private external fun camera(x: Float, y: Float, width: Float, height: Float)
 }
 
 class GraphicsEngineWrapper(private val ptr: Long) {

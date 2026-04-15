@@ -214,6 +214,37 @@ namespace ge {
     }
   };
 
+  struct Camera {
+    glm::vec4 bounds;
+    glm::mat4 transform;
+    float z;
+
+    struct PushConstant {
+      glm::mat4 transform;
+      int screenWidth;
+      int screenHeight;
+      float z;
+      float x;
+      float y;
+      float width;
+      float height;
+    };
+
+    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent) const
+    {
+      return {
+        .transform = transform,
+        .screenWidth = static_cast<int>(extent.width),
+        .screenHeight = static_cast<int>(extent.height),
+        .z = z,
+        .x = bounds.x,
+        .y = bounds.y,
+        .width = bounds.z,
+        .height = bounds.w
+      };
+    }
+  };
+
 }
 
 #endif //PLANEAR_PRIMITIVES2D_H

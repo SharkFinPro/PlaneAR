@@ -370,6 +370,22 @@ namespace {
     renderer->getAssetManager()->getCameraTexture()->updateFromHardwareBuffer(ahb);
   }
 
+  void nativeCamera(JNIEnv* env,
+                    jobject thiz,
+                    jfloat x,
+                    jfloat y,
+                    jfloat w,
+                    jfloat h)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+    renderer->camera(x, y, w, h);
+  }
+
   const JNINativeMethod renderer2DMethods[] = {
     {"fill",        "(IIII)V",                    (void*)nativeFill},
     {"fill",        "(II)V",                      (void*)nativeFillRGB},
@@ -391,7 +407,8 @@ namespace {
     {"textAlign",   "(II)V",                      (void*)nativeTextAlign},
     {"text",        "(Ljava/lang/String;FF)V",    (void*)nativeText},
     {"image",       "(Ljava/lang/String;FFFF)V",  (void*)nativeImage},
-    {"updateCameraBuffer", "(Landroid/hardware/HardwareBuffer;)V", (void*)nativeUpdateCameraBuffer}
+    {"updateCameraBuffer", "(Landroid/hardware/HardwareBuffer;)V", (void*)nativeUpdateCameraBuffer},
+    {"camera",      "(FFFF)V",  (void*)nativeCamera},
   };
 
   const JNINativeMethod graphicsEngineMethods[] = {

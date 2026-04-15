@@ -142,6 +142,11 @@ namespace ge {
 
     [[nodiscard]] std::shared_ptr<AssetManager> getAssetManager() const;
 
+    void camera(float x,
+                float y,
+                float width,
+                float height);
+
   private:
     struct GlyphCommand {
       Glyph glyph;
@@ -149,7 +154,7 @@ namespace ge {
       uint32_t fontSize;
     };
 
-    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image>;
+    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image, Camera>;
 
     struct DrawEntry {
       DrawCommand command;
@@ -222,6 +227,10 @@ namespace ge {
     void renderImage(const std::shared_ptr<PipelineManager>& pipelineManager,
                      const RenderInfo* renderInfo,
                      const Image& image) const;
+
+    void renderCamera(const std::shared_ptr<PipelineManager>& pipelineManager,
+                      const RenderInfo* renderInfo,
+                      const Camera& camera) const;
   };
 
 } // ge
