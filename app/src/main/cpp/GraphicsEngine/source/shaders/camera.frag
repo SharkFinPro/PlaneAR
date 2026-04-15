@@ -8,8 +8,6 @@ layout(location = 0) out vec4 outColor;
 
 void main()
 {
-//  vec2 rotatedUV = vec2(1.0 - fragUV.y, fragUV.x);
-
   vec2 rotatedUV = vec2(fragUV.y, 1.0 - fragUV.x);
 
   outColor = texture(image, rotatedUV);
