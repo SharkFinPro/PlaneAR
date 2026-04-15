@@ -104,6 +104,8 @@ namespace ge {
       pipelineManager->createCameraPipeline(m_assetManager->getCameraTexture()->getDescriptorSetLayout());
     }
 
+    bindIfNeeded(PipelineType::camera);
+
     pipelineManager->bindGraphicsPipelineDescriptorSet(
       renderInfo->commandBuffer,
       PipelineType::camera,
