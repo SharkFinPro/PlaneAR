@@ -61,12 +61,6 @@ class ARSessionManager(
             Log.i("ARSessionManager", "HB Received")
             AppSettings.hb = hb;
 
-            try {
-//                nativeOnHardwareBuffer(hb, frame.timestamp)
-            } finally {
-//                hb.close()
-            }
-
         } else {
             Log.w("ARSessionManager", "HW buffer null")
             nullHbCount++

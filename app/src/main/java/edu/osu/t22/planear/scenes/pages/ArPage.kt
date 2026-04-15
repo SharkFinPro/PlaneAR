@@ -25,7 +25,6 @@ class ArPage : Page {
             {
                 updateCameraBuffer(hb);
                 Log.i("ARPage", "HB FOUND")
-//                hb.close();
                 AppSettings.hb = null;
             }
 
