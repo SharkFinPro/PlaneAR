@@ -19,10 +19,7 @@ namespace ge {
     m_cameraTexture = std::make_shared<CameraTexture>(
       m_logicalDevice,
       m_descriptorPool,
-      m_imageDescriptorSetLayout,
-      m_commandPool,
-      800,
-      800
+      m_commandPool
     );
   }
 

@@ -13,10 +13,7 @@ namespace ge {
   public:
     CameraTexture(std::shared_ptr<LogicalDevice> logicalDevice,
                   VkDescriptorPool descriptorPool,
-                  VkDescriptorSetLayout descriptorSetLayout,
-                  VkCommandPool commandPool,
-                  uint32_t width,
-                  uint32_t height);
+                  VkCommandPool commandPool);
 
     ~CameraTexture() override;
 
