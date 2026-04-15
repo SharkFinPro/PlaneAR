@@ -130,7 +130,7 @@ class MainActivity : GameActivity() {
                         Log.e("ADSB_EXECUTION", "ADS-B polling failed", e)
                     }
 
-                    delay(500L)
+                    delay(32L)
                 }
             }
         }
