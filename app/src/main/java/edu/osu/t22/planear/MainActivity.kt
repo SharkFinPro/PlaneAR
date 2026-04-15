@@ -128,7 +128,7 @@ class MainActivity : GameActivity() {
                         Log.e("ADSB_EXECUTION", "ADS-B polling failed", e)
                     }
 
-                    delay(500L)
+                    delay(5_000L)
                 }
             }
         }
@@ -143,7 +143,7 @@ class MainActivity : GameActivity() {
                         Log.e("ARCORE_EXECUTION", "ARCore update failed", e)
                     }
 
-                    delay(32L)
+                    delay(16L)
                 }
             }
         }
