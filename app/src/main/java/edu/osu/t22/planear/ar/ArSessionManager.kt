@@ -28,7 +28,6 @@ class ARSessionManager(
     }
 
     fun onUpdateFrame() {
-        Log.i("updateframe", "onupdateframe")
         session.setDisplayGeometry(displayRotation(), viewportWidth, viewportHeight)
 
         val frame: Frame
@@ -50,11 +49,9 @@ class ARSessionManager(
                 Log.i("ARSessionManager", "HB frames received: $validHbCount")
             }
 
-            Log.i("ARSessionManager", "HB Received")
             AppSettings.hb = hb;
 
         } else {
-            Log.w("ARSessionManager", "HW buffer null")
             nullHbCount++
             if (nullHbCount % 60 == 0) {
                 Log.w("ARSessionManager", "HardwareBuffer was null $nullHbCount times")
