@@ -353,7 +353,6 @@ namespace {
                                 jobject thiz,
                                 jobject hardwareBuffer)
   {
-    LOGI("HB - nativeUpdateCameraBuffer");
     ge::Renderer2D* renderer = getRenderer(env, thiz);
     if (renderer == nullptr)
     {
@@ -367,8 +366,6 @@ namespace {
       LOGW("HB Not Available!");
       return;
     }
-
-    LOGI("HB Updating...");
 
     renderer->getAssetManager()->getCameraTexture()->updateFromHardwareBuffer(ahb);
   }
