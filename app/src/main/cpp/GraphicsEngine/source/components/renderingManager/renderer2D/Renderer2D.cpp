@@ -10,8 +10,6 @@
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "../../../../Logger.h"
-
 namespace ge {
   Renderer2D::Renderer2D(std::shared_ptr<AssetManager> assetManager)
     : m_assetManager(std::move(assetManager))
