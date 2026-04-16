@@ -343,6 +343,65 @@ namespace {
     return reinterpret_cast<jlong>(renderer.get());
   }
 
+  void nativePoint(JNIEnv* env,
+                    jobject thiz,
+                    jfloat x,
+                    jfloat y,
+                    jfloat z)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+    renderer->point(x, y, z);
+  }
+
+  void nativeSet3DView(JNIEnv* env,
+                       jobject thiz,
+                       jfloat x,
+                       jfloat y,
+                       jfloat z,
+                       jfloat pitch,
+                       jfloat yaw,
+                       jfloat roll,
+                       jfloat screenWidth,
+                       jfloat screenHeight)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+    renderer->set3DView(x, y, z, pitch, yaw, roll, screenWidth, screenHeight);
+  }
+
+  void nativeText3D(JNIEnv* env,
+                  jobject thiz,
+                  jstring text,
+                  jfloat x,
+                  jfloat y,
+                  jfloat z)
+  {
+    const char* textStr = env->GetStringUTFChars(text, nullptr);
+    if (textStr == nullptr)
+    {
+      return;
+    }
+
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      env->ReleaseStringUTFChars(text, textStr);
+      return;
+    }
+
+    renderer->text3D(textStr, x, y, z);
+    env->ReleaseStringUTFChars(text, textStr);
+  }
+
   const JNINativeMethod renderer2DMethods[] = {
     {"fill",        "(IIII)V",                    (void*)nativeFill},
     {"fill",        "(II)V",                      (void*)nativeFillRGB},
@@ -356,14 +415,17 @@ namespace {
     {"rectMode",    "(I)V",                       (void*)nativeRectMode},
     {"ellipseMode", "(I)V",                       (void*)nativeEllipseMode},
     {"imageMode",   "(I)V",                       (void*)nativeImageMode},
-    {"rect",        "(FFFFF)V",                    (void*)nativeRect},
+    {"rect",        "(FFFFF)V",                   (void*)nativeRect},
     {"triangle",    "(FFFFFF)V",                  (void*)nativeTriangle},
     {"ellipse",     "(FFFF)V",                    (void*)nativeEllipse},
     {"textFont",    "(Ljava/lang/String;I)V",     (void*)nativeTextFont},
     {"textSize",    "(I)V",                       (void*)nativeTextSize},
     {"textAlign",   "(II)V",                      (void*)nativeTextAlign},
     {"text",        "(Ljava/lang/String;FF)V",    (void*)nativeText},
-    {"image",       "(Ljava/lang/String;FFFF)V",  (void*)nativeImage}
+    {"image",       "(Ljava/lang/String;FFFF)V",  (void*)nativeImage},
+    {"point",       "(FFF)V",                     (void*)nativePoint},
+    {"set3DView",   "(FFFFFFFF)V",                (void*)nativeSet3DView},
+    {"text3D",   "(Ljava/lang/String;FFF)V",      (void*)nativeText3D}
   };
 
   const JNINativeMethod graphicsEngineMethods[] = {

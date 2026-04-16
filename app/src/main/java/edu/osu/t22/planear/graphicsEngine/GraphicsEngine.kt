@@ -99,6 +99,20 @@ class Renderer2D(private val ptr: Long) {
     fun image(image: String, x: Number, y: Number, width: Number, height: Number) = image(image, x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
 
     private external fun image(image: String, x: Float, y: Float, width: Float, height: Float)
+
+    /* 3D Points */
+    fun point(x: Number, y: Number, z: Number) = point(x.toFloat(), y.toFloat(), z.toFloat())
+
+    private external fun point(x: Float, y: Float, z: Float)
+
+    fun set3DView(x: Number, y: Number, z: Number, pitch: Number, yaw: Number, roll: Number, screenWidth: Number, screenHeight: Number)
+        = set3DView(x.toFloat(), y.toFloat(), z.toFloat(), pitch.toFloat(), yaw.toFloat(), roll.toFloat(), screenWidth.toFloat(), screenHeight.toFloat())
+
+    private external fun set3DView(x: Float, y: Float, z: Float, pitch: Float, yaw: Float, roll: Float, screenWidth: Float, screenHeight: Float)
+
+    fun text3D(text: String, x: Number, y: Number, z: Number) = text3D(text, x.toFloat(), y.toFloat(), z.toFloat())
+
+    private external fun text3D(text: String, x: Float, y: Float, z: Float)
 }
 
 class GraphicsEngineWrapper(private val ptr: Long) {
