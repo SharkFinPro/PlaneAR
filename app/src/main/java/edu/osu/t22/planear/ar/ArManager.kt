@@ -77,9 +77,5 @@ class ArManager(private val context: Context) {
         sessionManager?.onUpdateFrame()
     }
 
-    fun setCameraTexture(textureId: Int) {
-        sessionManager?.setCameraTextureName(textureId)
-    }
-
     fun hasSession(): Boolean = arSession != null
 }
