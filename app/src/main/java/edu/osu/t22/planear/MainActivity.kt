@@ -6,6 +6,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.hardware.GeomagneticField
 import android.os.Bundle
 import android.util.Log
 import android.view.Surface
@@ -26,7 +27,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import edu.osu.t22.planear.adsb.AircraftOverlayStore
-import edu.osu.t22.planear.adsb.AircraftScreenPoint
+import edu.osu.t22.planear.orientation.OrientationData
+import edu.osu.t22.planear.orientation.OrientationStore
+import kotlin.math.atan2
+import kotlin.math.sqrt
 
 class MainActivity : GameActivity() {
 
@@ -86,49 +90,55 @@ class MainActivity : GameActivity() {
         frameGestureDetector = FrameGestureDetector(this)
         SceneSwitcher.gestureDetector = frameGestureDetector
 
+        // Coroutine 1: Fetch aircraft data every 5 seconds
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (isActive) {
+                    try {
+                        adsbManager.fetchAircraftData(appLocationManager.lastKnownLocation)
+                    } catch (e: Exception) {
+                        Log.e("ADSB_EXECUTION", "ADS-B fetch failed", e)
+                    }
+                    delay(2_500L)
+                }
+            }
+        }
+
+        // Coroutine 2: Project aircraft to screen at 60fps for smooth movement
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (isActive) {
                     try {
                         val loc = appLocationManager.lastKnownLocation
-
                         if (loc != null) {
                             val dm = resources.displayMetrics
-                            val screenW = dm.widthPixels
-                            val screenH = dm.heightPixels
-
-                            val result = adsbManager.pollAndProject(
+                            adsbManager.projectToScreen(
                                 location = loc,
                                 azimuthDeg = deviceAzimuthDeg,
                                 pitchDeg = devicePitchDeg,
                                 rollDeg = deviceRollDeg,
-                                screenW = screenW,
-                                screenH = screenH
+                                screenW = dm.widthPixels,
+                                screenH = dm.heightPixels
                             )
-
-                            if (result != null) {
-
-                                AircraftOverlayStore.points =
-                                    result.xs.indices.map { i ->
-                                        AircraftScreenPoint(
-                                            x = result.xs[i],
-                                            y = result.ys[i],
-                                            label = result.labels[i]
-                                        )
-                                    }
-                            } else {
-                                AircraftOverlayStore.points = emptyList()
-                            }
-                        } else {
-                            AircraftOverlayStore.points = emptyList()
-                            Log.w("ADSB_EXECUTION", "No location available yet")
                         }
                     } catch (e: Exception) {
-                        AircraftOverlayStore.points = emptyList()
-                        Log.e("ADSB_EXECUTION", "ADS-B polling failed", e)
+                        Log.e("ADSB_EXECUTION", "ADS-B projection failed", e)
+                    }
+                    delay(16L) // ~60fps
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (isActive) {
+                    try {
+                        arManager.onUpdateFrame()
+                    } catch (e: Exception) {
+                        Log.e("ARCORE_EXECUTION", "ARCore update failed", e)
                     }
 
-                    delay(5_000L)
+                    delay(16L)
                 }
             }
         }
@@ -199,12 +209,58 @@ class MainActivity : GameActivity() {
         override fun onSensorChanged(event: SensorEvent) {
             if (event.sensor.type != Sensor.TYPE_ROTATION_VECTOR) return
             SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
-            SensorManager.getOrientation(rotationMatrix, orientationAngles)
 
-            deviceAzimuthDeg = Math.toDegrees(orientationAngles[0].toDouble())
+            // The direction out the back of the phone (camera direction) in device coords is [0, 0, -1]
+            // Transform to world coords: R * [0, 0, -1] = [-R[2], -R[5], -R[8]]
+            // R is stored as: R[0] R[1] R[2]
+            //                 R[3] R[4] R[5]
+            //                 R[6] R[7] R[8]
+            val backEast = -rotationMatrix[2].toDouble()   // X in world (East)
+            val backNorth = -rotationMatrix[5].toDouble()  // Y in world (North)
+            val backUp = -rotationMatrix[8].toDouble()     // Z in world (Up)
+
+            // Calculate magnetic azimuth: angle in horizontal plane (East, North)
+            // 0 = Magnetic North, 90 = Magnetic East, etc.
+            // atan2(y, x) gives angle from positive x-axis. We want angle from North (Y axis)
+            // so we use atan2(East, North) which gives angle clockwise from North
+            val magneticAzimuthDeg = Math.toDegrees(atan2(backEast, backNorth))
                 .let { if (it < 0) it + 360.0 else it }
-            devicePitchDeg   = Math.toDegrees(orientationAngles[1].toDouble())
-            deviceRollDeg    = Math.toDegrees(orientationAngles[2].toDouble())
+
+            // Convert to true north using magnetic declination at current location
+            val loc = appLocationManager.lastKnownLocation
+            if (loc != null) {
+                val geoField = GeomagneticField(
+                    loc.latitude.toFloat(),
+                    loc.longitude.toFloat(),
+                    loc.altitude.toFloat(),
+                    System.currentTimeMillis()
+                )
+                deviceAzimuthDeg = (magneticAzimuthDeg + geoField.declination).mod(360.0)
+            } else {
+                deviceAzimuthDeg = magneticAzimuthDeg
+            }
+
+            // Calculate pitch: angle above/below horizon
+            // Positive = up, Negative = down
+            val horizontalDist = sqrt(backEast * backEast + backNorth * backNorth)
+            devicePitchDeg = Math.toDegrees(atan2(backUp, horizontalDist))
+
+            // Roll is not directly used for camera direction projection, but kept for reference
+            SensorManager.getOrientation(rotationMatrix, orientationAngles)
+            deviceRollDeg = Math.toDegrees(orientationAngles[2].toDouble())
+
+            // Update the orientation store for UI display
+            if (loc != null)
+            {
+                OrientationStore.data = OrientationData(
+                    azimuthDeg = deviceAzimuthDeg,
+                    pitchDeg = devicePitchDeg,
+                    rollDeg = deviceRollDeg,
+                    x = loc.latitude.toFloat(),
+                    y = loc.altitude.toFloat(),
+                    z = loc.longitude.toFloat()
+                )
+            }
         }
 
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -280,9 +336,5 @@ class MainActivity : GameActivity() {
 
     fun onArUpdateFrame() {
         arManager.onUpdateFrame()
-    }
-
-    fun setCameraTexture(textureId: Int) {
-        arManager.setCameraTexture(textureId)
     }
 }
