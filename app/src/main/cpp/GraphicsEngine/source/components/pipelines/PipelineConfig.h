@@ -170,6 +170,72 @@ namespace ge::PipelineConfig {
     };
   }
 
+  inline GraphicsPipelineOptions createPointPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                            const std::shared_ptr<RenderPass>& renderPass,
+                                                            AAssetManager* assetManager)
+  {
+    return {
+      .shaders {
+        .assetManager = assetManager,
+        .vertexShader = "shaders/point.vert.spv",
+        .fragmentShader = "shaders/point.frag.spv"
+      },
+      .states {
+        .colorBlendState = gps::colorBlendStateTransparent,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(Point::PushConstant)
+        }
+      },
+      .renderPass = renderPass
+    };
+  }
+
+  inline GraphicsPipelineOptions createFont3DPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                             const std::shared_ptr<RenderPass>& renderPass,
+                                                             AAssetManager* assetManager,
+                                                             VkDescriptorSetLayout fontDescriptorSetLayout)
+  {
+    return {
+      .shaders {
+        .assetManager = assetManager,
+        .vertexShader = "shaders/font3D.vert.spv",
+        .fragmentShader = "shaders/font3D.frag.spv"
+      },
+      .states {
+        .colorBlendState = gps::colorBlendStateTransparent,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(Glyph3D::PushConstant)
+        }
+      },
+      .descriptorSetLayouts {
+        fontDescriptorSetLayout
+      },
+      .renderPass = renderPass
+    };
+  }
+
 }
 
 #endif //PLANEAR_PIPELINECONFIG_H
