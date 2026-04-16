@@ -8,14 +8,14 @@ interface AdsbApi {
     suspend fun getClosestAircraft(
         @Path("lat") lat: Double,
         @Path("lon") lon: Double,
-        @Path("radius") radius: Int = 50
+        @Path("radius") radius: Int
     ): AdsbResponse
 
     @GET("v2/point/{lat}/{lon}/{radius}")
     suspend fun getNearbyAircraft(
         @Path("lat") lat: Double,
         @Path("lon") lon: Double,
-        @Path("radius") radius: Int = 50
+        @Path("radius") radius: Int
     ): AdsbResponse
 
     @GET("v2/callsign/{callsign}")

@@ -4,7 +4,6 @@ import android.location.Location
 import android.util.Log
 import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.geo.GeoPoint
-import edu.osu.t22.planear.geo.GeoUtils
 import edu.osu.t22.planear.geo.Planeprojector
 import edu.osu.t22.planear.location.AppLocationManager
 import kotlinx.coroutines.Dispatchers
@@ -21,12 +20,126 @@ data class AircraftOverlayResult(
 
 class AdsbManager(private val appLocationManager: AppLocationManager) {
 
-
     private val api = AdsbModule.provideApi()
 
     companion object {
-        private const val H_FOV_DEG = 54.8
-        private const val V_FOV_DEG = 42.5
+        const val H_FOV_DEG = 54.8
+        const val V_FOV_DEG = 42.5
+    }
+
+    /**
+     * Fetch aircraft data and store raw positions (without projecting to screen).
+     * Call this on a slower interval (e.g., every 5 seconds).
+     */
+    suspend fun fetchAircraftData(location: Location?): Boolean {
+        val loc = location ?: appLocationManager.lastKnownLocation
+        if (loc == null) {
+            Log.w("ADSB", "No location available")
+            AircraftOverlayStore.aircraftData = emptyList()
+            return false
+        }
+
+        val lat = loc.latitude
+        val lon = loc.longitude
+
+        val nearbyData = try {
+            api.getNearbyAircraft(lat, lon, AppSettings.searchRadiusNm)
+        } catch (e: Exception) {
+            Log.e("ADSB", "Failed to fetch aircraft data", e)
+            AircraftOverlayStore.aircraftData = emptyList()
+            return false
+        }
+
+        val projectableAircraft = nearbyData.ac.filter { it.isProjectable }
+
+        AircraftOverlayStore.aircraftData = projectableAircraft.map { ac ->
+            AircraftPosition(
+                position = GeoPoint(
+                    latDeg = ac.lat!!,
+                    lonDeg = ac.lon!!,
+                    altM = ac.altitudeMeters!!
+                ),
+                label = when {
+                    !ac.flight.isNullOrBlank() -> ac.flight.trim()
+                    !ac.r.isNullOrBlank() -> ac.r.trim()
+                    !ac.hex.isNullOrBlank() -> ac.hex.trim()
+                    else -> "UNKNOWN"
+                }
+            )
+        }
+
+        Log.d("ADSB", "Fetched ${AircraftOverlayStore.aircraftData.size} aircraft")
+        return AircraftOverlayStore.aircraftData.isNotEmpty()
+    }
+
+    /**
+     * Project stored aircraft positions to screen coordinates using current orientation.
+     * Call this at high frequency (e.g., every frame).
+     */
+    fun projectToScreen(
+        location: Location?,
+        azimuthDeg: Double,
+        pitchDeg: Double,
+        rollDeg: Double,
+        screenW: Int,
+        screenH: Int
+    ): AircraftOverlayResult? {
+        val loc = location ?: appLocationManager.lastKnownLocation
+        if (loc == null) {
+            AircraftOverlayStore.points = emptyList()
+            return null
+        }
+
+        val aircraftData = AircraftOverlayStore.aircraftData
+        if (aircraftData.isEmpty()) {
+            AircraftOverlayStore.points = emptyList()
+            return null
+        }
+
+        val userPoint = GeoPoint(loc.latitude, loc.longitude, loc.altitude)
+        val acPoints = aircraftData.map { it.position }
+
+        val screenPoints = Planeprojector.projectAll(
+            user = userPoint,
+            aircraft = acPoints,
+            azimuthDeg = azimuthDeg,
+            pitchDeg = pitchDeg,
+            rollDeg = rollDeg,
+            hFovDeg = H_FOV_DEG,
+            vFovDeg = V_FOV_DEG,
+            screenWidth = screenW,
+            screenHeight = screenH
+        )
+
+        val dots = Planeprojector.toNativeArray(screenPoints)
+
+        val xs = mutableListOf<Float>()
+        val ys = mutableListOf<Float>()
+        val labels = mutableListOf<String>()
+
+        screenPoints.forEachIndexed { i, point ->
+            if (point.visible) {
+                xs += point.x.toFloat()
+                ys += point.y.toFloat()
+                labels += aircraftData[i].label
+            }
+        }
+
+        if (dots.isEmpty()) {
+            AircraftOverlayStore.points = emptyList()
+            return null
+        }
+
+        AircraftOverlayStore.points = xs.indices.map { i ->
+            AircraftScreenPoint(x = xs[i], y = ys[i], label = labels[i])
+        }
+
+        return AircraftOverlayResult(
+            dots = dots,
+            xs = xs.toFloatArray(),
+            ys = ys.toFloatArray(),
+            labels = labels.toTypedArray()
+        )
     }
 
     suspend fun pollAndProject(
@@ -49,11 +162,11 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
         val alt = loc.altitude
 
         val nearby = async(Dispatchers.IO) {
-            api.getNearbyAircraft(lat, lon, 50)
+            api.getNearbyAircraft(lat, lon, AppSettings.searchRadiusNm)
         }
 
         val closest = async(Dispatchers.IO) {
-            api.getClosestAircraft(lat, lon, 250)
+            api.getClosestAircraft(lat, lon, AppSettings.searchRadiusNm * 3)
         }
 
         val nearbyData = nearby.await()
