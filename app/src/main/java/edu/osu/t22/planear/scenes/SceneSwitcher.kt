@@ -4,7 +4,7 @@ import edu.osu.t22.planear.FrameGestureDetector
 import edu.osu.t22.planear.scenes.pages.ArPage
 import edu.osu.t22.planear.scenes.pages.FavoritesPage
 import edu.osu.t22.planear.scenes.pages.FlightHistoryPage
-import edu.osu.t22.planear.scenes.pages.HomePage
+
 import edu.osu.t22.planear.scenes.pages.SceneId
 import edu.osu.t22.planear.scenes.pages.SettingsPage
 
@@ -57,12 +57,11 @@ class SceneSwitcher {
     }
 
     private fun registerScenes() {
-        registerScene(SceneId.Home.id, HomePage())
         registerScene(SceneId.AR.id, ArPage())
         registerScene(SceneId.FlightHistory.id, FlightHistoryPage())
         registerScene(SceneId.Settings.id, SettingsPage())
         registerScene(SceneId.Favorites.id, FavoritesPage())
-        setCurrentScene(SceneId.Home.id)
+        setCurrentScene(SceneId.AR.id)
     }
 
     private fun registerScene(sceneId: Int, scene: Scene) {
