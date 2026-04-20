@@ -13,12 +13,12 @@ import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
 
 enum class SceneId(val id: Int) {
-    Home(1), AR(2), FlightHistory(3), Settings(4), Favorites(5)
+    AR(2), FlightHistory(3), Settings(4), Favorites(5)
 }
 
-val sceneIdMap     = listOf(SceneId.Home, SceneId.AR, SceneId.FlightHistory, SceneId.Settings)
-val navLabels      = listOf("Home", "AR View", "History", "Settings")
-val navEmojiLabels = listOf("🏠", "📷", "🕒", "⚙️")
+val sceneIdMap     = listOf(SceneId.AR, SceneId.FlightHistory, SceneId.Settings)
+val navLabels      = listOf("AR View", "History", "Settings")
+val navEmojiLabels = listOf("📷", "🕒", "⚙️")
 
 enum class SheetResult { ANIMATING, OPEN, DISMISSED }
 
@@ -186,7 +186,7 @@ interface Page : Scene {
     private fun drawNavButtons(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val screenWidth    = sceneInfo.screenWidth
         val screenHeight   = sceneInfo.screenHeight
-        val buttonWidth    = screenWidth / 4.0f
+        val buttonWidth    = screenWidth / navLabels.size.toFloat()
         val buttonTop      = screenHeight - navHeight
         val activeNavIndex = sceneId.ordinal
         val tapPos         = sceneInfo.gestures.singleTapUpPosition
