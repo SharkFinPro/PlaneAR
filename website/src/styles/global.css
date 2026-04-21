@@ -1,0 +1,388 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+@import "tailwindcss";
+@config "../../tailwind.config.js";
+
+/* ============================================================================
+   THEME TOKENS
+   ============================================================================ */
+
+:root {
+  /* --- Primary --- */
+  --color-primary:                  #006e1c;
+  --color-primary-container:        #4caf50;
+  --color-primary-fixed:            #94f990;
+  --color-primary-fixed-dim:        #78dc77;
+  --color-on-primary:               #ffffff;
+  --color-on-primary-container:     #003c0b;
+  --color-on-primary-fixed:         #002204;
+  --color-on-primary-fixed-variant: #005313;
+
+  /* --- Secondary --- */
+  --color-secondary:                  #42673f;
+  --color-secondary-container:        #c3eebb;
+  --color-secondary-fixed:            #c3eebb;
+  --color-secondary-fixed-dim:        #a8d1a1;
+  --color-on-secondary:               #ffffff;
+  --color-on-secondary-container:     #486d45;
+  --color-on-secondary-fixed:         #002204;
+  --color-on-secondary-fixed-variant: #2b4f2a;
+
+  /* --- Tertiary --- */
+  --color-tertiary:                  #a63360;
+  --color-tertiary-container:        #f26f9d;
+  --color-tertiary-fixed:            #ffd9e2;
+  --color-tertiary-fixed-dim:        #ffb1c7;
+  --color-on-tertiary:               #ffffff;
+  --color-on-tertiary-container:     #690034;
+  --color-on-tertiary-fixed:         #3e001c;
+  --color-on-tertiary-fixed-variant: #861948;
+
+  /* --- Surface --- */
+  --color-surface:                    #f7fafc;
+  --color-surface-dim:                #d7dadc;
+  --color-surface-bright:             #f7fafc;
+  --color-surface-variant:            #e0e3e5;
+  --color-surface-tint:               #006e1c;
+  --color-surface-container:          #ebeef0;
+  --color-surface-container-low:      #f1f4f6;
+  --color-surface-container-lowest:   #ffffff;
+  --color-surface-container-high:     #e5e9eb;
+  --color-surface-container-highest:  #e0e3e5;
+
+  /* --- Background & Text --- */
+  --color-background:        #f7fafc;
+  --color-on-background:     #181c1e;
+  --color-on-surface:        #181c1e;
+  --color-on-surface-variant:#3f4a3c;
+
+  /* --- Outline --- */
+  --color-outline:         #6f7a6b;
+  --color-outline-variant: #becab9;
+
+  /* --- Error --- */
+  --color-error:             #ba1a1a;
+  --color-error-container:   #ffdad6;
+  --color-on-error:          #ffffff;
+  --color-on-error-container:#93000a;
+
+  /* --- Inverse --- */
+  --color-inverse-surface:   #2d3133;
+  --color-inverse-on-surface:#eef1f3;
+  --color-inverse-primary:   #78dc77;
+
+  /* --- Misc --- */
+  --glass-bg:           rgba(255, 255, 255, 0.7);
+  --glass-border:       rgba(255, 255, 255, 0.2);
+  --hero-shadow:        rgba(24, 28, 30, 0.06);
+  --tech-deco-opacity:  0.2;
+}
+
+/* ============================================================================
+   DARK THEME
+   ============================================================================ */
+
+.dark {
+  /* --- Primary --- */
+  --color-primary:                  #4caf50;
+  --color-primary-container:        #4caf50;
+  --color-primary-fixed:            #94f990;
+  --color-primary-fixed-dim:        #78dc77;
+  --color-on-primary:               #ffffff;
+  --color-on-primary-container:     #e6e6e6;
+  --color-on-primary-fixed:         #002204;
+  --color-on-primary-fixed-variant: #005313;
+
+  /* --- Secondary --- */
+  --color-secondary:                  #4caf50;
+  --color-secondary-container:        #1e1e1e;
+  --color-secondary-fixed:            #c3eebb;
+  --color-secondary-fixed-dim:        #a8d1a1;
+  --color-on-secondary:               #ffffff;
+  --color-on-secondary-container:     #4caf50;
+  --color-on-secondary-fixed:         #002204;
+  --color-on-secondary-fixed-variant: #2b4f2a;
+
+  /* --- Tertiary (unchanged from light) --- */
+  --color-tertiary:                  #a63360;
+  --color-tertiary-container:        #f26f9d;
+  --color-tertiary-fixed:            #ffd9e2;
+  --color-tertiary-fixed-dim:        #ffb1c7;
+  --color-on-tertiary:               #ffffff;
+  --color-on-tertiary-container:     #690034;
+  --color-on-tertiary-fixed:         #3e001c;
+  --color-on-tertiary-fixed-variant: #861948;
+
+  /* --- Surface --- */
+  --color-surface:                   #121212;
+  --color-surface-dim:               #1a1a1a;
+  --color-surface-bright:            #242424;
+  --color-surface-variant:           #2c2c2c;
+  --color-surface-tint:              #4caf50;
+  --color-surface-container:         #1e1e1e;
+  --color-surface-container-low:     #181818;
+  --color-surface-container-lowest:  #0a0a0a;
+  --color-surface-container-high:    #2c2c2c;
+  --color-surface-container-highest: #333333;
+
+  /* --- Background & Text --- */
+  --color-background:         #121212;
+  --color-on-background:      #e6e6e6;
+  --color-on-surface:         #e6e6e6;
+  --color-on-surface-variant: #b0b0b0;
+
+  /* --- Outline --- */
+  --color-outline:         #6f7a6b;
+  --color-outline-variant: #444444;
+
+  /* --- Error (unchanged from light) --- */
+  --color-error:              #ba1a1a;
+  --color-error-container:    #ffdad6;
+  --color-on-error:           #ffffff;
+  --color-on-error-container: #93000a;
+
+  /* --- Inverse --- */
+  --color-inverse-surface:    #eef1f3;
+  --color-inverse-on-surface: #121212;
+  --color-inverse-primary:    #006e1c;
+
+  /* --- Misc --- */
+  --glass-bg:          rgba(30, 30, 30, 0.7);
+  --glass-border:      rgba(255, 255, 255, 0.1);
+  --hero-shadow:       rgba(0, 0, 0, 0.3);
+  --tech-deco-opacity: 0.2;
+}
+
+/* ============================================================================
+   BASE
+   ============================================================================ */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-on-surface font-body;
+  }
+
+  ::selection {
+    @apply bg-primary-container text-on-primary-container;
+  }
+}
+
+/* ============================================================================
+   COMPONENTS
+   ============================================================================ */
+
+@layer components {
+
+  /* --- Buttons --- */
+
+  .btn-primary {
+    @apply bg-primary text-on-primary px-8 py-4 rounded-lg font-headline font-bold flex items-center gap-2;
+    @apply hover:opacity-90 transition-all;
+  }
+
+  .btn-secondary {
+    @apply text-on-surface font-headline font-bold flex items-center gap-2;
+    @apply hover:text-primary transition-colors;
+  }
+
+  /* --- Layout --- */
+
+  .section-title {
+    @apply font-headline text-4xl font-extrabold tracking-tight;
+  }
+
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--color-outline-variant) 30%,
+      var(--color-primary) 50%,
+      var(--color-outline-variant) 70%,
+      transparent
+    );
+    opacity: 0.4;
+  }
+
+  /* --- Cards --- */
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-md;
+  }
+
+  .team-card {
+    position: relative;
+  }
+
+  .team-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-tertiary), var(--color-primary));
+    background-size: 200% 100%;
+    opacity: 0.5;
+    transition: opacity 0.3s;
+  }
+
+  .team-card:hover::before {
+    animation: shimmer 1.5s linear infinite;
+    opacity: 1;
+  }
+
+  .trace-border {
+    position: relative;
+  }
+
+  .trace-border::before,
+  .trace-border::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .trace-border::before {
+    border-top: 1px solid var(--color-primary);
+    border-right: 1px solid var(--color-primary);
+    width: 0;
+    height: 0;
+    opacity: 0;
+    transition: width 0.3s ease 0s, height 0.3s ease 0.3s, opacity 0s 0s;
+  }
+
+  .trace-border::after {
+    border-bottom: 1px solid var(--color-primary);
+    border-left: 1px solid var(--color-primary);
+    width: 0;
+    height: 0;
+    opacity: 0;
+    bottom: 0; right: 0; left: auto; top: auto;
+    transition: width 0.3s ease 0.6s, height 0.3s ease 0.9s, opacity 0s 0.6s;
+  }
+
+  .trace-border.traced::before,
+  .trace-border.traced::after {
+    width: 100%;
+    height: 100%;
+    opacity: 1;
+  }
+
+  /* --- Hero --- */
+
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  }
+
+  .tech-grid {
+    background-image: radial-gradient(var(--color-primary) 1px, transparent 1px);
+    background-size: 16px 16px;
+    opacity: var(--tech-deco-opacity);
+  }
+
+  .hero-image-shadow {
+    box-shadow: 0px 20px 40px var(--hero-shadow);
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    position: relative;
+  }
+
+  .live-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    opacity: 0.4;
+    animation: live-pulse 1.8s ease-out infinite;
+  }
+
+  /* --- Misc --- */
+
+  .link-underline {
+    @apply underline-offset-4 hover:underline transition-opacity duration-200 hover:opacity-80;
+  }
+
+  .icon-pop {
+    display: inline-block;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .group:hover .icon-pop {
+    transform: scale(1.25) rotate(-8deg);
+  }
+
+  /* --- Mobile Carousel --- */
+
+  @media (max-width: 640px) {
+    .capabilities-grid {
+      display: flex;
+      align-items: stretch;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      gap: 0.75rem;
+      padding-bottom: 1rem;
+    }
+
+    .capabilities-grid::-webkit-scrollbar { display: none; }
+
+    .capabilities-grid > * {
+      scroll-snap-align: start;
+      flex: 0 0 80vw;
+      display: flex;
+      align-items: stretch;
+    }
+
+    .capabilities-grid > * > div {
+      width: 100%;
+    }
+  }
+}
+
+/* ============================================================================
+   UTILITIES
+   ============================================================================ */
+
+@layer utilities {
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+}
+
+/* ============================================================================
+   KEYFRAMES
+   ============================================================================ */
+
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(30px, -20px) scale(1.05); }
+  66%       { transform: translate(-20px, 15px) scale(0.97); }
+}
+
+@keyframes live-pulse {
+  0%   { transform: scale(1);   opacity: 0.4; }
+  70%  { transform: scale(2.2); opacity: 0;   }
+  100% { transform: scale(1);   opacity: 0;   }
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
