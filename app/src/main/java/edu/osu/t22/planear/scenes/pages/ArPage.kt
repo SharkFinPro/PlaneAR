@@ -1,7 +1,9 @@
 package edu.osu.t22.planear.scenes.pages
 
+import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.adsb.AircraftOverlayStore
 import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
+import edu.osu.t22.planear.graphicsEngine.ImageMode
 import edu.osu.t22.planear.graphicsEngine.TextAlignH
 import edu.osu.t22.planear.graphicsEngine.TextAlignV
 import edu.osu.t22.planear.scenes.SceneInfo
@@ -15,9 +17,22 @@ class ArPage : Page {
         val height = sceneInfo.screenHeight - navHeight
         val points = AircraftOverlayStore.points
 
+        val hb = AppSettings.hb;
+
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
+
+            if (hb != null)
+            {
+                updateCameraBuffer(hb);
+                hb.close();
+                AppSettings.hb = null;
+            }
+
             fill(245)
             rect(0, 0, width, height)
+
+            imageMode(ImageMode.CORNER)
+            camera(0, 0, width, height);
 
             fill(0)
             textFont("roboto", 18)

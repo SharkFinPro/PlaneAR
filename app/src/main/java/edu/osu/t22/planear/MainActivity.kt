@@ -38,20 +38,6 @@ class MainActivity : GameActivity() {
 
         private const val CAMERA_PERMISSION_CODE = 0
         private const val LOCATION_PERMISSION_CODE = 1
-
-        @JvmStatic
-        external fun nativeSetArReady(ready: Boolean)
-        /*
-                @JvmStatic
-                external fun nativeSetAircraftDots(dots: FloatArray)
-
-                @JvmStatic
-                external fun nativeSetAircraftLabels(
-                    xs: FloatArray,
-                    ys: FloatArray,
-                    labels: Array<String>
-                )
-         */
     }
 
     private lateinit var sceneSwitcher: SceneSwitcher
@@ -129,6 +115,21 @@ class MainActivity : GameActivity() {
                     }
 
                     delay(5_000L)
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (isActive) {
+                    try {
+                        arManager.onUpdateFrame()
+                    } catch (e: Exception) {
+                        AircraftOverlayStore.points = emptyList()
+                        Log.e("ARCORE_EXECUTION", "ARCore update failed", e)
+                    }
+
+                    delay(16L)
                 }
             }
         }
@@ -276,13 +277,5 @@ class MainActivity : GameActivity() {
                         or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         or View.SYSTEM_UI_FLAG_FULLSCREEN
                 )
-    }
-
-    fun onArUpdateFrame() {
-        arManager.onUpdateFrame()
-    }
-
-    fun setCameraTexture(textureId: Int) {
-        arManager.setCameraTexture(textureId)
     }
 }

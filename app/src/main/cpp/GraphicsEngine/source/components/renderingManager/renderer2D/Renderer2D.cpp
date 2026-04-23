@@ -1,6 +1,7 @@
 #include "Renderer2D.h"
 #include "../../assets/AssetManager.h"
 #include "../../assets/fonts/Font.h"
+#include "../../assets/textures/CameraTexture.h"
 #include "../../assets/textures/ImageTexture.h"
 #include "../../commandBuffer/CommandBuffer.h"
 #include "../../pipelines/GraphicsPipeline.h"
@@ -84,6 +85,10 @@ namespace ge {
         {
           bindIfNeeded(PipelineType::image);
           renderImage(pipelineManager, renderInfo, cmd);
+        }
+        else if constexpr (std::is_same_v<T, Camera>)
+        {
+          renderCamera(pipelineManager, renderInfo, cmd);
         }
       }, entry.command);
     }
@@ -424,6 +429,30 @@ namespace ge {
     increaseCurrentZ();
   }
 
+  std::shared_ptr<AssetManager> Renderer2D::getAssetManager() const
+  {
+    return m_assetManager;
+  }
+
+  void Renderer2D::camera(float x,
+                          float y,
+                          float width,
+                          float height)
+  {
+    const auto bounds = resolveImageBounds(x, y, width, height);
+
+    m_drawList.push_back({
+      Camera{
+        .bounds = bounds,
+        .transform = m_currentTransform,
+        .z = m_currentZ
+      },
+      m_currentZ
+    });
+
+    increaseCurrentZ();
+  }
+
   glm::vec4 Renderer2D::resolveRectBounds(float a,
                                           float b,
                                           float c,
@@ -629,6 +658,44 @@ namespace ge {
       0,
       sizeof(imagePC),
       &imagePC
+    );
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
+  }
+
+  void Renderer2D::renderCamera(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                const RenderInfo* renderInfo,
+                                const Camera& camera) const
+  {
+    if (!m_assetManager->getCameraTexture() ||
+        m_assetManager->getCameraTexture()->getDescriptorSet(renderInfo->currentFrame) == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    if (!pipelineManager->hasCameraPipeline())
+    {
+      pipelineManager->createCameraPipeline(m_assetManager->getCameraTexture()->getDescriptorSetLayout());
+    }
+
+    pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::camera);
+
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      PipelineType::camera,
+      m_assetManager->getCameraTexture()->getDescriptorSet(renderInfo->currentFrame),
+      0
+    );
+
+    const auto cameraPC = camera.createPushConstant(renderInfo->extent);
+
+    pipelineManager->pushGraphicsPipelineConstants(
+      renderInfo->commandBuffer,
+      PipelineType::camera,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(cameraPC),
+      &cameraPC
     );
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);

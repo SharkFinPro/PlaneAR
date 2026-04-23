@@ -2,7 +2,6 @@ project(planeARApp)
 
 add_library(${PROJECT_NAME} SHARED
   main.cpp
-  ArBridge.cpp
   SceneSwitcher.cpp
   JNISceneBridge.cpp
 )

@@ -21,6 +21,11 @@ namespace ge {
     vkDestroyDevice(m_device, nullptr);
   }
 
+  VkDevice LogicalDevice::getDevice() const
+  {
+    return m_device;
+  }
+
   std::shared_ptr<PhysicalDevice> LogicalDevice::getPhysicalDevice() const
   {
     return m_physicalDevice;
@@ -74,8 +79,14 @@ namespace ge {
       queueCreateInfos.push_back(queueCreateInfo);
     }
 
+    VkPhysicalDeviceVulkan11Features vulkan11Features {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
+      .samplerYcbcrConversion = VK_TRUE
+    };
+
     VkPhysicalDeviceFeatures2 deviceFeatures2 {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+      .pNext = &vulkan11Features,
       .features {
         .samplerAnisotropy = VK_TRUE
       }
