@@ -42,20 +42,6 @@ class MainActivity : GameActivity() {
 
         private const val CAMERA_PERMISSION_CODE = 0
         private const val LOCATION_PERMISSION_CODE = 1
-
-        @JvmStatic
-        external fun nativeSetArReady(ready: Boolean)
-        /*
-                @JvmStatic
-                external fun nativeSetAircraftDots(dots: FloatArray)
-
-                @JvmStatic
-                external fun nativeSetAircraftLabels(
-                    xs: FloatArray,
-                    ys: FloatArray,
-                    labels: Array<String>
-                )
-         */
     }
 
     private lateinit var sceneSwitcher: SceneSwitcher

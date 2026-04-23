@@ -49,6 +49,8 @@ class ARSessionManager(
                 Log.i("ARSessionManager", "HB frames received: $validHbCount")
             }
 
+            AppSettings.hb = hb;
+
         } else {
             nullHbCount++
             if (nullHbCount % 60 == 0) {

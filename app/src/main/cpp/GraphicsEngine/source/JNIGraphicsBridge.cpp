@@ -1,6 +1,10 @@
 #include "GraphicsEngine.h"
+#include "components/assets/AssetManager.h"
+#include "components/assets/textures/CameraTexture.h"
 #include "components/renderingManager/RenderingManager.h"
 #include "components/renderingManager/renderer2D/Renderer2D.h"
+#include <android/hardware_buffer_jni.h>
+#include <android/hardware_buffer.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 
 namespace {
@@ -402,6 +406,41 @@ namespace {
     env->ReleaseStringUTFChars(text, textStr);
   }
 
+  void nativeUpdateCameraBuffer(JNIEnv* env,
+                                jobject thiz,
+                                jobject hardwareBuffer)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+    AHardwareBuffer* ahb = AHardwareBuffer_fromHardwareBuffer(env, hardwareBuffer);
+    if (ahb == nullptr)
+    {
+      return;
+    }
+
+    renderer->getAssetManager()->getCameraTexture()->updateFromHardwareBuffer(ahb);
+  }
+
+  void nativeCamera(JNIEnv* env,
+                    jobject thiz,
+                    jfloat x,
+                    jfloat y,
+                    jfloat w,
+                    jfloat h)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+    renderer->camera(x, y, w, h);
+  }
+
   const JNINativeMethod renderer2DMethods[] = {
     {"fill",        "(IIII)V",                    (void*)nativeFill},
     {"fill",        "(II)V",                      (void*)nativeFillRGB},
@@ -415,7 +454,7 @@ namespace {
     {"rectMode",    "(I)V",                       (void*)nativeRectMode},
     {"ellipseMode", "(I)V",                       (void*)nativeEllipseMode},
     {"imageMode",   "(I)V",                       (void*)nativeImageMode},
-    {"rect",        "(FFFFF)V",                   (void*)nativeRect},
+    {"rect",        "(FFFFF)V",                    (void*)nativeRect},
     {"triangle",    "(FFFFFF)V",                  (void*)nativeTriangle},
     {"ellipse",     "(FFFF)V",                    (void*)nativeEllipse},
     {"textFont",    "(Ljava/lang/String;I)V",     (void*)nativeTextFont},
@@ -425,7 +464,9 @@ namespace {
     {"image",       "(Ljava/lang/String;FFFF)V",  (void*)nativeImage},
     {"point",       "(FFF)V",                     (void*)nativePoint},
     {"set3DView",   "(FFFFFFFF)V",                (void*)nativeSet3DView},
-    {"text3D",   "(Ljava/lang/String;FFF)V",      (void*)nativeText3D}
+    {"text3D",   "(Ljava/lang/String;FFF)V",      (void*)nativeText3D},
+    {"updateCameraBuffer", "(Landroid/hardware/HardwareBuffer;)V", (void*)nativeUpdateCameraBuffer},
+    {"camera",      "(FFFF)V",  (void*)nativeCamera},
   };
 
   const JNINativeMethod graphicsEngineMethods[] = {

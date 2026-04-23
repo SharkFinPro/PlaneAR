@@ -21,10 +21,22 @@ class ArPage : Page {
         val height = sceneInfo.screenHeight - navHeight
         val points = AircraftOverlayStore.points
 
+        val hb = AppSettings.hb;
+
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
+
+            if (hb != null)
+            {
+                updateCameraBuffer(hb);
+                hb.close();
+                AppSettings.hb = null;
+            }
 
             fill(245)
             rect(0, 0, width, height)
+
+            imageMode(ImageMode.CORNER)
+            camera(0, 0, width, height);
 
             fill(0)
             textFont("roboto", 18)
@@ -43,15 +55,15 @@ class ArPage : Page {
             textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
             textFont("roboto", 14)
 
-            for (p in points) {
-                val x = p.x.toInt()
-                val y = p.y.toInt()
+            for (point in points) {
+                val x = point.x.toInt()
+                val y = point.y.toInt()
 
                 if (x >= 0 && x <= width && y >= 0 && y <= height) {
                     fill(0)
                     ellipse(x, y, 12, 12)
 
-                    text(p.label, x + 14, y)
+                    text(point.label, x + 14, y)
                 }
             }
 

@@ -11,13 +11,13 @@ namespace ge {
   PipelineManager::PipelineManager(std::shared_ptr<LogicalDevice> logicalDevice,
                                    const std::shared_ptr<Renderer>& renderer,
                                    const std::shared_ptr<AssetManager>& assetManager)
-    : m_logicalDevice(std::move(logicalDevice))
+    : m_logicalDevice(std::move(logicalDevice)), m_renderer(renderer), m_assetManager(assetManager)
   {
     createCommandPool();
 
     createDescriptorPool();
 
-    createPipelines(renderer, assetManager);
+    createPipelines();
   }
 
   PipelineManager::~PipelineManager()
@@ -57,6 +57,25 @@ namespace ge {
     graphicsPipeline.bindDescriptorSet(commandBuffer, descriptorSet, location);
   }
 
+  void PipelineManager::createCameraPipeline(VkDescriptorSetLayout cameraLayout)
+  {
+    const auto renderPass = m_renderer->getRenderPass();
+
+    createGraphicsPipeline(PipelineType::camera,
+      PipelineConfig::createCameraPipelineOptions(
+        m_logicalDevice,
+        renderPass,
+        m_assetManager->getAAssetManager(),
+        cameraLayout
+      )
+    );
+  }
+
+  bool PipelineManager::hasCameraPipeline() const
+  {
+    return m_graphicsPipelines.contains(PipelineType::camera);
+  }
+
   void PipelineManager::createCommandPool()
   {
     const VkCommandPoolCreateInfo poolInfo {
@@ -83,7 +102,7 @@ namespace ge {
     m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
   }
 
-  const GraphicsPipeline &PipelineManager::getGraphicsPipeline(PipelineType pipelineType) const
+  const GraphicsPipeline& PipelineManager::getGraphicsPipeline(PipelineType pipelineType) const
   {
     const auto it = m_graphicsPipelines.find(pipelineType);
     if (it == m_graphicsPipelines.end())
@@ -94,38 +113,38 @@ namespace ge {
     return *it->second;
   }
 
-  void PipelineManager::createPipelines(const std::shared_ptr<Renderer>& renderer,
-                                        const std::shared_ptr<AssetManager>& assetManager)
+  void PipelineManager::createPipelines()
   {
-    const auto renderPass = renderer->getRenderPass();
+    const auto renderPass = m_renderer->getRenderPass();
+    const auto AAssetManager = m_assetManager->getAAssetManager();
 
     createGraphicsPipeline(PipelineType::rect,
                            PipelineConfig::createRectPipelineOptions(m_logicalDevice,
-                           renderPass, assetManager->getAAssetManager()));
+                           renderPass, AAssetManager));
 
     createGraphicsPipeline(PipelineType::triangle,
                            PipelineConfig::createTrianglePipelineOptions(m_logicalDevice,
-                           renderPass, assetManager->getAAssetManager()));
+                           renderPass, AAssetManager));
 
     createGraphicsPipeline(PipelineType::ellipse,
                            PipelineConfig::createEllipsePipelineOptions(m_logicalDevice,
-                           renderPass, assetManager->getAAssetManager()));
+                           renderPass, AAssetManager));
 
     createGraphicsPipeline(PipelineType::font,
-                           PipelineConfig::createFontPipelineOptions(m_logicalDevice, renderPass,
-                           assetManager->getAAssetManager(), assetManager->getFontDescriptorSetLayout()));
+                           PipelineConfig::createFontPipelineOptions(m_logicalDevice,
+                           renderPass, AAssetManager, m_assetManager->getFontDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::image,
                            PipelineConfig::createImagePipelineOptions(m_logicalDevice,
-                           renderPass, assetManager->getAAssetManager(), assetManager->getImageDescriptorSetLayout()));
+                           renderPass, AAssetManager, m_assetManager->getImageDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::point,
                            PipelineConfig::createPointPipelineOptions(m_logicalDevice,
-                           renderPass, assetManager->getAAssetManager()));
+                           renderPass, AAssetManager));
 
     createGraphicsPipeline(PipelineType::font3D,
                            PipelineConfig::createFont3DPipelineOptions(m_logicalDevice,
-                           renderPass,assetManager->getAAssetManager(), assetManager->getFontDescriptorSetLayout()));
+                           renderPass, AAssetManager, m_assetManager->getFontDescriptorSetLayout()));
   }
 
   void PipelineManager::createGraphicsPipeline(PipelineType pipelineType,

@@ -160,6 +160,11 @@ namespace ge {
                 float y,
                 float z);
 
+    void camera(float x,
+                float y,
+                float width,
+                float height);
+
   private:
     struct GlyphCommand {
       Glyph glyph;
@@ -173,7 +178,7 @@ namespace ge {
       uint32_t fontSize;
     };
 
-    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image, Point, Glyph3DCommand>;
+    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image, Point, Glyph3DCommand, Camera>;
 
     struct DrawEntry {
       DrawCommand command;
@@ -257,6 +262,10 @@ namespace ge {
     void renderGlyph3D(const std::shared_ptr<PipelineManager>& pipelineManager,
                        const RenderInfo* renderInfo,
                        const Glyph3DCommand& glyphCmd) const;
+
+    void renderCamera(const std::shared_ptr<PipelineManager>& pipelineManager,
+                      const RenderInfo* renderInfo,
+                      const Camera& camera) const;
   };
 
 } // ge

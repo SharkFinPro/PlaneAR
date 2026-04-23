@@ -113,6 +113,13 @@ class Renderer2D(private val ptr: Long) {
     fun text3D(text: String, x: Number, y: Number, z: Number) = text3D(text, x.toFloat(), y.toFloat(), z.toFloat())
 
     private external fun text3D(text: String, x: Float, y: Float, z: Float)
+
+    /* Camera */
+    external fun updateCameraBuffer(buffer: android.hardware.HardwareBuffer)
+
+    fun camera(x: Number, y: Number, width: Number, height: Number) = camera(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
+
+    private external fun camera(x: Float, y: Float, width: Float, height: Float)
 }
 
 class GraphicsEngineWrapper(private val ptr: Long) {

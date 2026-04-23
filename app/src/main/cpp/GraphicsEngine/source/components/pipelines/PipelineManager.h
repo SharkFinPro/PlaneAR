@@ -19,9 +19,10 @@ namespace ge {
     triangle,
     ellipse,
     font,
-    image,
     point,
-    font3D
+    font3D,
+    image,
+    camera
   };
 
   class PipelineManager
@@ -48,8 +49,16 @@ namespace ge {
                                            VkDescriptorSet descriptorSet,
                                            uint32_t location) const;
 
+    void createCameraPipeline(VkDescriptorSetLayout cameraLayout);
+
+    [[nodiscard]] bool hasCameraPipeline() const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    std::shared_ptr<Renderer> m_renderer;
+
+    std::shared_ptr<AssetManager> m_assetManager;
 
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
@@ -61,8 +70,7 @@ namespace ge {
 
     void createDescriptorPool();
 
-    void createPipelines(const std::shared_ptr<Renderer>& renderer,
-                         const std::shared_ptr<AssetManager>& assetManager);
+    void createPipelines();
 
     void createGraphicsPipeline(PipelineType pipelineType,
                                 const GraphicsPipelineOptions& graphicsPipelineOptions);

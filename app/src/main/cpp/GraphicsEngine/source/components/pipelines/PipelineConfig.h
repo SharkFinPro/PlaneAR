@@ -236,6 +236,18 @@ namespace ge::PipelineConfig {
     };
   }
 
+  inline GraphicsPipelineOptions createCameraPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                             const std::shared_ptr<RenderPass>& renderPass,
+                                                             AAssetManager* assetManager,
+                                                             VkDescriptorSetLayout imageDescriptorSetLayout)
+  {
+    auto cameraPipelineOptions = createImagePipelineOptions(logicalDevice, renderPass, assetManager, imageDescriptorSetLayout);
+
+    cameraPipelineOptions.shaders.fragmentShader = "shaders/camera.frag.spv";
+
+    return cameraPipelineOptions;
+  }
+
 }
 
 #endif //PLANEAR_PIPELINECONFIG_H

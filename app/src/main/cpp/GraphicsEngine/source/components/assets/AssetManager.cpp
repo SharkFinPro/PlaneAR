@@ -1,4 +1,5 @@
 #include "AssetManager.h"
+#include "textures/CameraTexture.h"
 #include "textures/ImageTexture.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
@@ -14,6 +15,12 @@ namespace ge {
     createDescriptorPool();
 
     createDescriptorSetLayouts();
+
+    m_cameraTexture = std::make_shared<CameraTexture>(
+      m_logicalDevice,
+      m_descriptorPool,
+      m_commandPool
+    );
   }
 
   AssetManager::~AssetManager()
@@ -98,6 +105,11 @@ namespace ge {
   VkDescriptorSetLayout AssetManager::getImageDescriptorSetLayout() const
   {
     return m_imageDescriptorSetLayout;
+  }
+
+  std::shared_ptr<CameraTexture> AssetManager::getCameraTexture()
+  {
+    return m_cameraTexture;
   }
 
   void AssetManager::createDescriptorSetLayouts()
