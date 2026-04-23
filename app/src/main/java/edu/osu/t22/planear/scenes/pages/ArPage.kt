@@ -1,6 +1,5 @@
 package edu.osu.t22.planear.scenes.pages
 
-import android.util.Log
 import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.adsb.AircraftOverlayStore
 import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
@@ -11,7 +10,6 @@ import edu.osu.t22.planear.orientation.OrientationStore
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
 import kotlin.math.cos
-import kotlin.math.sqrt
 
 class ArPage : Page {
     override val sceneId = SceneId.AR
@@ -86,7 +84,7 @@ class ArPage : Page {
             val metersPerDegLon = 111_320.0 * cos(Math.toRadians(lat0))
 
             textSize(30)
-            fill(42, 245, 42)
+            fill(42, 42, 42)
 
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
 
