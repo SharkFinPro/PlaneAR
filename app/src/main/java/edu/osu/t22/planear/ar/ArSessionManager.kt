@@ -37,10 +37,9 @@ class ARSessionManager(
             return
         }
 
-
         val camera = frame.camera
 
-        if (camera.trackingState != TrackingState.TRACKING)  return
+        if (camera.trackingState == TrackingState.STOPPED) return
 
         val hb: HardwareBuffer? = frame.hardwareBuffer
         if (hb != null) {
