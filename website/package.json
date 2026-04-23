@@ -1,0 +1,41 @@
+{
+  "name": "planear-gatsby",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PlaneAR - Augmented Reality Flight Tracking",
+  "author": "PlaneAR Team",
+  "keywords": [
+    "gatsby",
+    "react",
+    "tailwindcss",
+    "ar",
+    "flight-tracking"
+  ],
+  "scripts": {
+    "develop": "gatsby develop",
+    "start": "gatsby develop",
+    "build": "gatsby build",
+    "serve": "gatsby serve",
+    "clean": "gatsby clean",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "gatsby": "^5.16.1",
+    "gatsby-plugin-manifest": "^5.16.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-icons": "^5.6.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.3",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.5.0",
+    "gatsby-plugin-postcss": "^6.16.0",
+    "gatsby-plugin-typescript": "^5.16.0",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^4.2.3",
+    "typescript": "^6.0.3"
+  }
+}
