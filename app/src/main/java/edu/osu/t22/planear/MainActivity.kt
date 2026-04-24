@@ -20,13 +20,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.androidgamesdk.GameActivity
 import edu.osu.t22.planear.adsb.AdsbManager
-import edu.osu.t22.planear.ar.ArManager
 import edu.osu.t22.planear.location.AppLocationManager
 import edu.osu.t22.planear.scenes.SceneSwitcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import edu.osu.t22.planear.adsb.AircraftOverlayStore
+import edu.osu.t22.planear.camera.CameraManager
 import edu.osu.t22.planear.orientation.OrientationData
 import edu.osu.t22.planear.orientation.OrientationStore
 import kotlin.math.atan2
@@ -47,7 +47,8 @@ class MainActivity : GameActivity() {
     private lateinit var sceneSwitcher: SceneSwitcher
     private lateinit var appLocationManager: AppLocationManager
     private lateinit var adsbManager: AdsbManager
-    private lateinit var arManager: ArManager
+
+    private lateinit var cameraManager: CameraManager
 
     private lateinit var frameGestureDetector: FrameGestureDetector
 
@@ -68,7 +69,8 @@ class MainActivity : GameActivity() {
 
         appLocationManager = AppLocationManager(this, lifecycleScope)
         adsbManager = AdsbManager(appLocationManager)
-        arManager = ArManager(this)
+
+        cameraManager = CameraManager(this)
 
         sceneSwitcher = SceneSwitcher.initialize()
 
@@ -115,20 +117,6 @@ class MainActivity : GameActivity() {
             }
         }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                while (isActive) {
-                    try {
-                        arManager.onUpdateFrame()
-                    } catch (e: Exception) {
-                        Log.e("ARCORE_EXECUTION", "ARCore update failed", e)
-                    }
-
-                    delay(16L)
-                }
-            }
-        }
-
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -165,14 +153,8 @@ class MainActivity : GameActivity() {
             return
         }
 
-        if (!arManager.hasSession()) {
-            arManager.tryCreateSession { display?.rotation ?: Surface.ROTATION_0 }
-        }
-
-        arManager.resume()
-
         window.decorView.post {
-            arManager.updateViewport(
+            cameraManager.start(
                 window.decorView.width,
                 window.decorView.height
             )
@@ -188,7 +170,7 @@ class MainActivity : GameActivity() {
         super.onPause()
         sensorManager.unregisterListener(sensorListener)
         appLocationManager.stop()
-        arManager.pause()
+        cameraManager.stop()
     }
 
     private val sensorListener = object : SensorEventListener {
@@ -264,7 +246,12 @@ class MainActivity : GameActivity() {
             grantResults.isNotEmpty() &&
             grantResults[0] == PackageManager.PERMISSION_GRANTED
         ) {
-            arManager.tryCreateSession { display?.rotation ?: Surface.ROTATION_0 }
+            window.decorView.post {
+                cameraManager.start(
+                    window.decorView.width,
+                    window.decorView.height
+                )
+            }
         }
 
         if (requestCode == LOCATION_PERMISSION_CODE &&
@@ -318,9 +305,5 @@ class MainActivity : GameActivity() {
                         or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         or View.SYSTEM_UI_FLAG_FULLSCREEN
                 )
-    }
-
-    fun onArUpdateFrame() {
-        arManager.onUpdateFrame()
     }
 }

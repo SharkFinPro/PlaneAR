@@ -1,5 +1,6 @@
 package edu.osu.t22.planear.scenes.pages
 
+import android.hardware.HardwareBuffer
 import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.adsb.AircraftOverlayStore
 import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
@@ -14,6 +15,8 @@ import kotlin.math.cos
 class ArPage : Page {
     override val sceneId = SceneId.AR
 
+    private var lastHb: HardwareBuffer? = null
+
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val width = sceneInfo.screenWidth
         val height = sceneInfo.screenHeight - navHeight
@@ -21,13 +24,14 @@ class ArPage : Page {
 
         val hb = AppSettings.hb;
 
+        val orientation = OrientationStore.data
+
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 
-            if (hb != null)
-            {
-                updateCameraBuffer(hb);
-                hb.close();
-                AppSettings.hb = null;
+            val hb = AppSettings.hb
+            if (hb != null && hb != lastHb) {
+                updateCameraBuffer(hb)
+                lastHb = hb
             }
 
             fill(245)
@@ -40,15 +44,6 @@ class ArPage : Page {
             textFont("roboto", 18)
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
             text("AR Scene", width / 2, 40)
-
-            // Display orientation info
-            textAlign(TextAlignH.LEFT, TextAlignV.TOP)
-            textFont("roboto", 30)
-            val orientation = OrientationStore.data
-            val cardinal = orientation.getCardinalDirection()
-            text("Yaw: ${orientation.azimuthDeg.toInt()}° ($cardinal)", 50, 300)
-            text("Pitch: ${orientation.pitchDeg.toInt()}°", 50, 400)
-            text("Roll: ${orientation.rollDeg.toInt()}°", 50, 500)
 
             textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
             textFont("roboto", 14)
@@ -111,6 +106,14 @@ class ArPage : Page {
 
                 text3D(p.label, x, y, z)
             }
+
+            // Display orientation info
+            textAlign(TextAlignH.LEFT, TextAlignV.TOP)
+            textFont("roboto", 30)
+            val cardinal = orientation.getCardinalDirection()
+            text("Yaw: ${orientation.azimuthDeg.toInt()}° ($cardinal)", 50, 300)
+            text("Pitch: ${orientation.pitchDeg.toInt()}°", 50, 400)
+            text("Roll: ${orientation.rollDeg.toInt()}°", 50, 500)
         }
 
         postRender(sceneInfo, sceneSwitcher)
