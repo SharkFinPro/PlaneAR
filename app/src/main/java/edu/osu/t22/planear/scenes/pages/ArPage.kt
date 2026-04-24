@@ -32,7 +32,6 @@ class ArPage : Page {
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 
-            val hb = AppSettings.hb
             if (hb != null && hb != lastHb) {
                 updateCameraBuffer(hb)
                 lastHb = hb
