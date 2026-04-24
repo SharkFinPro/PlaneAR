@@ -9,7 +9,6 @@ import android.hardware.SensorManager
 import android.hardware.GeomagneticField
 import android.os.Bundle
 import android.util.Log
-import android.view.Surface
 import android.view.View
 import android.view.MotionEvent
 import androidx.annotation.RequiresPermission
@@ -20,13 +19,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.androidgamesdk.GameActivity
 import edu.osu.t22.planear.adsb.AdsbManager
-import edu.osu.t22.planear.ar.ArManager
 import edu.osu.t22.planear.location.AppLocationManager
 import edu.osu.t22.planear.scenes.SceneSwitcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import edu.osu.t22.planear.adsb.AircraftOverlayStore
+import edu.osu.t22.planear.camera.CameraManager
 import edu.osu.t22.planear.orientation.OrientationData
 import edu.osu.t22.planear.orientation.OrientationStore
 import kotlin.math.atan2
@@ -47,7 +45,8 @@ class MainActivity : GameActivity() {
     private lateinit var sceneSwitcher: SceneSwitcher
     private lateinit var appLocationManager: AppLocationManager
     private lateinit var adsbManager: AdsbManager
-    private lateinit var arManager: ArManager
+
+    private lateinit var cameraManager: CameraManager
 
     private lateinit var frameGestureDetector: FrameGestureDetector
 
@@ -68,7 +67,8 @@ class MainActivity : GameActivity() {
 
         appLocationManager = AppLocationManager(this, lifecycleScope)
         adsbManager = AdsbManager(appLocationManager)
-        arManager = ArManager(this)
+
+        cameraManager = CameraManager(this)
 
         sceneSwitcher = SceneSwitcher.initialize()
 
@@ -107,24 +107,23 @@ class MainActivity : GameActivity() {
                                 screenH = dm.heightPixels
                             )
                         }
+
+                        if (!AppSettings.cameraIsEnabled && cameraManager.isActive) {
+                            cameraManager.stop()
+                        }
+                        else if (AppSettings.cameraIsEnabled && !cameraManager.isActive) {
+                            window.decorView.post {
+                                cameraManager.start(
+                                    window.decorView.width,
+                                    window.decorView.height
+                                )
+                            }
+                        }
+
                     } catch (e: Exception) {
                         Log.e("ADSB_EXECUTION", "ADS-B projection failed", e)
                     }
                     delay(16L) // ~60fps
-                }
-            }
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                while (isActive) {
-                    try {
-                        arManager.onUpdateFrame()
-                    } catch (e: Exception) {
-                        Log.e("ARCORE_EXECUTION", "ARCore update failed", e)
-                    }
-
-                    delay(16L)
                 }
             }
         }
@@ -158,24 +157,13 @@ class MainActivity : GameActivity() {
         if (!hasCameraPermission()) {
             requestCameraPermission()
             return
+        } else {
+            AppSettings.hasCameraPermissions = true
         }
 
         if (!hasLocationPermission()) {
             requestLocationPermission()
             return
-        }
-
-        if (!arManager.hasSession()) {
-            arManager.tryCreateSession { display?.rotation ?: Surface.ROTATION_0 }
-        }
-
-        arManager.resume()
-
-        window.decorView.post {
-            arManager.updateViewport(
-                window.decorView.width,
-                window.decorView.height
-            )
         }
 
         if (hasLocationPermission()) {
@@ -188,7 +176,9 @@ class MainActivity : GameActivity() {
         super.onPause()
         sensorManager.unregisterListener(sensorListener)
         appLocationManager.stop()
-        arManager.pause()
+
+        cameraManager.stop()
+        AppSettings.cameraIsEnabled = false
     }
 
     private val sensorListener = object : SensorEventListener {
@@ -264,7 +254,7 @@ class MainActivity : GameActivity() {
             grantResults.isNotEmpty() &&
             grantResults[0] == PackageManager.PERMISSION_GRANTED
         ) {
-            arManager.tryCreateSession { display?.rotation ?: Surface.ROTATION_0 }
+            AppSettings.hasCameraPermissions = true
         }
 
         if (requestCode == LOCATION_PERMISSION_CODE &&
@@ -318,9 +308,5 @@ class MainActivity : GameActivity() {
                         or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         or View.SYSTEM_UI_FLAG_FULLSCREEN
                 )
-    }
-
-    fun onArUpdateFrame() {
-        arManager.onUpdateFrame()
     }
 }
