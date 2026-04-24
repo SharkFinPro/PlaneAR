@@ -33,6 +33,8 @@ add_library(${PROJECT_NAME} SHARED
   components/ui/Label.cpp
 )
 
+target_link_options(${PROJECT_NAME} PRIVATE -Wl,-z,max-page-size=16384)
+
 find_package(game-activity REQUIRED CONFIG)
 
 find_library(VULKAN_LIBRARY vulkan)
