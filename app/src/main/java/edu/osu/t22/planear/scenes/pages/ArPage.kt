@@ -37,23 +37,8 @@ class ArPage : Page {
                 lastHb = hb
             }
 
-            fill(245)
-            rect(0, 0, width, height)
-
             imageMode(ImageMode.CORNER)
             camera(0, 0, width, height);
-
-            for (point in points) {
-                val x = point.x.toInt()
-                val y = point.y.toInt()
-
-                if (x >= 0 && x <= width && y >= 0 && y <= height) {
-                    fill(0)
-                    ellipse(x, y, 12, 12)
-
-                    text(point.label, x + 14, y)
-                }
-            }
 
             val lat0: Double = orientation.x.toDouble()  // phone lat
             val lon0 = orientation.z.toDouble()  // phone lon
@@ -73,7 +58,7 @@ class ArPage : Page {
             val metersPerDegLat = 111_320.0
             val metersPerDegLon = 111_320.0 * cos(Math.toRadians(lat0))
 
-            textSize(30)
+            textFont("roboto", 30)
             fill(42, 42, 42)
 
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
