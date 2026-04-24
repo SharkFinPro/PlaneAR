@@ -157,6 +157,8 @@ class MainActivity : GameActivity() {
         if (!hasCameraPermission()) {
             requestCameraPermission()
             return
+        } else {
+            AppSettings.hasCameraPermissions = true
         }
 
         if (!hasLocationPermission()) {
@@ -252,7 +254,7 @@ class MainActivity : GameActivity() {
             grantResults.isNotEmpty() &&
             grantResults[0] == PackageManager.PERMISSION_GRANTED
         ) {
-            // TODO: Enable Camera Usage
+            AppSettings.hasCameraPermissions = true
         }
 
         if (requestCode == LOCATION_PERMISSION_CODE &&

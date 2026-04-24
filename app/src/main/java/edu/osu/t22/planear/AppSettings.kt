@@ -15,4 +15,6 @@ object AppSettings {
     var cameraIsEnabled: Boolean = false
 
     var canEnableCamera: Boolean = true
+
+    var hasCameraPermissions: Boolean = false
 }

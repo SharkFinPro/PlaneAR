@@ -5,6 +5,7 @@ import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.adsb.AircraftOverlayStore
 import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
 import edu.osu.t22.planear.graphicsEngine.ImageMode
+import edu.osu.t22.planear.graphicsEngine.RectMode
 import edu.osu.t22.planear.graphicsEngine.TextAlignH
 import edu.osu.t22.planear.graphicsEngine.TextAlignV
 import edu.osu.t22.planear.orientation.OrientationStore
@@ -29,7 +30,7 @@ class ArPage : Page {
         val phoneLon = orientation.z.toDouble()
         val phoneAlt = orientation.y.toDouble()
 
-        if (!AppSettings.cameraIsEnabled && AppSettings.canEnableCamera) {
+        if (!AppSettings.cameraIsEnabled && AppSettings.canEnableCamera && AppSettings.hasCameraPermissions) {
             AppSettings.cameraIsEnabled = true
         }
 
@@ -40,8 +41,14 @@ class ArPage : Page {
                 lastHb = hb
             }
 
-            imageMode(ImageMode.CORNER)
-            camera(0, 0, width, height);
+            if (AppSettings.cameraIsEnabled) {
+                imageMode(ImageMode.CORNER)
+                camera(0, 0, width, height);
+            } else {
+                rectMode(RectMode.CORNER)
+                fill(145)
+                rect(0, 0, width, height)
+            }
 
             set3DView(
                 0,

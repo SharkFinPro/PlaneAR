@@ -31,55 +31,29 @@ class SettingsPage : Page {
             textAlign(TextAlignH.CENTER, TextAlignV.BASELINE)
             text("Settings", width / 2f, 200f)
 
-            // Dark Mode toggle card
-            val toggleCardX = width * 0.05f
-            val toggleCardY = 260f
-            val toggleCardW = width * 0.90f
-            val toggleCardH = 130f
-            val toggleCornerR = 20f
+            AppSettings.darkMode = drawToggleCard(
+                sceneInfo = sceneInfo,
+                cardX     = width * 0.05f,
+                cardY     = 260f,
+                cardW     = width * 0.90f,
+                title     = "Dark Mode",
+                enabled   = AppSettings.darkMode
+            )
 
-            fill(c.backgroundCard)
-            rect(toggleCardX, toggleCardY, toggleCardW, toggleCardH, toggleCornerR)
-
-            fill(c.textPrimary)
-            textFont("roboto", 15)
-            textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
-            text("Dark Mode", toggleCardX + 30f, toggleCardY + toggleCardH / 2f)
-
-            // Toggle pill
-            val pillW     = 110f
-            val pillH     = 60f
-            val pillX     = toggleCardX + toggleCardW - 30f - pillW
-            val pillY     = toggleCardY + (toggleCardH - pillH) / 2f
-            val pillR     = pillH / 2f
-            val thumbR    = pillH / 2f - 6f
-            val thumbOnX  = pillX + pillW - pillR
-            val thumbOffX = pillX + pillR
-
-            if (AppSettings.darkMode) {
-                fill(c.accent)
-            } else {
-                fill(c.trackBackground)
-            }
-            rect(pillX, pillY, pillW, pillH, pillR)
-
-            fill(255, 255, 255)
-            val thumbX = if (AppSettings.darkMode) thumbOnX else thumbOffX
-            rect(thumbX - thumbR, pillY + 6f, thumbR * 2f, thumbR * 2f, thumbR)
-
-            // Tap anywhere on the card to toggle
-            gestures.singleTapUpPosition?.let { (tx, ty) ->
-                if (tx >= toggleCardX && tx <= toggleCardX + toggleCardW &&
-                    ty >= toggleCardY && ty <= toggleCardY + toggleCardH) {
-                    AppSettings.darkMode = !AppSettings.darkMode
-                }
-            }
+            AppSettings.canEnableCamera = drawToggleCard(
+                sceneInfo = sceneInfo,
+                cardX     = width * 0.05f,
+                cardY     = 420f,
+                cardW     = width * 0.90f,
+                title     = "Use Camera",
+                enabled   = AppSettings.canEnableCamera
+            )
 
             // Radius slider card
             val newRadius = drawSlider(
                 sceneInfo   = sceneInfo,
                 cardX       = width * 0.05f,
-                cardY       = 420f,
+                cardY       = 580f,
                 cardW       = width * 0.90f,
                 title       = "Aircraft Search Radius",
                 min         = 1,
@@ -190,6 +164,55 @@ class SettingsPage : Page {
             }
 
             return current
+        }
+    }
+
+    private fun drawToggleCard(
+        sceneInfo: SceneInfo,
+        cardX: Float,
+        cardY: Float,
+        cardW: Float,
+        title: String,
+        enabled: Boolean
+    ): Boolean {
+        val gestures = sceneInfo.gestures
+        val c        = AppColors.current
+
+        with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
+            val cardH   = 130f
+            val cornerR = 20f
+
+            // Card background
+            fill(c.backgroundCard)
+            rect(cardX, cardY, cardW, cardH, cornerR)
+
+            // Label
+            fill(c.textPrimary)
+            textFont("roboto", 15)
+            textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
+            text(title, cardX + 30f, cardY + cardH / 2f)
+
+            // Pill
+            val pillW  = 110f
+            val pillH  = 60f
+            val pillR  = pillH / 2f
+            val thumbR = pillR - 6f
+            val pillX  = cardX + cardW - 30f - pillW
+            val pillY  = cardY + (cardH - pillH) / 2f
+
+            fill(if (enabled) c.accent else c.trackBackground)
+            rect(pillX, pillY, pillW, pillH, pillR)
+
+            fill(255, 255, 255)
+            val thumbX = if (enabled) pillX + pillW - pillR else pillX + pillR
+            rect(thumbX - thumbR, pillY + 6f, thumbR * 2f, thumbR * 2f, thumbR)
+
+            // Tap anywhere on the card to toggle
+            val tapped = gestures.singleTapUpPosition?.let { (tx, ty) ->
+                tx in cardX..(cardX + cardW) && ty in cardY..(cardY + cardH)
+            } ?: false
+
+            return if (tapped) !enabled else enabled
         }
     }
 }
