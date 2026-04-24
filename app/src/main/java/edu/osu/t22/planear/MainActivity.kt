@@ -9,7 +9,6 @@ import android.hardware.SensorManager
 import android.hardware.GeomagneticField
 import android.os.Bundle
 import android.util.Log
-import android.view.Surface
 import android.view.View
 import android.view.MotionEvent
 import androidx.annotation.RequiresPermission
@@ -25,7 +24,6 @@ import edu.osu.t22.planear.scenes.SceneSwitcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import edu.osu.t22.planear.adsb.AircraftOverlayStore
 import edu.osu.t22.planear.camera.CameraManager
 import edu.osu.t22.planear.orientation.OrientationData
 import edu.osu.t22.planear.orientation.OrientationStore
