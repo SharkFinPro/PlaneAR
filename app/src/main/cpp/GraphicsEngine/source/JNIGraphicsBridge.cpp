@@ -347,6 +347,65 @@ namespace {
     return reinterpret_cast<jlong>(renderer.get());
   }
 
+  void nativePoint(JNIEnv* env,
+                    jobject thiz,
+                    jfloat x,
+                    jfloat y,
+                    jfloat z)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+    renderer->point(x, y, z);
+  }
+
+  void nativeSet3DView(JNIEnv* env,
+                       jobject thiz,
+                       jfloat x,
+                       jfloat y,
+                       jfloat z,
+                       jfloat pitch,
+                       jfloat yaw,
+                       jfloat roll,
+                       jfloat screenWidth,
+                       jfloat screenHeight)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+    renderer->set3DView(x, y, z, pitch, yaw, roll, screenWidth, screenHeight);
+  }
+
+  void nativeText3D(JNIEnv* env,
+                  jobject thiz,
+                  jstring text,
+                  jfloat x,
+                  jfloat y,
+                  jfloat z)
+  {
+    const char* textStr = env->GetStringUTFChars(text, nullptr);
+    if (textStr == nullptr)
+    {
+      return;
+    }
+
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      env->ReleaseStringUTFChars(text, textStr);
+      return;
+    }
+
+    renderer->text3D(textStr, x, y, z);
+    env->ReleaseStringUTFChars(text, textStr);
+  }
+
   void nativeUpdateCameraBuffer(JNIEnv* env,
                                 jobject thiz,
                                 jobject hardwareBuffer)
@@ -403,6 +462,9 @@ namespace {
     {"textAlign",   "(II)V",                      (void*)nativeTextAlign},
     {"text",        "(Ljava/lang/String;FF)V",    (void*)nativeText},
     {"image",       "(Ljava/lang/String;FFFF)V",  (void*)nativeImage},
+    {"point",       "(FFF)V",                     (void*)nativePoint},
+    {"set3DView",   "(FFFFFFFF)V",                (void*)nativeSet3DView},
+    {"text3D",   "(Ljava/lang/String;FFF)V",      (void*)nativeText3D},
     {"updateCameraBuffer", "(Landroid/hardware/HardwareBuffer;)V", (void*)nativeUpdateCameraBuffer},
     {"camera",      "(FFFF)V",  (void*)nativeCamera},
   };

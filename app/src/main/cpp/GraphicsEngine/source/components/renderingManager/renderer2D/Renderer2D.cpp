@@ -37,17 +37,48 @@ namespace ge {
   void Renderer2D::render(const std::shared_ptr<PipelineManager>& pipelineManager,
                           const RenderInfo* renderInfo)
   {
-    normalizeZValues();
-
     std::stable_sort(m_drawList.begin(), m_drawList.end(), [](const DrawEntry& a, const DrawEntry& b) {
-      return a.z > b.z;
+      return a.z < b.z;
     });
+    normalizeZValues();
 
     PipelineType currentPipeline = PipelineType::rect;
     bool firstDraw = true;
 
+    auto clearDepthBuffer = [&]
+    {
+      constexpr VkClearAttachment clearAttachment{
+        .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+        .clearValue = VkClearValue{ {1.0f, 0} }
+      };
+
+      const VkClearRect clearRect{
+        .rect = {
+          .offset = { 0, 0 },
+          .extent = renderInfo->extent
+        },
+        .baseArrayLayer = 0,
+        .layerCount = 1
+      };
+
+      renderInfo->commandBuffer->clearAttachments({ clearAttachment }, { clearRect });
+    };
+
     auto bindIfNeeded = [&](PipelineType type)
     {
+      constexpr static std::array pipelines3D {
+        PipelineType::point,
+        PipelineType::font3D
+      };
+
+      const bool was3D = std::ranges::contains(pipelines3D, currentPipeline);
+      const bool now3D = std::ranges::contains(pipelines3D, type);
+
+      if (was3D != now3D)
+      {
+        clearDepthBuffer();
+      }
+
       if (firstDraw || currentPipeline != type)
       {
         pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, type);
@@ -85,6 +116,16 @@ namespace ge {
         {
           bindIfNeeded(PipelineType::image);
           renderImage(pipelineManager, renderInfo, cmd);
+        }
+        else if constexpr (std::is_same_v<T, Point>)
+        {
+          bindIfNeeded(PipelineType::point);
+          renderPoint(pipelineManager, renderInfo, cmd);
+        }
+        else if constexpr (std::is_same_v<T, Glyph3DCommand>)
+        {
+          bindIfNeeded(PipelineType::font3D);
+          renderGlyph3D(pipelineManager, renderInfo, cmd);
         }
         else if constexpr (std::is_same_v<T, Camera>)
         {
@@ -453,6 +494,144 @@ namespace ge {
     increaseCurrentZ();
   }
 
+  void Renderer2D::point(float x,
+                         float y,
+                         float z)
+  {
+    m_drawList.push_back({
+      Point{
+        .viewMatrix = m_viewMatrix,
+        .projMatrix = m_projectionMatrix,
+        .x = x,
+        .y = y,
+        .z = z,
+        .size = 500.0f
+      },
+      m_currentZ
+    });
+
+    increaseCurrentZ();
+  }
+
+  void Renderer2D::text3D(const std::string& text,
+                          float x,
+                          float y,
+                          float z)
+  {
+    float xOffset = 0.0f;
+    if (m_textAlignH == TextAlignH::CENTER || m_textAlignH == TextAlignH::RIGHT)
+    {
+      const float stringWidth = textWidth(text);
+      xOffset = (m_textAlignH == TextAlignH::CENTER) ? -stringWidth * 0.5f : -stringWidth;
+    }
+
+    float yOffset = 0.0f;
+    const float ascent  = textAscent(text);
+    const float descent = textDescent(text);
+    const float height  = ascent + descent;
+
+    switch (m_textAlignV)
+    {
+      case TextAlignV::BASELINE:
+        yOffset = 0.0f;
+        break;
+
+      case TextAlignV::TOP:
+        yOffset = ascent;
+        break;
+
+      case TextAlignV::CENTER:
+        yOffset = ascent - height * 0.5f;
+        break;
+
+      case TextAlignV::BOTTOM:
+        yOffset = -descent;
+        break;
+    }
+
+    float currentX = x + xOffset;
+    const float adjustedY = y + yOffset;
+
+    // All glyphs in a text() call share the same Z so they sort together
+    const float textZ = m_currentZ;
+
+    for (const auto codepoint : decodeUTF8(text))
+    {
+      if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
+      {
+        float gx = currentX + glyphInfo->bearingX;
+        float gy = adjustedY - glyphInfo->bearingY;
+
+        m_drawList.push_back({
+          Glyph3DCommand{
+            .glyph = {
+              .viewMatrix = m_viewMatrix,
+              .projMatrix = m_projectionMatrix,
+              .x = x,
+              .y = y,
+              .z = z,
+              .glyphOffset = glm::vec2(
+                gx - x + glyphInfo->width * 0.5f,
+                gy - y + glyphInfo->height * 0.5f
+              ),
+              .width = glyphInfo->width,
+              .height = glyphInfo->height,
+              .uv = glm::vec4(
+                glyphInfo->u0,
+                glyphInfo->v0,
+                glyphInfo->u1,
+                glyphInfo->v1
+              ),
+              .color = m_currentFill
+            },
+            .fontName = m_currentFontName,
+            .fontSize = m_currentFontSize
+          },
+          textZ
+        });
+
+        currentX += glyphInfo->advance;
+      }
+    }
+
+    increaseCurrentZ();
+  }
+
+  void Renderer2D::set3DView(float x,
+                             float y,
+                             float z,
+                             float pitch,
+                             float yaw,
+                             float roll,
+                             float screenWidth,
+                             float screenHeight)
+  {
+    const glm::vec3 position { x, y, z };
+
+    glm::vec3 direction = normalize(glm::vec3(
+      std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch)),
+      std::sin(glm::radians(pitch)),
+      std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch))
+    ));
+
+    constexpr auto UP = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    m_viewMatrix = glm::lookAt(
+      position,
+      position + direction,
+      UP
+    );
+
+    m_projectionMatrix = glm::perspective(
+      glm::radians(50.0f),
+      screenWidth / screenHeight,
+      0.1f,
+      100000.0f
+    );
+
+    m_projectionMatrix[1][1] *= -1;
+  }
+
   glm::vec4 Renderer2D::resolveRectBounds(float a,
                                           float b,
                                           float c,
@@ -547,7 +726,7 @@ namespace ge {
         {
           cmd.glyph.z = flipped;
         }
-        else
+        else if constexpr(!std::is_same_v<T, Glyph3DCommand> && !std::is_same_v<T, Point>)
         {
           cmd.z = flipped;
         }
@@ -700,4 +879,50 @@ namespace ge {
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
   }
+
+  void Renderer2D::renderPoint(const std::shared_ptr<PipelineManager>& pipelineManager,
+                               const RenderInfo* renderInfo,
+                               const Point& point)
+  {
+    const auto pointPC = point.createPushConstant(renderInfo->extent);
+
+    pipelineManager->pushGraphicsPipelineConstants(
+      renderInfo->commandBuffer,
+      PipelineType::point,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(pointPC),
+      &pointPC
+    );
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
+  }
+
+  void Renderer2D::renderGlyph3D(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                 const RenderInfo* renderInfo,
+                                 const Glyph3DCommand& glyphCmd) const
+  {
+    const auto descriptorSet = m_assetManager->getFont(glyphCmd.fontName, glyphCmd.fontSize)->getDescriptorSet(renderInfo->currentFrame);
+
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      PipelineType::font3D,
+      descriptorSet,
+      0
+    );
+
+    const auto glyphPC = glyphCmd.glyph.createPushConstant(renderInfo->extent);
+
+    pipelineManager->pushGraphicsPipelineConstants(
+      renderInfo->commandBuffer,
+      PipelineType::font3D,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(glyphPC),
+      &glyphPC
+    );
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
+  }
+
 } // ge

@@ -19,6 +19,8 @@ namespace ge {
     triangle,
     ellipse,
     font,
+    point,
+    font3D,
     image,
     camera
   };

@@ -132,11 +132,19 @@ namespace ge {
 
     createGraphicsPipeline(PipelineType::font,
                            PipelineConfig::createFontPipelineOptions(m_logicalDevice,
-                           renderPass,AAssetManager, m_assetManager->getFontDescriptorSetLayout()));
+                           renderPass, AAssetManager, m_assetManager->getFontDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::image,
                            PipelineConfig::createImagePipelineOptions(m_logicalDevice,
                            renderPass, AAssetManager, m_assetManager->getImageDescriptorSetLayout()));
+
+    createGraphicsPipeline(PipelineType::point,
+                           PipelineConfig::createPointPipelineOptions(m_logicalDevice,
+                           renderPass, AAssetManager));
+
+    createGraphicsPipeline(PipelineType::font3D,
+                           PipelineConfig::createFont3DPipelineOptions(m_logicalDevice,
+                           renderPass, AAssetManager, m_assetManager->getFontDescriptorSetLayout()));
   }
 
   void PipelineManager::createGraphicsPipeline(PipelineType pipelineType,

@@ -47,6 +47,9 @@ namespace ge {
                             uint32_t descriptorSetCount,
                             const VkDescriptorSet* descriptorSets) const;
 
+    void clearAttachments(const std::vector<VkClearAttachment>& clearAttachments,
+                          const std::vector<VkClearRect>& clearRects) const;
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 

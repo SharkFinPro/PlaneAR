@@ -142,6 +142,24 @@ namespace ge {
 
     [[nodiscard]] std::shared_ptr<AssetManager> getAssetManager() const;
 
+    void point(float x,
+               float y,
+               float z);
+
+    void set3DView(float x,
+                   float y,
+                   float z,
+                   float pitch,
+                   float yaw,
+                   float roll,
+                   float screenWidth,
+                   float screenHeight);
+
+    void text3D(const std::string& text,
+                float x,
+                float y,
+                float z);
+
     void camera(float x,
                 float y,
                 float width,
@@ -154,7 +172,13 @@ namespace ge {
       uint32_t fontSize;
     };
 
-    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image, Camera>;
+    struct Glyph3DCommand {
+      Glyph3D glyph;
+      std::string fontName;
+      uint32_t fontSize;
+    };
+
+    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image, Point, Glyph3DCommand, Camera>;
 
     struct DrawEntry {
       DrawCommand command;
@@ -180,6 +204,9 @@ namespace ge {
     TextAlignV m_textAlignV = TextAlignV::BASELINE;
 
     std::vector<DrawEntry> m_drawList;
+
+    glm::mat4 m_viewMatrix = glm::mat4(1.0f);
+    glm::mat4 m_projectionMatrix = glm::mat4(1.0f);
 
     std::shared_ptr<Font> m_currentFont;
     std::string m_currentFontName;
@@ -227,6 +254,14 @@ namespace ge {
     void renderImage(const std::shared_ptr<PipelineManager>& pipelineManager,
                      const RenderInfo* renderInfo,
                      const Image& image) const;
+
+    static void renderPoint(const std::shared_ptr<PipelineManager>& pipelineManager,
+                     const RenderInfo* renderInfo,
+                     const Point& point);
+
+    void renderGlyph3D(const std::shared_ptr<PipelineManager>& pipelineManager,
+                       const RenderInfo* renderInfo,
+                       const Glyph3DCommand& glyphCmd) const;
 
     void renderCamera(const std::shared_ptr<PipelineManager>& pipelineManager,
                       const RenderInfo* renderInfo,
