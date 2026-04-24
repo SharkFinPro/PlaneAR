@@ -22,7 +22,7 @@ class ArPage : Page {
         val height = sceneInfo.screenHeight - navHeight
         val points = AircraftOverlayStore.points
 
-        val hb = AppSettings.hb;
+        val hb = AppSettings.hb
 
         val orientation = OrientationStore.data
 
