@@ -20,11 +20,14 @@ class ArPage : Page {
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val width = sceneInfo.screenWidth
         val height = sceneInfo.screenHeight - navHeight
-        val points = AircraftOverlayStore.points
 
         val hb = AppSettings.hb
 
         val orientation = OrientationStore.data
+
+        val phoneLat: Double = orientation.x.toDouble()
+        val phoneLon = orientation.z.toDouble()
+        val phoneAlt = orientation.y.toDouble()
 
         if (!AppSettings.cameraIsEnabled && AppSettings.canEnableCamera) {
             AppSettings.cameraIsEnabled = true
@@ -40,13 +43,9 @@ class ArPage : Page {
             imageMode(ImageMode.CORNER)
             camera(0, 0, width, height);
 
-            val lat0: Double = orientation.x.toDouble()  // phone lat
-            val lon0 = orientation.z.toDouble()  // phone lon
-            val alt0 = orientation.y.toDouble()  // phone alt
-
             set3DView(
                 0,
-                alt0,
+                phoneAlt,
                 0,
                 orientation.pitchDeg,
                 orientation.azimuthDeg - 90,
@@ -56,7 +55,7 @@ class ArPage : Page {
             )
 
             val metersPerDegLat = 111_320.0
-            val metersPerDegLon = 111_320.0 * cos(Math.toRadians(lat0))
+            val metersPerDegLon = 111_320.0 * cos(Math.toRadians(phoneLat))
 
             textFont("roboto", 30)
             fill(42, 42, 42)
@@ -64,9 +63,9 @@ class ArPage : Page {
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
 
             for (p in AircraftOverlayStore.aircraftData) {
-                val dLat = p.position.latDeg - lat0
-                val dLon = p.position.lonDeg - lon0
-                val dAlt = p.position.altM - alt0
+                val dLat = p.position.latDeg - phoneLat
+                val dLon = p.position.lonDeg - phoneLon
+                val dAlt = p.position.altM - phoneAlt
 
                 var x = (dLon * metersPerDegLon).toFloat()   // East
                 var y = dAlt.toFloat()                       // Up
