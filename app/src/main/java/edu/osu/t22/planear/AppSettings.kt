@@ -11,4 +11,8 @@ object AppSettings {
 
     @Volatile var hb: HardwareBuffer? = null
     @Volatile var hbImage: android.media.Image? = null
+
+    var cameraIsEnabled: Boolean = false
+
+    var canEnableCamera: Boolean = true
 }

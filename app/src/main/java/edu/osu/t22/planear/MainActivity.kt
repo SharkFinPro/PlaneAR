@@ -107,6 +107,19 @@ class MainActivity : GameActivity() {
                                 screenH = dm.heightPixels
                             )
                         }
+
+                        if (!AppSettings.cameraIsEnabled && cameraManager.isActive) {
+                            cameraManager.stop()
+                        }
+                        else if (AppSettings.cameraIsEnabled && !cameraManager.isActive) {
+                            window.decorView.post {
+                                cameraManager.start(
+                                    window.decorView.width,
+                                    window.decorView.height
+                                )
+                            }
+                        }
+
                     } catch (e: Exception) {
                         Log.e("ADSB_EXECUTION", "ADS-B projection failed", e)
                     }
@@ -151,13 +164,6 @@ class MainActivity : GameActivity() {
             return
         }
 
-        window.decorView.post {
-            cameraManager.start(
-                window.decorView.width,
-                window.decorView.height
-            )
-        }
-
         if (hasLocationPermission()) {
             appLocationManager.start()
         }
@@ -168,7 +174,9 @@ class MainActivity : GameActivity() {
         super.onPause()
         sensorManager.unregisterListener(sensorListener)
         appLocationManager.stop()
+
         cameraManager.stop()
+        AppSettings.cameraIsEnabled = false
     }
 
     private val sensorListener = object : SensorEventListener {
@@ -244,12 +252,7 @@ class MainActivity : GameActivity() {
             grantResults.isNotEmpty() &&
             grantResults[0] == PackageManager.PERMISSION_GRANTED
         ) {
-            window.decorView.post {
-                cameraManager.start(
-                    window.decorView.width,
-                    window.decorView.height
-                )
-            }
+            // TODO: Enable Camera Usage
         }
 
         if (requestCode == LOCATION_PERMISSION_CODE &&

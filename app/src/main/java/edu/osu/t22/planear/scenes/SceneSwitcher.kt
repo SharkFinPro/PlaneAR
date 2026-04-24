@@ -1,5 +1,6 @@
 package edu.osu.t22.planear.scenes
 
+import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.FrameGestureDetector
 import edu.osu.t22.planear.scenes.pages.ArPage
 import edu.osu.t22.planear.scenes.pages.FavoritesPage
@@ -78,6 +79,8 @@ class SceneSwitcher {
     }
 
     private fun renderSceneInternal(sceneId: Int, enginePtr: Long, screenWidth: Float, screenHeight: Float) {
+        AppSettings.cameraIsEnabled = false
+
         val scene = scenes[sceneId] ?: return
         val detector = gestureDetector ?: return
         val sceneInfo = SceneInfo(enginePtr, screenWidth, screenHeight, detector)

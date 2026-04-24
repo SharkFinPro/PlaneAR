@@ -31,6 +31,8 @@ class CameraManager(context: Context) {
     private val cameraManager =
         context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
+    var isActive: Boolean = false
+
     @SuppressLint("MissingPermission")
     fun start(viewWidth: Int, viewHeight: Int) {
         val cameraId = cameraManager.cameraIdList.firstOrNull { id ->
@@ -91,6 +93,8 @@ class CameraManager(context: Context) {
                 camera.close()
             }
         }, handler)
+
+        isActive = true
     }
 
     private fun startCaptureSession() {
@@ -128,5 +132,7 @@ class CameraManager(context: Context) {
         captureSession = null
         cameraDevice = null
         imageReader = null
+
+        isActive = false
     }
 }

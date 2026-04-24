@@ -26,6 +26,10 @@ class ArPage : Page {
 
         val orientation = OrientationStore.data
 
+        if (!AppSettings.cameraIsEnabled && AppSettings.canEnableCamera) {
+            AppSettings.cameraIsEnabled = true
+        }
+
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 
             val hb = AppSettings.hb
