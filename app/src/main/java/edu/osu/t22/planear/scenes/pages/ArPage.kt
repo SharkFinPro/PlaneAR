@@ -43,14 +43,6 @@ class ArPage : Page {
             imageMode(ImageMode.CORNER)
             camera(0, 0, width, height);
 
-            fill(0)
-            textFont("roboto", 18)
-            textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-            text("AR Scene", width / 2, 40)
-
-            textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
-            textFont("roboto", 14)
-
             for (point in points) {
                 val x = point.x.toInt()
                 val y = point.y.toInt()
@@ -109,6 +101,14 @@ class ArPage : Page {
 
                 text3D(p.label, x, y, z)
             }
+
+            fill(0)
+            textFont("roboto", 18)
+            textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+            text("AR Scene", width / 2, 40)
+
+            textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
+            textFont("roboto", 14)
 
             // Display orientation info
             textAlign(TextAlignH.LEFT, TextAlignV.TOP)
