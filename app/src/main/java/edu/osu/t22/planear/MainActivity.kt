@@ -19,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.androidgamesdk.GameActivity
 import edu.osu.t22.planear.adsb.AdsbManager
+import edu.osu.t22.planear.achievements.AchievementStore
 import edu.osu.t22.planear.location.AppLocationManager
 import edu.osu.t22.planear.scenes.SceneSwitcher
 import kotlinx.coroutines.delay
@@ -70,6 +71,9 @@ class MainActivity : GameActivity() {
 
         cameraManager = CameraManager(this)
 
+        // Initialize achievement persistence
+        AchievementStore.init(this)
+
         sceneSwitcher = SceneSwitcher.initialize()
 
         // Gesture Detector Setup
@@ -86,6 +90,16 @@ class MainActivity : GameActivity() {
                         Log.e("ADSB_EXECUTION", "ADS-B fetch failed", e)
                     }
                     delay(2_500L)
+                }
+            }
+        }
+
+        // Coroutine 2: Accumulate in-app tracking time (for marathon_spotter achievement)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (isActive) {
+                    delay(1_000L)
+                    AchievementStore.addTrackingTime(1_000L)
                 }
             }
         }

@@ -9,6 +9,7 @@ import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
 import edu.osu.t22.planear.graphicsEngine.RectMode
 import edu.osu.t22.planear.graphicsEngine.TextAlignH
 import edu.osu.t22.planear.graphicsEngine.TextAlignV
+import edu.osu.t22.planear.achievements.AchievementStore
 import edu.osu.t22.planear.scenes.Scene
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
@@ -46,6 +47,13 @@ interface Page : Scene {
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {}
 
     fun postRender(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
+        // Update AR page flag — achievements only track on the AR tab.
+        // ArPage.render() sets this to true; all other pages leave it untouched,
+        // so we correct it here for non-AR pages.
+        if (sceneId != SceneId.AR) {
+            AchievementStore.isOnArPage = false
+        }
+
         drawNavButtons(sceneInfo, sceneSwitcher)
         drawSettingsGearIcon(sceneInfo)
         if (settingsOverlayOpen || settingsAnimProgress > 0f) {
