@@ -9,13 +9,11 @@ import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
 
 /**
- * Settings is no longer a standalone page in the nav bar.
- * It is accessed via the gear icon overlay on all pages.
- * This scene is kept registered but simply shows the AR scene
- * if somehow navigated to directly.
+ * Placeholder page for the Achievements feature.
+ * Will eventually show daily streaks, badges, and stats for plane viewing.
  */
-class SettingsPage : Page {
-    override val sceneId = SceneId.Settings
+class AchievementsPage : Page {
+    override val sceneId = SceneId.Achievements
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val width  = sceneInfo.screenWidth
@@ -27,10 +25,27 @@ class SettingsPage : Page {
             fill(c.background)
             rect(0, 0, width, height)
 
+            // Page title
             fill(c.textPrimary)
-            textFont("roboto", 16)
+            textFont("roboto", 20)
+            textAlign(TextAlignH.CENTER, TextAlignV.BASELINE)
+            text("Achievements", width / 2f, 200f)
+
+            // Placeholder trophy icon
+            textFont("emoji", 48)
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-            text("Use the ⚙️ icon to open Settings", width / 2f, height / 2f)
+            text("🏆", width / 2f, height * 0.4f)
+
+            // Coming soon message
+            fill(c.textSecondary)
+            textFont("roboto", 14)
+            textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+            text("Coming Soon", width / 2f, height * 0.55f)
+
+            fill(c.textHint)
+            textFont("roboto", 12)
+            textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+            text("Daily streaks, badges, and more!", width / 2f, height * 0.60f)
         }
 
         postRender(sceneInfo, sceneSwitcher)

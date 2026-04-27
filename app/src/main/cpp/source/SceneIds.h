@@ -7,7 +7,8 @@ enum class SceneId : uint32_t {
     AR = 2,
     FlightHistory = 3,
     Settings = 4,
-    Favorites = 5
+    Favorites = 5,
+    Achievements = 6
 };
 
 #endif //PLANEAR_SCENEIDS_H
