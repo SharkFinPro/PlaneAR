@@ -12,6 +12,11 @@ data class ScreenPoint (
     val distance: Float
 )
 
+data class EdgeIndicator(
+    val x: Float,
+    val y: Float,
+    val angleDeg: Float
+)
 object Planeprojector {
     fun project(
         user: GeoPoint, // user geo pos
@@ -102,5 +107,37 @@ object Planeprojector {
             arr[i * 3 + 2] = p.distance
         }
         return arr
+    }
+
+    fun getEdgeIndicator(
+        point: ScreenPoint,
+        screenWidth: Int,
+        screenHeight: Int,
+        inset: Float = 40f
+    ): EdgeIndicator {
+        val cx = screenWidth / 2f
+        val cy = screenHeight / 2f
+
+        val dx = point.x - cx
+        val dy = point.y - cx
+
+        val left = inset
+        val right = screenWidth - inset
+        val top = inset
+        val bottom = screenHeight - inset
+
+        var t = Float.POSITIVE_INFINITY
+
+        if (dx > 0) t = minOf(t, (right - cx) / dx)
+        if (dx < 0) t = minOf(t, (left - cx) / dx)
+        if (dy > 0) t = minOf(t, (bottom - cy) / dy)
+        if (dy < 0) t = minOf(t, (top - cy) / dy)
+
+        val edgeX = cx + dx * t
+        val edgeY = cy + dy * t
+
+        val angle = Math.toDegrees(kotlin.math.atan2(dy.toDouble(), dx.toDouble())).toFloat()
+
+        return EdgeIndicator(edgeX, edgeY, angle)
     }
 }

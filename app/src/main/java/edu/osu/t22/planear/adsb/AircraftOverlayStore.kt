@@ -8,6 +8,13 @@ data class AircraftScreenPoint(
     val label: String
 )
 
+data class AircraftEdgeIndicator(
+    val x: Float,
+    val y: Float,
+    val angleDeg: Float,
+    val label: String
+)
+
 // Raw aircraft data for re-projection
 data class AircraftPosition(
     val position: GeoPoint,
@@ -21,4 +28,7 @@ object AircraftOverlayStore {
     // Raw aircraft positions - updated by ADSB polling
     @Volatile
     var aircraftData: List<AircraftPosition> = emptyList()
+
+    @Volatile
+    var edgeIndicators: List<AircraftEdgeIndicator> = emptyList()
 }

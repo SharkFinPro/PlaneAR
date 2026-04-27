@@ -116,17 +116,37 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
         val xs = mutableListOf<Float>()
         val ys = mutableListOf<Float>()
         val labels = mutableListOf<String>()
+        val edgeIndicators = mutableListOf<AircraftEdgeIndicator>()
+
 
         screenPoints.forEachIndexed { i, point ->
+            val label = aircraftData[i].label
+
             if (point.visible) {
-                xs += point.x.toFloat()
-                ys += point.y.toFloat()
-                labels += aircraftData[i].label
+                xs += point.x
+                ys += point.y
+                labels += label
+            } else {
+                val edge = Planeprojector.getEdgeIndicator(
+                    point = point,
+                    screenWidth = screenW,
+                    screenHeight = screenH
+                )
+
+                edgeIndicators += AircraftEdgeIndicator(
+                    x = edge.x,
+                    y = edge.y,
+                    angleDeg = edge.angleDeg,
+                    label = label
+                )
             }
         }
 
-        if (dots.isEmpty()) {
+        AircraftOverlayStore.edgeIndicators = edgeIndicators
+
+        if (dots.isEmpty() && edgeIndicators.isEmpty()) {
             AircraftOverlayStore.points = emptyList()
+            AircraftOverlayStore.edgeIndicators = emptyList()
             return null
         }
 

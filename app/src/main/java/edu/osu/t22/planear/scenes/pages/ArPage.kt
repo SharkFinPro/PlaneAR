@@ -93,6 +93,24 @@ class ArPage : Page {
                 text3D(p.label, x, y, z)
             }
 
+            for (indicator in AircraftOverlayStore.edgeIndicators) {
+                pushMatrix()
+
+                translate(indicator.x, indicator.y)
+                rotate(Math.toRadians(indicator.angleDeg.toDouble()).toFloat())
+
+                fill(255, 180, 0)
+
+                triangle(18f, 0f, -12f, -10f, -12f, 10f)
+
+                popMatrix()
+
+                fill(255)
+                textFont("roboto", 18)
+                textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+                text(indicator.label, indicator.x, indicator.y + 28f)
+            }
+
             fill(0)
             textFont("roboto", 18)
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
