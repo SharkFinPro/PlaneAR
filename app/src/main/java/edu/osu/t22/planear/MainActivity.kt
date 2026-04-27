@@ -104,7 +104,7 @@ class MainActivity : GameActivity() {
                                 pitchDeg = devicePitchDeg,
                                 rollDeg = deviceRollDeg,
                                 screenW = dm.widthPixels,
-                                screenH = dm.heightPixels
+                                screenH = dm.heightPixels - 150
                             )
                         }
 

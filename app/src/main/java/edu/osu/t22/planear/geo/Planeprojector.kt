@@ -116,10 +116,10 @@ object Planeprojector {
         inset: Float = 40f
     ): EdgeIndicator {
         val cx = screenWidth / 2f
-        val cy = screenHeight / 2f
+        val cy = (screenHeight / 2f)
 
         val dx = point.x - cx
-        val dy = point.y - cx
+        val dy = point.y - cy
 
         val left = inset
         val right = screenWidth - inset
