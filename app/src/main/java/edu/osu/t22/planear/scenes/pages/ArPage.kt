@@ -12,6 +12,7 @@ import edu.osu.t22.planear.orientation.OrientationStore
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
 import kotlin.math.cos
+import kotlin.math.sqrt
 
 class ArPage : Page {
     override val sceneId = SceneId.AR
@@ -97,18 +98,18 @@ class ArPage : Page {
                 pushMatrix()
 
                 translate(indicator.x, indicator.y)
-                rotate(Math.toRadians(indicator.angleDeg.toDouble()).toFloat())
+                rotate(indicator.angleDeg)
 
-                fill(255, 180, 0)
+                val s = 24f
+                val h = (sqrt(3.0) / 2.0 * s).toFloat()
 
-                triangle(18f, 0f, -12f, -10f, -12f, 10f)
+                triangle(
+                    s / 2f, 0f,
+                    -s / 2f, -h / 2f,
+                    -s / 2f, h / 2f
+                )
 
                 popMatrix()
-
-                fill(255)
-                textFont("roboto", 18)
-                textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-                text(indicator.label, indicator.x, indicator.y + 28f)
             }
 
             fill(0)
