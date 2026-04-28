@@ -113,7 +113,7 @@ class ArPage : Page {
 
 
                 val dotBackRadius  = displayRadius
-                val dotFrontRadius = displayRadius - LAYER_STEP * 0.3f
+                val dotFrontRadius = displayRadius - LAYER_STEP * 0.4f
 
                 val (bx, by, bz) = Triple(nx / displayRadius * dotBackRadius,  ny / displayRadius * dotBackRadius,  nz / displayRadius * dotBackRadius)
                 val (fx, fy, fz) = Triple(nx / displayRadius * dotFrontRadius, ny / displayRadius * dotFrontRadius, nz / displayRadius * dotFrontRadius)
@@ -122,7 +122,7 @@ class ArPage : Page {
                 fill(245); point(fx, fy, fz, 250)
 
                 // Text a step closer still
-                val textRadius = displayRadius - LAYER_STEP * 0.6f
+                val textRadius = displayRadius - LAYER_STEP * 0.7f
                 val tx = nx / displayRadius * textRadius
                 val ty = ny / displayRadius * textRadius
                 val tz = nz / displayRadius * textRadius
