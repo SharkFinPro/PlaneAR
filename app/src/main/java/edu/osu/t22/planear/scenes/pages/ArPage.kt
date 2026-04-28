@@ -21,9 +21,9 @@ class ArPage : Page {
 
     private var lastHb: HardwareBuffer? = null
 
-    private val DISPLAY_RADIUS = 4000.0f
+    private val DISPLAY_RADIUS = 3000.0f
 
-    private val Z_FIGHT_OFFSET = 75.0f
+    private val LAYER_STEP = 250.0f
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val width = sceneInfo.screenWidth
@@ -93,7 +93,7 @@ class ArPage : Page {
                 val rawLen = sqrt((rawX * rawX + rawY * rawY + rawZ * rawZ).toDouble()).toFloat()
 
                 // Avoid division by zero for aircraft exactly at phone position
-                val displayRadius = DISPLAY_RADIUS + index * Z_FIGHT_OFFSET
+                val displayRadius = DISPLAY_RADIUS + index * LAYER_STEP
 
                 var (nx, ny, nz) = if (rawLen > 0.01f) {
                     Triple(
@@ -111,20 +111,25 @@ class ArPage : Page {
                 val distStr = if (distKm < 1.0) "${"%.0f".format(rawLen)} m"
                 else "${"%.1f".format(distKm)} km"
 
-                // Billboard background dot
-                fill(255, 255, 255, 200)
-                point(nx, ny, nz)
 
-                // Label: callsign + distance
-                textFont("roboto", 30)
-                fill(42, 42, 42)
+                val dotBackRadius  = displayRadius
+                val dotFrontRadius = displayRadius - LAYER_STEP * 0.3f
 
-                val closeScale = 0.985f;
-                nx *= closeScale
-                ny *= closeScale
-                nz *= closeScale
-                text3D(p.label, nx, ny + 50, nz)
-                text3D(distStr, nx, ny - 50, nz)
+                val (bx, by, bz) = Triple(nx / displayRadius * dotBackRadius,  ny / displayRadius * dotBackRadius,  nz / displayRadius * dotBackRadius)
+                val (fx, fy, fz) = Triple(nx / displayRadius * dotFrontRadius, ny / displayRadius * dotFrontRadius, nz / displayRadius * dotFrontRadius)
+
+                fill(0);   point(bx, by, bz, 270)
+                fill(245); point(fx, fy, fz, 250)
+
+                // Text a step closer still
+                val textRadius = displayRadius - LAYER_STEP * 0.6f
+                val tx = nx / displayRadius * textRadius
+                val ty = ny / displayRadius * textRadius
+                val tz = nz / displayRadius * textRadius
+
+                textFont("roboto", 30); fill(42, 42, 42)
+                text3D(p.label,  tx, ty + 50, tz)
+                text3D(distStr,  tx, ty - 50, tz)
             }
 
             // HUD overlays (always 2-D, drawn after 3-D content)

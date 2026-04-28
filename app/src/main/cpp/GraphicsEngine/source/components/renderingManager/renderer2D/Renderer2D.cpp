@@ -496,7 +496,8 @@ namespace ge {
 
   void Renderer2D::point(float x,
                          float y,
-                         float z)
+                         float z,
+                         float size)
   {
     m_drawList.push_back({
       Point{
@@ -505,7 +506,8 @@ namespace ge {
         .x = x,
         .y = y,
         .z = z,
-        .size = 250.0f
+        .size = size,
+        .color = m_currentFill
       },
       m_currentZ
     });
@@ -626,7 +628,7 @@ namespace ge {
       glm::radians(50.0f),
       screenWidth / screenHeight,
       0.1f,
-      10000.0f
+      20000.0f
     );
 
     m_projectionMatrix[1][1] *= -1;
