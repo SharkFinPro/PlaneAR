@@ -252,6 +252,7 @@ namespace ge {
     float y;
     float z;
     float size;
+    glm::vec4 color;
 
     struct PushConstant {
       glm::mat4 mvp;
@@ -261,6 +262,10 @@ namespace ge {
       float _pad0;
       glm::vec3 camUp;
       float _pad1;
+      float r;
+      float g;
+      float b;
+      float a;
     };
 
     [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent) const
@@ -278,6 +283,10 @@ namespace ge {
         ._pad0    = 0.f,
         .camUp    = camUp,
         ._pad1    = 0.f,
+        .r = color.r,
+        .g = color.g,
+        .b = color.b,
+        .a = color.a
       };
     }
   };

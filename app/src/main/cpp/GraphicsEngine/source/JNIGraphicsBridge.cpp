@@ -351,7 +351,8 @@ namespace {
                     jobject thiz,
                     jfloat x,
                     jfloat y,
-                    jfloat z)
+                    jfloat z,
+                    jfloat size)
   {
     ge::Renderer2D* renderer = getRenderer(env, thiz);
     if (renderer == nullptr)
@@ -359,7 +360,7 @@ namespace {
       return;
     }
 
-    renderer->point(x, y, z);
+    renderer->point(x, y, z, size);
   }
 
   void nativeSet3DView(JNIEnv* env,
@@ -462,7 +463,7 @@ namespace {
     {"textAlign",   "(II)V",                      (void*)nativeTextAlign},
     {"text",        "(Ljava/lang/String;FF)V",    (void*)nativeText},
     {"image",       "(Ljava/lang/String;FFFF)V",  (void*)nativeImage},
-    {"point",       "(FFF)V",                     (void*)nativePoint},
+    {"point",       "(FFFF)V",                     (void*)nativePoint},
     {"set3DView",   "(FFFFFFFF)V",                (void*)nativeSet3DView},
     {"text3D",   "(Ljava/lang/String;FFF)V",      (void*)nativeText3D},
     {"updateCameraBuffer", "(Landroid/hardware/HardwareBuffer;)V", (void*)nativeUpdateCameraBuffer},
