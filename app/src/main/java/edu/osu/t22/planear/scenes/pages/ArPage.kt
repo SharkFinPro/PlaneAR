@@ -86,7 +86,7 @@ class ArPage : Page {
                 val dAlt = (p.position.altM - phoneAlt).toFloat()
 
                 val rawX = (dLon * metersPerDegLon).toFloat()   // East
-                val rawY = dAlt                                  // Up
+                val rawY = dAlt                                 // Up
                 val rawZ = -(dLat * metersPerDegLat).toFloat()  // North (camera is -Z forward)
 
                 // Distance in the XZ plane + full 3-D magnitude
@@ -111,17 +111,18 @@ class ArPage : Page {
                 val distStr = if (distKm < 1.0) "${"%.0f".format(rawLen)} m"
                 else "${"%.1f".format(distKm)} km"
 
-
                 val dotBackRadius  = displayRadius
                 val dotFrontRadius = displayRadius - LAYER_STEP * 0.4f
 
                 val (bx, by, bz) = Triple(nx / displayRadius * dotBackRadius,  ny / displayRadius * dotBackRadius,  nz / displayRadius * dotBackRadius)
                 val (fx, fy, fz) = Triple(nx / displayRadius * dotFrontRadius, ny / displayRadius * dotFrontRadius, nz / displayRadius * dotFrontRadius)
 
-                fill(0);   point(bx, by, bz, 270)
-                fill(245); point(fx, fy, fz, 250)
+                fill(0);
+                point(bx, by, bz, 270)
 
-                // Text a step closer still
+                fill(245);
+                point(fx, fy, fz, 250)
+
                 val textRadius = displayRadius - LAYER_STEP * 0.7f
                 val tx = nx / displayRadius * textRadius
                 val ty = ny / displayRadius * textRadius
