@@ -21,9 +21,9 @@ class ArPage : Page {
 
     private var lastHb: HardwareBuffer? = null
 
-    private val DISPLAY_RADIUS = 3000.0f
+    private val displayRadius = 3000.0f
 
-    private val LAYER_STEP = 250.0f
+    private val layerStep = 250.0f
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val width = sceneInfo.screenWidth
@@ -93,9 +93,9 @@ class ArPage : Page {
                 val rawLen = sqrt((rawX * rawX + rawY * rawY + rawZ * rawZ).toDouble()).toFloat()
 
                 // Avoid division by zero for aircraft exactly at phone position
-                val displayRadius = DISPLAY_RADIUS + index * LAYER_STEP
+                val displayRadius = displayRadius + index * layerStep
 
-                var (nx, ny, nz) = if (rawLen > 0.01f) {
+                val (nx, ny, nz) = if (rawLen > 0.01f) {
                     Triple(
                         rawX / rawLen * displayRadius,
                         rawY / rawLen * displayRadius,
@@ -112,7 +112,7 @@ class ArPage : Page {
                 else "${"%.1f".format(distKm)} km"
 
                 val dotBackRadius  = displayRadius
-                val dotFrontRadius = displayRadius - LAYER_STEP * 0.4f
+                val dotFrontRadius = displayRadius - layerStep * 0.4f
 
                 val (bx, by, bz) = Triple(nx / displayRadius * dotBackRadius,  ny / displayRadius * dotBackRadius,  nz / displayRadius * dotBackRadius)
                 val (fx, fy, fz) = Triple(nx / displayRadius * dotFrontRadius, ny / displayRadius * dotFrontRadius, nz / displayRadius * dotFrontRadius)
@@ -123,7 +123,7 @@ class ArPage : Page {
                 fill(245);
                 point(fx, fy, fz, 250)
 
-                val textRadius = displayRadius - LAYER_STEP * 0.7f
+                val textRadius = displayRadius - layerStep * 0.7f
                 val tx = nx / displayRadius * textRadius
                 val ty = ny / displayRadius * textRadius
                 val tz = nz / displayRadius * textRadius
