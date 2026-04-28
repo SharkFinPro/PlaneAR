@@ -54,7 +54,7 @@ class ArPage : Page {
                 camera(0, 0, width, height)
             } else {
                 rectMode(RectMode.CORNER)
-                fill(145)
+                fill(90, 160, 255)
                 rect(0, 0, width, height)
             }
 

@@ -1,11 +1,14 @@
 package edu.osu.t22.planear.location
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Looper.getMainLooper
 import android.util.Log
 import androidx.annotation.RequiresPermission
+import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -32,9 +35,24 @@ class AppLocationManager(
 
     private var locationCallback: LocationCallback? = null
 
-    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
+    @SuppressLint("MissingPermission")
     fun start() {
         if (locationCallback != null) return
+
+        val fine = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!fine) {
+            Log.w("LocationManager", "Location permission denied. Using fallback location.")
+            lastKnownLocation = Location("default").apply {
+                latitude = 37.6213
+                longitude = -122.3790
+                altitude = 0.0
+            }
+            return
+        }
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
