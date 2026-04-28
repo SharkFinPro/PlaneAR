@@ -505,7 +505,7 @@ namespace ge {
         .x = x,
         .y = y,
         .z = z,
-        .size = 500.0f
+        .size = 250.0f
       },
       m_currentZ
     });
@@ -626,7 +626,7 @@ namespace ge {
       glm::radians(50.0f),
       screenWidth / screenHeight,
       0.1f,
-      100000.0f
+      10000.0f
     );
 
     m_projectionMatrix[1][1] *= -1;
