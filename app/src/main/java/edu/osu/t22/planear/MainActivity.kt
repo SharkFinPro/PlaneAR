@@ -1,17 +1,23 @@
 package edu.osu.t22.planear
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.hardware.GeomagneticField
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.MotionEvent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresPermission
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
@@ -37,9 +43,6 @@ class MainActivity : GameActivity() {
             System.loadLibrary("GraphicsEngine")
             System.loadLibrary("planeARApp")
         }
-
-        private const val CAMERA_PERMISSION_CODE = 0
-        private const val LOCATION_PERMISSION_CODE = 1
     }
 
     private lateinit var sceneSwitcher: SceneSwitcher
@@ -58,9 +61,33 @@ class MainActivity : GameActivity() {
     @Volatile private var devicePitchDeg = 0.0
     @Volatile private var deviceRollDeg = 0.0
 
-    @Suppress("MissingPermission")
+    private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
+
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        permissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { _ ->
+            val cameraGranted = hasCameraPermission()
+            val locationGranted = hasLocationPermission()
+
+            if (cameraGranted) {
+                Log.i("PERM", "Camera permission granted")
+                AppSettings.hasCameraPermissions = true
+            } else {
+                Log.w("PERM", "Camera permission denied")
+                handleDeniedPermission(Manifest.permission.CAMERA)
+            }
+
+            if (locationGranted) {
+                Log.i("PERM", "Location permission granted")
+            } else {
+                Log.w("PERM", "Location permission denied")
+                handleDeniedPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        }
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
@@ -128,17 +155,8 @@ class MainActivity : GameActivity() {
             }
         }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_CODE
-            )
-        } else {
-            appLocationManager.start()
-        }
+        checkAndRequestPermissions()
+        appLocationManager.start()
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -154,16 +172,8 @@ class MainActivity : GameActivity() {
             sensorManager.registerListener(sensorListener, sensor, SensorManager.SENSOR_DELAY_GAME)
         }
 
-        if (!hasCameraPermission()) {
-            requestCameraPermission()
-            return
-        } else {
+        if (hasCameraPermission()) {
             AppSettings.hasCameraPermissions = true
-        }
-
-        if (!hasLocationPermission()) {
-            requestLocationPermission()
-            return
         }
 
         if (hasLocationPermission()) {
@@ -242,45 +252,11 @@ class MainActivity : GameActivity() {
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
     }
 
-    @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode == CAMERA_PERMISSION_CODE &&
-            grantResults.isNotEmpty() &&
-            grantResults[0] == PackageManager.PERMISSION_GRANTED
-        ) {
-            AppSettings.hasCameraPermissions = true
-        }
-
-        if (requestCode == LOCATION_PERMISSION_CODE &&
-            grantResults.isNotEmpty() &&
-            grantResults[0] == PackageManager.PERMISSION_GRANTED
-        ) {
-            @SuppressWarnings("MissingPermission") // suppress Lint errors for if the user has removed permissions
-            if (hasLocationPermission()) {
-                appLocationManager.start()
-            }
-        }
-    }
-
     private fun hasCameraPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.CAMERA
         ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun requestCameraPermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(Manifest.permission.CAMERA),
-            CAMERA_PERMISSION_CODE
-        )
     }
 
     private fun hasLocationPermission(): Boolean {
@@ -290,12 +266,68 @@ class MainActivity : GameActivity() {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun requestLocationPermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-            LOCATION_PERMISSION_CODE
+    private fun checkAndRequestPermissions() {
+        val needCamera = !hasCameraPermission()
+        val needLocation = !hasLocationPermission()
+
+        if (!needCamera && !needLocation) {
+            return
+        }
+
+        val toRequest = mutableListOf<String>()
+        if (needCamera) toRequest.add(Manifest.permission.CAMERA)
+        if (needLocation) toRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
+
+        val showRationaleForAny = toRequest.any { ActivityCompat.shouldShowRequestPermissionRationale(this, it) }
+        if (showRationaleForAny) {
+            AlertDialog.Builder(this)
+                .setTitle("Permissions required")
+                .setMessage("This app needs Camera (for AR) and Location (for nearby aircraft) permissions to function properly.")
+                .setPositiveButton("Continue") { _, _ -> permissionLauncher.launch(toRequest.toTypedArray()) }
+                .setNegativeButton("Cancel", null)
+                .show()
+        } else {
+            permissionLauncher.launch(toRequest.toTypedArray())
+        }
+    }
+
+    private fun handleDeniedPermission(permission: String) {
+        val shouldExplain = ActivityCompat.shouldShowRequestPermissionRationale(this, permission)
+        if (!shouldExplain) {
+            val msg = when (permission) {
+                Manifest.permission.CAMERA -> "Camera access is required for AR features. Enable it in App Settings."
+                Manifest.permission.ACCESS_FINE_LOCATION -> "Location access is required to show nearby aircraft. Enable it in App Settings."
+                else -> "Required permission was denied. Enable it in App Settings."
+            }
+
+            AlertDialog.Builder(this)
+                .setTitle("Permission denied")
+                .setMessage(msg)
+                .setPositiveButton("Open Settings") { _, _ -> openAppSettings() }
+                .setNegativeButton("Cancel", null)
+                .show()
+        } else {
+            val pretty = when (permission) {
+                Manifest.permission.CAMERA -> "Camera"
+                Manifest.permission.ACCESS_FINE_LOCATION -> "Location"
+                else -> "Permission"
+            }
+            AlertDialog.Builder(this)
+                .setTitle("$pretty permission needed")
+                .setMessage("$pretty permission is required for core functionality. Would you like to grant it?")
+                .setPositiveButton("Grant") { _, _ -> permissionLauncher.launch(arrayOf(permission)) }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+    }
+
+    private fun openAppSettings() {
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.fromParts("package", packageName, null)
         )
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
     }
 
     private fun hideSystemUi() {
