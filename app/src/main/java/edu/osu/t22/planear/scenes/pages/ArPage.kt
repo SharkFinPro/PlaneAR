@@ -51,6 +51,24 @@ class ArPage : Page {
                 rect(0, 0, width, height)
             }
 
+            for (indicator in AircraftOverlayStore.edgeIndicators) {
+                pushMatrix()
+                translate(indicator.x, indicator.y)
+                rotate(indicator.angleDeg)
+
+                val s = 24f
+                val h = (sqrt(3.0) / 2.0 * s).toFloat()
+
+                fill(255, 200, 0)  // make it visible for debugging
+                triangle(
+                    s / 2f, 0f,
+                    -s / 2f, -h / 2f,
+                    -s / 2f, h / 2f
+                )
+
+                popMatrix()
+            }
+
             set3DView(
                 0,
                 phoneAlt,
@@ -92,24 +110,6 @@ class ArPage : Page {
                 z *= scale
 
                 text3D(p.label, x, y, z)
-            }
-
-            for (indicator in AircraftOverlayStore.edgeIndicators) {
-                pushMatrix()
-
-                translate(indicator.x, indicator.y)
-                rotate(indicator.angleDeg)
-
-                val s = 24f
-                val h = (sqrt(3.0) / 2.0 * s).toFloat()
-
-                triangle(
-                    s / 2f, 0f,
-                    -s / 2f, -h / 2f,
-                    -s / 2f, h / 2f
-                )
-
-                popMatrix()
             }
 
             fill(0)

@@ -61,7 +61,13 @@ object Planeprojector {
         val camZ =  rz2
 
         if (camZ <= 0f) {
-            return ScreenPoint(0f, 0f, visible = false, distance = dist)
+            val tanHalfH = tan(Math.toRadians(hFovDeg / 2.0)).toFloat()
+            val tanHalfV = tan(Math.toRadians(vFovDeg / 2.0)).toFloat()
+            val ndcX = camX / (abs(camZ) * tanHalfH) * -1f
+            val ndcY = camY / (abs(camZ) * tanHalfV) * -1f
+            val screenX = ((ndcX + 1f) / 2f) * screenWidth
+            val screenY = ((1f - ndcY) / 2f) * screenHeight
+            return ScreenPoint(screenX, screenY, visible = false, distance = dist)
         }
 
         val tanHalfH = tan(Math.toRadians(hFovDeg / 2.0)).toFloat()
@@ -121,6 +127,9 @@ object Planeprojector {
         val dx = point.x - cx
         val dy = point.y - cy
 
+        if (dx == 0f && dy == 0f) {
+            return EdgeIndicator(screenWidth - inset, cy, 0f)
+        }
         val left = inset
         val right = screenWidth - inset
         val top = inset

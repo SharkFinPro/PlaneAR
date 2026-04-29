@@ -111,6 +111,7 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
             screenHeight = screenH
         )
 
+        val renderH = screenH
         val dots = Planeprojector.toNativeArray(screenPoints)
 
         val xs = mutableListOf<Float>()
@@ -130,7 +131,7 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
                 val edge = Planeprojector.getEdgeIndicator(
                     point = point,
                     screenWidth = screenW,
-                    screenHeight = screenH
+                    screenHeight = renderH
                 )
 
                 edgeIndicators += AircraftEdgeIndicator(
