@@ -1,7 +1,15 @@
 #version 450
 
+layout(push_constant) uniform pointPC {
+  layout(offset = 112)
+  float r;
+  float g;
+  float b;
+  float a;
+} pc;
+
 layout(location = 0) out vec4 outColor;
 
 void main() {
-  outColor = vec4(0.96, 0.96, 0.96, 1.0);
+  outColor = vec4(pc.r, pc.g, pc.b, pc.a);
 }

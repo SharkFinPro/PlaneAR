@@ -144,7 +144,8 @@ namespace ge {
 
     void point(float x,
                float y,
-               float z);
+               float z,
+               float size);
 
     void set3DView(float x,
                    float y,

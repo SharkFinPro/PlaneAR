@@ -101,9 +101,9 @@ class Renderer2D(private val ptr: Long) {
     private external fun image(image: String, x: Float, y: Float, width: Float, height: Float)
 
     /* 3D Points */
-    fun point(x: Number, y: Number, z: Number) = point(x.toFloat(), y.toFloat(), z.toFloat())
+    fun point(x: Number, y: Number, z: Number, size: Number) = point(x.toFloat(), y.toFloat(), z.toFloat(), size.toFloat())
 
-    private external fun point(x: Float, y: Float, z: Float)
+    private external fun point(x: Float, y: Float, z: Float, size: Float)
 
     fun set3DView(x: Number, y: Number, z: Number, pitch: Number, yaw: Number, roll: Number, screenWidth: Number, screenHeight: Number)
         = set3DView(x.toFloat(), y.toFloat(), z.toFloat(), pitch.toFloat(), yaw.toFloat(), roll.toFloat(), screenWidth.toFloat(), screenHeight.toFloat())
