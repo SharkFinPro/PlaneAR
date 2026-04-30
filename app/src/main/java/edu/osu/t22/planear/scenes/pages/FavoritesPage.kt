@@ -38,8 +38,8 @@ class FavoritesPage : Page {
         val gestures = sceneInfo.gestures
         val c        = AppColors.current
 
-        var tapConsumed = Page.isInputBlocked
-        val tapPos      = if (Page.isInputBlocked) null else gestures.singleTapUpPosition
+        var tapConsumed = false
+        val tapPos      = gestures.singleTapUpPosition
 
         val favIndices = flightData.indices.filter { i -> i < Page.flightFavorites.size && Page.flightFavorites[i] }
         val totalFavs  = favIndices.size
@@ -63,7 +63,7 @@ class FavoritesPage : Page {
         val canGoBack = currentPage > 0
         val canGoNext = currentPage < totalPages - 1
 
-        if (gestures.flung && selectedIndex < 0 && !Page.isInputBlocked) {
+        if (gestures.flung && selectedIndex < 0) {
             when (gestures.flingDirection) {
                 FlingDirection.LEFT  -> if (canGoNext) currentPage++
                 FlingDirection.RIGHT -> if (canGoBack) currentPage--
@@ -210,7 +210,7 @@ class FavoritesPage : Page {
         val gestures = sceneInfo.gestures
         val c        = AppColors.current
 
-        var overviewTapConsumed = Page.isInputBlocked
+        var overviewTapConsumed = false
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 

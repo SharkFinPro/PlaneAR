@@ -27,8 +27,8 @@ class FlightHistoryPage : Page {
         val gestures = sceneInfo.gestures
         val c        = AppColors.current
 
-        var tapConsumed = Page.isInputBlocked
-        val tapPos      = if (Page.isInputBlocked) null else gestures.singleTapUpPosition
+        var tapConsumed = false
+        val tapPos      = gestures.singleTapUpPosition
 
         val totalFlights = flightData.size
         val totalPages   = ((totalFlights - 1) / FLIGHTS_PER_PAGE) + 1
@@ -51,7 +51,7 @@ class FlightHistoryPage : Page {
         val canGoBack = currentPage > 0
         val canGoNext = currentPage < totalPages - 1
 
-        if (gestures.flung && selectedIndex < 0 && !Page.isInputBlocked) {
+        if (gestures.flung && selectedIndex < 0) {
             when (gestures.flingDirection) {
                 FlingDirection.LEFT  -> if (canGoNext) currentPage++
                 FlingDirection.RIGHT -> if (canGoBack) currentPage--

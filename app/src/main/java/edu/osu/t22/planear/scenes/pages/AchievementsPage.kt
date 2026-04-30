@@ -30,7 +30,7 @@ class AchievementsPage : Page {
         val gestures = sceneInfo.gestures
         val c        = AppColors.current
 
-        val inputBlocked = Page.isInputBlocked
+        val inputBlocked = false
 
         val margin    = screenW * 0.05f
         val gridW     = screenW - 2f * margin
