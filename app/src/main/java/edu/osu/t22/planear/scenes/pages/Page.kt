@@ -2,23 +2,25 @@ package edu.osu.t22.planear.scenes.pages
 
 import android.util.Log
 import edu.osu.t22.planear.AppColors
+import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.FrameGestureDetector.FlingDirection
 import edu.osu.t22.planear.graphicsEngine.EllipseMode
 import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
 import edu.osu.t22.planear.graphicsEngine.RectMode
 import edu.osu.t22.planear.graphicsEngine.TextAlignH
 import edu.osu.t22.planear.graphicsEngine.TextAlignV
+import edu.osu.t22.planear.achievements.AchievementStore
 import edu.osu.t22.planear.scenes.Scene
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
 
 enum class SceneId(val id: Int) {
-    AR(2), FlightHistory(3), Settings(4), Favorites(5)
+    AR(2), FlightHistory(3), Settings(4), Favorites(5), Achievements(6)
 }
 
-val sceneIdMap     = listOf(SceneId.AR, SceneId.FlightHistory, SceneId.Settings)
-val navLabels      = listOf("AR View", "History", "Settings")
-val navEmojiLabels = listOf("📷", "🕒", "⚙️")
+val sceneIdMap     = listOf(SceneId.AR, SceneId.FlightHistory, SceneId.Achievements, SceneId.Settings)
+val navLabels      = listOf("AR View", "History", "Achievements", "Settings")
+val navEmojiLabels = listOf("📷", "🕒", "🏆", "⚙️")
 
 enum class SheetResult { ANIMATING, OPEN, DISMISSED }
 
@@ -35,6 +37,13 @@ interface Page : Scene {
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {}
 
     fun postRender(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
+        // Update AR page flag — achievements only track on the AR tab.
+        // ArPage.render() sets this to true; all other pages leave it untouched,
+        // so we correct it here for non-AR pages.
+        if (sceneId != SceneId.AR) {
+            AchievementStore.isOnArPage = false
+        }
+
         drawNavButtons(sceneInfo, sceneSwitcher)
     }
 
@@ -188,7 +197,7 @@ interface Page : Scene {
         val screenHeight   = sceneInfo.screenHeight
         val buttonWidth    = screenWidth / navLabels.size.toFloat()
         val buttonTop      = screenHeight - navHeight
-        val activeNavIndex = sceneId.ordinal
+        val activeNavIndex = sceneIdMap.indexOf(sceneId).let { if (it < 0) -1 else it }
         val tapPos         = sceneInfo.gestures.singleTapUpPosition
         val gestures       = sceneInfo.gestures
         val c              = AppColors.current
@@ -202,7 +211,11 @@ interface Page : Scene {
                     FlingDirection.RIGHT -> (activeNavIndex - 1).coerceAtLeast(0)
                     else -> activeNavIndex
                 }
-                if (newIndex != activeNavIndex) sceneSwitcher.setCurrentScene(sceneIdMap[newIndex].id)
+                if (newIndex != activeNavIndex && newIndex >= 0) {
+                    // Only navigate if the scene is registered (Achievements placeholder is not yet)
+                    val targetId = sceneIdMap[newIndex].id
+                    try { sceneSwitcher.setCurrentScene(targetId) } catch (_: Exception) {}
+                }
             }
         }
 
@@ -234,8 +247,13 @@ interface Page : Scene {
                 tapPos?.let { (tx, ty) ->
                     if (tx > offsetX && tx < offsetX + buttonWidth &&
                         ty > buttonTop && ty < buttonTop + navHeight) {
-                        sceneSwitcher.setCurrentScene(sceneIdMap[i].id)
-                        Log.i("Page", "Nav $i tapped - switching to scene ${sceneIdMap[i].id}")
+                        val targetId = sceneIdMap[i].id
+                        try {
+                            sceneSwitcher.setCurrentScene(targetId)
+                            Log.i("Page", "Nav $i tapped - switching to scene $targetId")
+                        } catch (_: Exception) {
+                            Log.i("Page", "Nav $i tapped - scene $targetId not yet registered")
+                        }
                     }
                 }
             }

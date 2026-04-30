@@ -37,12 +37,18 @@ data class AdsbAircraft(
     val seen: Float? = null, // seconds since this aircraft was last seen
     val seen_pos: Float? = null, // seconds since this aircraft's position was updated
 
+    // Vertical rate
+    val baro_rate: Int? = null, // vertical rate in ft/min (barometric)
+
     // Misc
     val squawk: String? = null // squawk code
 ) {
+    val altitudeFeet: Double?
+        get() = alt_baro?.toDoubleOrNull()
+
     val altitudeMeters: Double?
         get() {
-            val feet = alt_baro?.toDoubleOrNull() ?: return null
+            val feet = altitudeFeet ?: return null
             return feet * 0.3048
         }
 

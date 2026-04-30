@@ -12,62 +12,116 @@ import edu.osu.t22.planear.scenes.SceneSwitcher
 class SettingsPage : Page {
     override val sceneId = SceneId.Settings
 
-    private var radiusSliderDragging = false
+    private var radiusSliderDragging: Boolean = false
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
-        val width    = sceneInfo.screenWidth
-        val height   = sceneInfo.screenHeight - navHeight
+        val screenW  = sceneInfo.screenWidth
+        val screenH  = sceneInfo.screenHeight - navHeight
         val gestures = sceneInfo.gestures
         val c        = AppColors.current
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
             rectMode(RectMode.CORNER)
+
+            // Full-screen background
             fill(c.background)
-            rect(0, 0, width, height)
+            rect(0, 0, screenW, screenH)
 
-            // Page title
+            // Title
             fill(c.textPrimary)
-            textFont("roboto", 20)
+            textFont("roboto", 32)
             textAlign(TextAlignH.CENTER, TextAlignV.BASELINE)
-            text("Settings", width / 2f, 200f)
+            text("Settings", screenW / 2f, 100f)
 
+            // Settings controls - positioned relatively
+            val controlW = screenW * 0.90f
+            val controlX = (screenW - controlW) / 2f
+
+            // Dark Mode toggle
             AppSettings.darkMode = drawToggleCard(
                 sceneInfo = sceneInfo,
-                cardX     = width * 0.05f,
-                cardY     = 260f,
-                cardW     = width * 0.90f,
+                cardX     = controlX,
+                cardY     = 180f,
+                cardW     = controlW,
                 title     = "Dark Mode",
                 enabled   = AppSettings.darkMode
             )
 
+            // Use Camera toggle
             AppSettings.canEnableCamera = drawToggleCard(
                 sceneInfo = sceneInfo,
-                cardX     = width * 0.05f,
-                cardY     = 420f,
-                cardW     = width * 0.90f,
+                cardX     = controlX,
+                cardY     = 320f,
+                cardW     = controlW,
                 title     = "Use Camera",
                 enabled   = AppSettings.canEnableCamera
             )
 
-            // Radius slider card
+            // Radius slider
             val newRadius = drawSlider(
                 sceneInfo   = sceneInfo,
-                cardX       = width * 0.05f,
-                cardY       = 580f,
-                cardW       = width * 0.90f,
+                cardX       = controlX,
+                cardY       = 460f,
+                cardW       = controlW,
                 title       = "Aircraft Search Radius",
                 min         = 1,
                 max         = 50,
                 current     = AppSettings.searchRadiusNm,
-                units       = "nm",
-                dragging    = radiusSliderDragging,
-                onDragStart = { radiusSliderDragging = true },
-                onDragEnd   = { radiusSliderDragging = false }
+                units       = "nm"
             )
             AppSettings.searchRadiusNm = newRadius
         }
 
         postRender(sceneInfo, sceneSwitcher)
+    }
+
+    private fun drawToggleCard(
+        sceneInfo: SceneInfo,
+        cardX: Float,
+        cardY: Float,
+        cardW: Float,
+        title: String,
+        enabled: Boolean
+    ): Boolean {
+        val gestures = sceneInfo.gestures
+        val c        = AppColors.current
+
+        with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
+            val cardH   = 120f
+            val cornerR = 20f
+
+            // Card background
+            fill(c.backgroundCard)
+            rect(cardX, cardY, cardW, cardH, cornerR)
+
+            // Label
+            fill(c.textPrimary)
+            textFont("roboto", 15)
+            textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
+            text(title, cardX + 30f, cardY + cardH / 2f)
+
+            // Pill toggle
+            val pillW  = 110f
+            val pillH  = 60f
+            val pillR  = pillH / 2f
+            val thumbR = pillR - 6f
+            val pillX  = cardX + cardW - 30f - pillW
+            val pillY  = cardY + (cardH - pillH) / 2f
+
+            fill(if (enabled) c.accent else c.trackBackground)
+            rect(pillX, pillY, pillW, pillH, pillR)
+
+            fill(255, 255, 255)
+            val thumbX = if (enabled) pillX + pillW - pillR else pillX + pillR
+            rect(thumbX - thumbR, pillY + 6f, thumbR * 2f, thumbR * 2f, thumbR)
+
+            // Tap detection
+            val tapped = gestures.singleTapUpPosition?.let { (tx, ty) ->
+                tx in cardX..(cardX + cardW) && ty in cardY..(cardY + cardH)
+            } ?: false
+
+            return if (tapped) !enabled else enabled
+        }
     }
 
     private fun drawSlider(
@@ -79,16 +133,13 @@ class SettingsPage : Page {
         min: Int,
         max: Int,
         current: Int,
-        units: String,
-        dragging: Boolean,
-        onDragStart: () -> Unit,
-        onDragEnd: () -> Unit
+        units: String
     ): Int {
         val gestures = sceneInfo.gestures
         val c        = AppColors.current
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
-            val cardH   = 220f
+            val cardH   = 200f
             val cornerR = 20f
 
             // Card background
@@ -99,20 +150,20 @@ class SettingsPage : Page {
             fill(c.textPrimary)
             textFont("roboto", 14)
             textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
-            text(title, cardX + 30f, cardY + 55f)
+            text(title, cardX + 30f, cardY + 50f)
 
             // Current value label
             fill(c.accent)
             textFont("roboto", 14)
             textAlign(TextAlignH.RIGHT, TextAlignV.BASELINE)
-            text("$current $units", cardX + cardW - 30f, cardY + 55f)
+            text("$current $units", cardX + cardW - 30f, cardY + 50f)
 
             // Track geometry
             val trackPad   = 40f
             val trackLeft  = cardX + trackPad
             val trackRight = cardX + cardW - trackPad
             val trackWidth = trackRight - trackLeft
-            val trackY     = cardY + 130f
+            val trackY     = cardY + 120f
             val trackH     = 8f
             val fraction   = (current - min).toFloat() / (max - min).toFloat()
             val thumbX     = trackLeft + fraction * trackWidth
@@ -143,17 +194,17 @@ class SettingsPage : Page {
             textAlign(TextAlignH.RIGHT, TextAlignV.TOP)
             text("$max $units", trackRight, trackY + 20f)
 
-            // Hit area is taller than the track to make it easier to grab
+            // Hit area
             val hitTop    = trackY - 44f
             val hitBottom = trackY + 44f
 
             gestures.touchDownPosition?.let { (tx, ty) ->
-                if (ty in hitTop..hitBottom && tx in trackLeft..trackRight) onDragStart()
+                if (ty in hitTop..hitBottom && tx in trackLeft..trackRight) radiusSliderDragging = true
             }
 
-            if (!gestures.isTouching) onDragEnd()
+            if (!gestures.isTouching) radiusSliderDragging = false
 
-            if (dragging && gestures.isTouching) {
+            if (radiusSliderDragging && gestures.isTouching) {
                 val fingerX = gestures.scrollPosition?.first
                     ?: gestures.singleTapPosition?.first
                 if (fingerX != null) {
@@ -164,55 +215,6 @@ class SettingsPage : Page {
             }
 
             return current
-        }
-    }
-
-    private fun drawToggleCard(
-        sceneInfo: SceneInfo,
-        cardX: Float,
-        cardY: Float,
-        cardW: Float,
-        title: String,
-        enabled: Boolean
-    ): Boolean {
-        val gestures = sceneInfo.gestures
-        val c        = AppColors.current
-
-        with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
-            val cardH   = 130f
-            val cornerR = 20f
-
-            // Card background
-            fill(c.backgroundCard)
-            rect(cardX, cardY, cardW, cardH, cornerR)
-
-            // Label
-            fill(c.textPrimary)
-            textFont("roboto", 15)
-            textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
-            text(title, cardX + 30f, cardY + cardH / 2f)
-
-            // Pill
-            val pillW  = 110f
-            val pillH  = 60f
-            val pillR  = pillH / 2f
-            val thumbR = pillR - 6f
-            val pillX  = cardX + cardW - 30f - pillW
-            val pillY  = cardY + (cardH - pillH) / 2f
-
-            fill(if (enabled) c.accent else c.trackBackground)
-            rect(pillX, pillY, pillW, pillH, pillR)
-
-            fill(255, 255, 255)
-            val thumbX = if (enabled) pillX + pillW - pillR else pillX + pillR
-            rect(thumbX - thumbR, pillY + 6f, thumbR * 2f, thumbR * 2f, thumbR)
-
-            // Tap anywhere on the card to toggle
-            val tapped = gestures.singleTapUpPosition?.let { (tx, ty) ->
-                tx in cardX..(cardX + cardW) && ty in cardY..(cardY + cardH)
-            } ?: false
-
-            return if (tapped) !enabled else enabled
         }
     }
 }

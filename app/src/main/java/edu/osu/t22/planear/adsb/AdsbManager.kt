@@ -3,6 +3,8 @@ package edu.osu.t22.planear.adsb
 import android.location.Location
 import android.util.Log
 import edu.osu.t22.planear.AppSettings
+import edu.osu.t22.planear.achievements.AchievementStore
+import edu.osu.t22.planear.achievements.AchievementTracker
 import edu.osu.t22.planear.geo.GeoPoint
 import edu.osu.t22.planear.geo.Planeprojector
 import edu.osu.t22.planear.location.AppLocationManager
@@ -69,6 +71,16 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
         }
 
         Log.d("ADSB", "Fetched ${AircraftOverlayStore.aircraftData.size} aircraft")
+
+        // Check achievement conditions — only when user is on the AR page
+        if (AchievementStore.isOnArPage) {
+            try {
+                AchievementTracker.checkAchievements(nearbyData.ac, loc)
+            } catch (e: Exception) {
+                Log.e("ADSB", "Achievement check failed", e)
+            }
+        }
+
         return AircraftOverlayStore.aircraftData.isNotEmpty()
     }
 
