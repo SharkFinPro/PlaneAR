@@ -50,8 +50,6 @@ namespace ge {
     ImportedBuffer m_bufferPool[POOL_SIZE];
     int m_poolIndex = 0;
 
-    AHardwareBuffer* m_currentBuffer = nullptr;
-
     VkSampler m_ycbcrSampler = VK_NULL_HANDLE;
     VkSamplerYcbcrConversion m_ycbcrConversion = VK_NULL_HANDLE;
 
