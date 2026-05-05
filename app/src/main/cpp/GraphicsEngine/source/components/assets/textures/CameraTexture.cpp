@@ -317,7 +317,9 @@ namespace ge {
       .components = formatProperties.samplerYcbcrConversionComponents,
       .xChromaOffset = formatProperties.suggestedXChromaOffset,
       .yChromaOffset = formatProperties.suggestedYChromaOffset,
-      .chromaFilter = VK_FILTER_LINEAR,
+      .chromaFilter = (formatProperties.formatFeatures &
+                       VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT)
+                       ? VK_FILTER_LINEAR : VK_FILTER_NEAREST,
       .forceExplicitReconstruction = VK_FALSE
     };
 
@@ -331,9 +333,15 @@ namespace ge {
     VkSamplerCreateInfo samplerInfo = {
       .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
       .pNext = &conversionInfo,
-      .magFilter = VK_FILTER_LINEAR,
-      .minFilter = VK_FILTER_LINEAR,
-      .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+      .magFilter = (formatProperties.formatFeatures &
+                    VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT)
+                   ? VK_FILTER_LINEAR : VK_FILTER_NEAREST,
+      .minFilter = (formatProperties.formatFeatures &
+                    VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT)
+                   ? VK_FILTER_LINEAR : VK_FILTER_NEAREST,
+      .mipmapMode = (formatProperties.formatFeatures &
+                     VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT)
+                    ? VK_SAMPLER_MIPMAP_MODE_LINEAR : VK_SAMPLER_MIPMAP_MODE_NEAREST,
       .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
       .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
       .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
