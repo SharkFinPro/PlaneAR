@@ -1,6 +1,5 @@
 package edu.osu.t22.planear.scenes.pages
 
-import android.hardware.HardwareBuffer
 import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.adsb.AircraftOverlayStore
 import edu.osu.t22.planear.geo.GeoPoint
@@ -22,8 +21,6 @@ import edu.osu.t22.planear.achievements.AchievementStore
 class ArPage : Page {
     override val sceneId = SceneId.AR
 
-    private var lastHb: HardwareBuffer? = null
-
     // Achievement popup state
     private var showingAchievementId: String? = null
     private var achievementAnimProgress: Float = 0.0f
@@ -40,8 +37,6 @@ class ArPage : Page {
         // Mark that we are on the AR page that enables achievement tracking
         AchievementStore.isOnArPage = true
 
-        val hb = AppSettings.hb
-
         val orientation = OrientationStore.data
 
         val phoneLat: Double = orientation.x.toDouble()
@@ -55,10 +50,11 @@ class ArPage : Page {
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 
-            if (hb != null && hb != lastHb) {
-                updateCameraBuffer(hb)
-                lastHb = hb
-            }
+            // TODO
+//            if (hb != null && hb != lastHb) {
+//                updateCameraBuffer(hb)
+//                lastHb = hb
+//            }
 
             if (AppSettings.cameraIsEnabled) {
                 imageMode(ImageMode.CORNER)
