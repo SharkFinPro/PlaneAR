@@ -18,24 +18,6 @@ import edu.osu.t22.planear.AppColors
 import edu.osu.t22.planear.achievements.ALL_ACHIEVEMENTS
 import edu.osu.t22.planear.achievements.AchievementStore
 
-class FixedTimer(private val stepNs: Long = 16_000_000L) { // 16ms in nanoseconds
-    private var lastTimeNs = System.nanoTime()
-    private var accumulator = 0L
-
-    fun update(onTick: () -> Unit) {
-        val now = System.nanoTime()
-        val frameTime = now - lastTimeNs
-        lastTimeNs = now
-
-        accumulator += frameTime
-
-        while (accumulator >= stepNs) {
-            onTick()
-            accumulator -= stepNs
-        }
-    }
-}
-
 class ArPage : Page {
     override val sceneId = SceneId.AR
 
@@ -47,8 +29,6 @@ class ArPage : Page {
     private val displayRadius = 3000.0f
 
     private val layerStep = 250.0f
-
-    private val fixedTimer = FixedTimer()
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val width = sceneInfo.screenWidth
@@ -70,19 +50,9 @@ class ArPage : Page {
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 
-            fixedTimer.update {
-                // This runs every ~16ms consistently
-                updateCameraTexture()
-            }
-
-            // TODO
-//            updateCameraTexture()
-//            if (hb != null && hb != lastHb) {
-//                updateCameraBuffer(hb)
-//                lastHb = hb
-//            }
-
             if (AppSettings.cameraIsEnabled) {
+                updateCameraTexture()
+
                 imageMode(ImageMode.CORNER)
                 camera(0, 0, width, height)
             } else {

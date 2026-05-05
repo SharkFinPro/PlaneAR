@@ -38,12 +38,16 @@ namespace ge {
     VkDescriptorSetLayout m_descriptorSetLayout = VK_NULL_HANDLE;
 
     struct ImportedBuffer {
-      VkImage image = VK_NULL_HANDLE;
-      VkDeviceMemory memory = VK_NULL_HANDLE;
-      VkImageView imageView = VK_NULL_HANDLE;
+      VkImage        image     = VK_NULL_HANDLE;
+      VkDeviceMemory memory    = VK_NULL_HANDLE;
+      VkImageView    imageView = VK_NULL_HANDLE;
+      AHardwareBuffer* buffer  = nullptr;
     };
 
-    ImportedBuffer m_imageData;
+    static constexpr int POOL_SIZE = 2;
+    ImportedBuffer m_bufferPool[POOL_SIZE];
+    int m_poolIndex = 0;
+
     AHardwareBuffer* m_currentBuffer = nullptr;
 
     VkSampler m_ycbcrSampler = VK_NULL_HANDLE;

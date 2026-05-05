@@ -15,12 +15,15 @@ namespace ge {
 
   CameraTexture::~CameraTexture()
   {
-    if (m_currentBuffer)
+    for (auto & i : m_bufferPool)
     {
-      m_logicalDevice->destroyImageView(m_imageData.imageView);
-      m_logicalDevice->destroyImage(m_imageData.image);
-      m_logicalDevice->freeMemory(m_imageData.memory);
-      AHardwareBuffer_release(m_currentBuffer);
+      if (i.buffer)
+      {
+        m_logicalDevice->destroyImageView(i.imageView);
+        m_logicalDevice->destroyImage(i.image);
+        m_logicalDevice->freeMemory(i.memory);
+        AHardwareBuffer_release(i.buffer);
+      }
     }
 
     if (m_ycbcrConversion != VK_NULL_HANDLE)
@@ -380,60 +383,55 @@ namespace ge {
 
   void CameraTexture::updateFromHardwareBuffer(AHardwareBuffer* buffer)
   {
-    if (m_currentBuffer == buffer)
-    {
-      return;
+    // Find if this buffer is already imported
+    for (int i = 0; i < POOL_SIZE; i++) {
+      if (m_bufferPool[i].buffer == buffer) return; // already current, nothing to do
     }
 
-    if (m_currentBuffer)
-    {
-      m_logicalDevice->waitIdle();
-      m_logicalDevice->destroyImageView(m_imageData.imageView);
-      m_logicalDevice->destroyImage(m_imageData.image);
-      m_logicalDevice->freeMemory(m_imageData.memory);
-      AHardwareBuffer_release(m_currentBuffer);
+    // Evict the oldest slot
+    ImportedBuffer& slot = m_bufferPool[m_poolIndex];
+    m_poolIndex = (m_poolIndex + 1) % POOL_SIZE;
+
+    // Safe to destroy — GPU is at least 1 frame behind,
+    // the other slot covered the intervening frames
+    if (slot.buffer != nullptr) {
+      m_logicalDevice->destroyImageView(slot.imageView);
+      m_logicalDevice->destroyImage(slot.image);
+      m_logicalDevice->freeMemory(slot.memory);
+      AHardwareBuffer_release(slot.buffer);
     }
 
     AHardwareBuffer_acquire(buffer);
+    slot = importBuffer(buffer);
+    slot.buffer = buffer;  // importBuffer returns ImportedBuffer without buffer field, set it
 
-    m_imageData = importBuffer(buffer);
-    m_currentBuffer = buffer;
-
-    m_textureImage = m_imageData.image;
-    m_textureImageView = m_imageData.imageView;
-
-    m_imageInfo.imageView = m_imageData.imageView;
+    m_textureImage     = slot.image;
+    m_textureImageView = slot.imageView;
+    m_imageInfo.imageView   = slot.imageView;
     m_imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-    m_imageInfo.sampler = VK_NULL_HANDLE;
+    m_imageInfo.sampler     = VK_NULL_HANDLE;
 
     if (!m_descriptorSet)
     {
-      const VkDescriptorSetLayoutBinding imageDescriptorSetLayoutBinding {
-        .binding = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+      const VkDescriptorSetLayoutBinding binding {
+        .binding            = 0,
+        .descriptorType     = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        .descriptorCount    = 1,
+        .stageFlags         = VK_SHADER_STAGE_FRAGMENT_BIT,
         .pImmutableSamplers = &m_ycbcrSampler
       };
-
-      const std::array descriptorSetLayoutBindings {
-        imageDescriptorSetLayoutBinding
+      const std::array bindings { binding };
+      const VkDescriptorSetLayoutCreateInfo layoutInfo {
+        .sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .bindingCount = static_cast<uint32_t>(bindings.size()),
+        .pBindings    = bindings.data()
       };
-
-      const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size()),
-        .pBindings = descriptorSetLayoutBindings.data()
-      };
-
-      m_descriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
-
+      m_descriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(layoutInfo);
       createDescriptorSet(m_descriptorPool, m_descriptorSetLayout);
     }
 
     m_descriptorSet->updateDescriptorSets(
-      [this](VkDescriptorSet descriptorSet, size_t)
-      {
+      [this](VkDescriptorSet descriptorSet, size_t) {
         return std::vector<VkWriteDescriptorSet>{
           getWriteDescriptorSet(0, descriptorSet)
         };
