@@ -30,7 +30,7 @@ class ArPage : Page {
     private var achievementAnimProgress: Float = 0.0f
     private var achievementClosing: Boolean = false
 
-    private val displayRadius = 3000.0f
+    private val initialDisplayRadius = 3000.0f
 
     private val layerStep = 250.0f
 
@@ -155,7 +155,7 @@ class ArPage : Page {
                 val rawLen = sqrt((rawX * rawX + rawY * rawY + rawZ * rawZ).toDouble()).toFloat()
 
                 // Avoid division by zero for aircraft exactly at phone position
-                val displayRadius = displayRadius + index * layerStep
+                val displayRadius = initialDisplayRadius + index * layerStep
 
                 val (nx, ny, nz) = if (rawLen > 0.01f) {
                     Triple(
