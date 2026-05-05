@@ -433,6 +433,18 @@ namespace {
     renderer->getAssetManager()->getCameraTexture()->stopCamera();
   }
 
+  jboolean nativeIsCameraOpen(JNIEnv* env,
+                              jobject thiz)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return false;
+    }
+
+    return renderer->getAssetManager()->getCameraTexture()->isCameraOpen();
+  }
+
   void nativeUpdateCameraTexture(JNIEnv* env,
                                  jobject thiz)
   {
@@ -487,6 +499,7 @@ namespace {
     {"text3D",   "(Ljava/lang/String;FFF)V",      (void*)nativeText3D},
     {"startCamera", "(II)V", (void*)nativeStartCamera},
     {"stopCamera", "()V", (void*)nativeStopCamera},
+    {"isCameraOpen", "()Z", (void*)nativeIsCameraOpen},
     {"updateCameraTexture", "()V", (void*)nativeUpdateCameraTexture},
     {"camera",      "(FFFF)V",  (void*)nativeCamera},
   };

@@ -22,6 +22,8 @@ namespace ge {
 
     ~CameraTexture() override;
 
+    [[nodiscard]] bool isCameraOpen() const;
+
     [[nodiscard]] VkDescriptorSetLayout getDescriptorSetLayout() const;
 
     void startCamera(int viewWidth,

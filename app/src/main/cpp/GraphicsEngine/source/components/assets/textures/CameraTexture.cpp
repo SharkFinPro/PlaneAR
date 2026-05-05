@@ -43,6 +43,11 @@ namespace ge {
     }
   }
 
+  bool CameraTexture::isCameraOpen() const
+  {
+    return m_camDevice != nullptr;
+  }
+
   VkDescriptorSetLayout CameraTexture::getDescriptorSetLayout() const
   {
     return m_descriptorSetLayout;
