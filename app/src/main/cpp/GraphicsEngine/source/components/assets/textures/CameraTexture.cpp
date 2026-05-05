@@ -129,6 +129,11 @@ namespace ge {
     };
     ACameraManager_openCamera(m_camManager, cameraId, &m_deviceCallbacks, &m_camDevice);
 
+    if (m_camDevice == nullptr)
+    {
+      return;
+    }
+
     // Capture request
     ACameraDevice_createCaptureRequest(m_camDevice, TEMPLATE_PREVIEW, &m_request);
     ACameraOutputTarget* outputTarget = nullptr;
