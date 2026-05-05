@@ -25,7 +25,7 @@ data class SceneInfo(
 class SceneSwitcher {
     private val scenes = mutableMapOf<Int, Scene>()
 
-    private val cameraStarted = false
+    private var cameraStarted = false
 
     companion object {
         @JvmStatic
@@ -88,12 +88,14 @@ class SceneSwitcher {
         // TODO
         if (!AppSettings.cameraIsEnabled && cameraStarted) {
             GraphicsEngineWrapper(enginePtr).getRenderer2D().stopCamera()
+            cameraStarted = false
         }
         else if (AppSettings.cameraIsEnabled && !cameraStarted) {
             GraphicsEngineWrapper(enginePtr).getRenderer2D().startCamera(
                 screenWidth.toInt(),
                 screenHeight.toInt()
             )
+            cameraStarted = true
         }
 
         AppSettings.cameraIsEnabled = false
