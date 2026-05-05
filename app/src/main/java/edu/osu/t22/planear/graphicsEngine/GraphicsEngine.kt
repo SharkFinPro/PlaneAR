@@ -115,7 +115,11 @@ class Renderer2D(private val ptr: Long) {
     private external fun text3D(text: String, x: Float, y: Float, z: Float)
 
     /* Camera */
-    external fun updateCameraBuffer(buffer: android.hardware.HardwareBuffer)
+    external fun startCamera(viewWidth: Int, viewHeight: Int);
+
+    external fun stopCamera();
+
+    external fun updateCameraTexture();
 
     fun camera(x: Number, y: Number, width: Number, height: Number) = camera(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
 

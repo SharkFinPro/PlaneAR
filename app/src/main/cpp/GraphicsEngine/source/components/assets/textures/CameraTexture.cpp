@@ -40,71 +40,165 @@ namespace ge {
     }
   }
 
-  void CameraTexture::updateFromHardwareBuffer(AHardwareBuffer* buffer)
-  {
-    if (m_currentBuffer == buffer)
-    {
-      return;
-    }
-
-    if (m_currentBuffer)
-    {
-      m_logicalDevice->waitIdle();
-      m_logicalDevice->destroyImageView(m_imageData.imageView);
-      m_logicalDevice->destroyImage(m_imageData.image);
-      m_logicalDevice->freeMemory(m_imageData.memory);
-      AHardwareBuffer_release(m_currentBuffer);
-    }
-
-    AHardwareBuffer_acquire(buffer);
-
-    m_imageData = importBuffer(buffer);
-    m_currentBuffer = buffer;
-
-    m_textureImage = m_imageData.image;
-    m_textureImageView = m_imageData.imageView;
-
-    m_imageInfo.imageView = m_imageData.imageView;
-    m_imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-    m_imageInfo.sampler = VK_NULL_HANDLE;
-
-    if (!m_descriptorSet)
-    {
-      const VkDescriptorSetLayoutBinding imageDescriptorSetLayoutBinding {
-        .binding = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-        .pImmutableSamplers = &m_ycbcrSampler
-      };
-
-      const std::array descriptorSetLayoutBindings {
-        imageDescriptorSetLayoutBinding
-      };
-
-      const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size()),
-        .pBindings = descriptorSetLayoutBindings.data()
-      };
-
-      m_descriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
-
-      createDescriptorSet(m_descriptorPool, m_descriptorSetLayout);
-    }
-
-    m_descriptorSet->updateDescriptorSets(
-    [this](VkDescriptorSet descriptorSet, size_t)
-    {
-      return std::vector<VkWriteDescriptorSet>{
-        getWriteDescriptorSet(0, descriptorSet)
-      };
-    });
-  }
-
   VkDescriptorSetLayout CameraTexture::getDescriptorSetLayout() const
   {
     return m_descriptorSetLayout;
+  }
+
+  void CameraTexture::startCamera(const int viewWidth,
+                                  const int viewHeight)
+  {
+    m_camManager = ACameraManager_create();
+
+    // Pick back-facing camera
+    ACameraIdList* cameraIdList = nullptr;
+    ACameraManager_getCameraIdList(m_camManager, &cameraIdList);
+
+    const char* cameraId = nullptr;
+    for (int i = 0; i < cameraIdList->numCameras; i++) {
+      ACameraMetadata* metadata = nullptr;
+      ACameraManager_getCameraCharacteristics(m_camManager, cameraIdList->cameraIds[i], &metadata);
+      ACameraMetadata_const_entry entry{};
+      ACameraMetadata_getConstEntry(metadata, ACAMERA_LENS_FACING, &entry);
+      if (entry.data.u8[0] == ACAMERA_LENS_FACING_BACK) {
+        cameraId = cameraIdList->cameraIds[i];
+        ACameraMetadata_free(metadata);
+        break;
+      }
+      ACameraMetadata_free(metadata);
+    }
+
+    // Pick best YUV size matching aspect ratio
+    ACameraMetadata* metadata = nullptr;
+    ACameraManager_getCameraCharacteristics(m_camManager, cameraId, &metadata);
+
+    ACameraMetadata_const_entry orientationEntry{};
+    ACameraMetadata_getConstEntry(metadata, ACAMERA_SENSOR_ORIENTATION, &orientationEntry);
+    const int sensorOrientation = orientationEntry.data.i32[0];
+    const bool isRotated = sensorOrientation == 90 || sensorOrientation == 270;
+
+    ACameraMetadata_const_entry sizesEntry{};
+    ACameraMetadata_getConstEntry(metadata, ACAMERA_SCALER_AVAILABLE_STREAM_CONFIGURATIONS, &sizesEntry);
+
+    const float portraitAspect = (viewWidth < viewHeight)
+                                 ? (float)viewWidth  / (float)viewHeight
+                                 : (float)viewHeight / (float)viewWidth;
+
+    int bestWidth = 0, bestHeight = 0;
+    float bestDiff = 1e9f;
+    // Format is: format, width, height, input?, repeating quads
+    for (uint32_t i = 0; i + 3 < sizesEntry.count; i += 4) {
+      if (sizesEntry.data.i32[i]     != AIMAGE_FORMAT_YUV_420_888) continue;
+      if (sizesEntry.data.i32[i + 3] != 0) continue; // skip input streams
+      int w = sizesEntry.data.i32[i + 1];
+      int h = sizesEntry.data.i32[i + 2];
+      float aspect = isRotated ? (float)h / (float)w : (float)w / (float)h;
+      float diff = std::abs(aspect - portraitAspect);
+      if (diff < bestDiff) { bestDiff = diff; bestWidth = w; bestHeight = h; }
+    }
+    ACameraMetadata_free(metadata);
+    ACameraManager_deleteCameraIdList(cameraIdList);
+
+    // ImageReader
+    AImageReader_newWithUsage(
+      bestWidth, bestHeight,
+      AIMAGE_FORMAT_YUV_420_888,
+      AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE,
+      2,
+      &m_imageReader
+    );
+
+    AImageReader_ImageListener listener{ this, onImageAvailable };
+    AImageReader_setImageListener(m_imageReader, &listener);
+    AImageReader_getWindow(m_imageReader, &m_surface);
+    ANativeWindow_acquire(m_surface);
+
+    // Open camera
+    m_deviceCallbacks = {
+      .context = this,
+      .onDisconnected = [](void*, ACameraDevice* dev) { ACameraDevice_close(dev); },
+      .onError         = [](void*, ACameraDevice* dev, int) { ACameraDevice_close(dev); }
+    };
+    ACameraManager_openCamera(m_camManager, cameraId, &m_deviceCallbacks, &m_camDevice);
+
+    // Capture request
+    ACameraDevice_createCaptureRequest(m_camDevice, TEMPLATE_PREVIEW, &m_request);
+    ACameraOutputTarget* outputTarget = nullptr;
+    ACameraOutputTarget_create(m_surface, &outputTarget);
+    ACaptureRequest_addTarget(m_request, outputTarget);
+
+    // Session
+    ACaptureSessionOutputContainer* outputContainer = nullptr;
+    ACaptureSessionOutputContainer_create(&outputContainer);
+    ACaptureSessionOutput* sessionOutput = nullptr;
+    ACaptureSessionOutput_create(m_surface, &sessionOutput);
+    ACaptureSessionOutputContainer_add(outputContainer, sessionOutput);
+
+    m_sessionCallbacks = {
+      .context = this,
+      .onClosed  = nullptr,
+      .onReady   = nullptr,
+      .onActive  = nullptr
+    };
+    ACameraDevice_createCaptureSession(m_camDevice, outputContainer, &m_sessionCallbacks, &m_camSession);
+    ACameraCaptureSession_setRepeatingRequest(m_camSession, nullptr, 1, &m_request, nullptr);
+
+    // Container and output only needed for setup
+    ACaptureSessionOutputContainer_free(outputContainer);
+    ACaptureSessionOutput_free(sessionOutput);
+    ACameraOutputTarget_free(outputTarget);
+  }
+
+  void CameraTexture::stopCamera()
+  {
+    if (m_camSession) {
+      ACameraCaptureSession_stopRepeating(m_camSession);
+      ACameraCaptureSession_close(m_camSession);
+      m_camSession = nullptr;
+    }
+    if (m_request) {
+      ACaptureRequest_free(m_request);
+      m_request = nullptr;
+    }
+    if (m_camDevice) {
+      ACameraDevice_close(m_camDevice);
+      m_camDevice = nullptr;
+    }
+    if (m_imageReader) {
+      AImageReader_delete(m_imageReader);
+      m_imageReader = nullptr;
+    }
+    if (m_surface) {
+      ANativeWindow_release(m_surface);
+      m_surface = nullptr;
+    }
+    if (m_camManager) {
+      ACameraManager_delete(m_camManager);
+      m_camManager = nullptr;
+    }
+
+    // Drain any pending buffer
+    std::lock_guard lock(m_bufferMutex);
+    if (m_pendingBuffer) {
+      AHardwareBuffer_release(m_pendingBuffer);
+      m_pendingBuffer = nullptr;
+    }
+  }
+
+  void CameraTexture::updateCameraTexture()
+  {
+    AHardwareBuffer* buffer = nullptr;
+    {
+      std::lock_guard lock(m_bufferMutex);
+      if (!m_pendingBuffer) return;  // no new frame
+      buffer = m_pendingBuffer;
+      m_pendingBuffer = nullptr;
+    }
+
+    // updateFromHardwareBuffer does acquire internally,
+    // so release our camera-side ref after
+    updateFromHardwareBuffer(buffer);
+    AHardwareBuffer_release(buffer);
   }
 
   CameraTexture::ImportedBuffer CameraTexture::importBuffer(AHardwareBuffer* hardwareBuffer)
@@ -252,6 +346,90 @@ namespace ge {
     };
 
     vkCreateSampler(m_logicalDevice->getDevice(), &samplerInfo, nullptr, &m_ycbcrSampler);
+  }
+
+  void CameraTexture::onImageAvailable(void* ctx,
+                                       AImageReader* reader)
+  {
+    auto* self = static_cast<CameraTexture*>(ctx);
+
+    AImage* image = nullptr;
+    if (AImageReader_acquireLatestImage(reader, &image) != AMEDIA_OK) return;
+
+    AHardwareBuffer* buffer = nullptr;
+    AImage_getHardwareBuffer(image, &buffer);
+
+    // Acquire before releasing the image so the buffer outlives it
+    AHardwareBuffer_acquire(buffer);
+    AImage_delete(image);
+
+    std::lock_guard lock(self->m_bufferMutex);
+    if (self->m_pendingBuffer) {
+      AHardwareBuffer_release(self->m_pendingBuffer);
+    }
+    self->m_pendingBuffer = buffer;
+  }
+
+  void CameraTexture::updateFromHardwareBuffer(AHardwareBuffer* buffer)
+  {
+    if (m_currentBuffer == buffer)
+    {
+      return;
+    }
+
+    if (m_currentBuffer)
+    {
+      m_logicalDevice->waitIdle();
+      m_logicalDevice->destroyImageView(m_imageData.imageView);
+      m_logicalDevice->destroyImage(m_imageData.image);
+      m_logicalDevice->freeMemory(m_imageData.memory);
+      AHardwareBuffer_release(m_currentBuffer);
+    }
+
+    AHardwareBuffer_acquire(buffer);
+
+    m_imageData = importBuffer(buffer);
+    m_currentBuffer = buffer;
+
+    m_textureImage = m_imageData.image;
+    m_textureImageView = m_imageData.imageView;
+
+    m_imageInfo.imageView = m_imageData.imageView;
+    m_imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+    m_imageInfo.sampler = VK_NULL_HANDLE;
+
+    if (!m_descriptorSet)
+    {
+      const VkDescriptorSetLayoutBinding imageDescriptorSetLayoutBinding {
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+        .pImmutableSamplers = &m_ycbcrSampler
+      };
+
+      const std::array descriptorSetLayoutBindings {
+        imageDescriptorSetLayoutBinding
+      };
+
+      const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size()),
+        .pBindings = descriptorSetLayoutBindings.data()
+      };
+
+      m_descriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
+
+      createDescriptorSet(m_descriptorPool, m_descriptorSetLayout);
+    }
+
+    m_descriptorSet->updateDescriptorSets(
+      [this](VkDescriptorSet descriptorSet, size_t)
+      {
+        return std::vector<VkWriteDescriptorSet>{
+          getWriteDescriptorSet(0, descriptorSet)
+        };
+      });
   }
 
 } // namespace ge

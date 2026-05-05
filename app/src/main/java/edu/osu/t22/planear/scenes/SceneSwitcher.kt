@@ -2,6 +2,7 @@ package edu.osu.t22.planear.scenes
 
 import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.FrameGestureDetector
+import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
 import edu.osu.t22.planear.scenes.pages.AchievementsPage
 import edu.osu.t22.planear.scenes.pages.ArPage
 import edu.osu.t22.planear.scenes.pages.FavoritesPage
@@ -23,6 +24,8 @@ data class SceneInfo(
 
 class SceneSwitcher {
     private val scenes = mutableMapOf<Int, Scene>()
+
+    private val cameraStarted = false
 
     companion object {
         @JvmStatic
@@ -81,6 +84,18 @@ class SceneSwitcher {
     }
 
     private fun renderSceneInternal(sceneId: Int, enginePtr: Long, screenWidth: Float, screenHeight: Float) {
+
+        // TODO
+        if (!AppSettings.cameraIsEnabled && cameraStarted) {
+            GraphicsEngineWrapper(enginePtr).getRenderer2D().stopCamera()
+        }
+        else if (AppSettings.cameraIsEnabled && !cameraStarted) {
+            GraphicsEngineWrapper(enginePtr).getRenderer2D().startCamera(
+                screenWidth.toInt(),
+                screenHeight.toInt()
+            )
+        }
+
         AppSettings.cameraIsEnabled = false
 
         val scene = scenes[sceneId] ?: return
