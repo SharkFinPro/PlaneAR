@@ -627,7 +627,7 @@ namespace ge {
     m_projectionMatrix = glm::perspective(
       glm::radians(50.0f),
       screenWidth / screenHeight,
-      0.1f,
+      500.0f,
       20000.0f
     );
 

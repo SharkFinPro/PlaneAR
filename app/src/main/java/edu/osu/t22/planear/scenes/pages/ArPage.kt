@@ -18,6 +18,7 @@ import kotlin.math.sqrt
 import edu.osu.t22.planear.AppColors
 import edu.osu.t22.planear.achievements.ALL_ACHIEVEMENTS
 import edu.osu.t22.planear.achievements.AchievementStore
+import kotlin.math.sin
 
 class ArPage : Page {
     override val sceneId = SceneId.AR
@@ -29,7 +30,7 @@ class ArPage : Page {
     private var achievementAnimProgress: Float = 0.0f
     private var achievementClosing: Boolean = false
 
-    private val displayRadius = 3000.0f
+    private val initialDisplayRadius = 3000.0f
 
     private val layerStep = 250.0f
 
@@ -88,9 +89,59 @@ class ArPage : Page {
                 GeoUtils.distanceMeters(phoneGeo, p.position)
             }
 
-            textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+            val yaw = Math.toRadians((orientation.azimuthDeg - 90))
+            val pitch = Math.toRadians(orientation.pitchDeg)
+
+            val fx = cos(pitch) * cos(yaw)
+            val fy = sin(pitch)
+            val fz = cos(pitch) * sin(yaw)
+
+            val flen = sqrt(fx*fx + fy*fy + fz*fz).toFloat()
+
+            val cx = (fx / flen).toFloat()
+            val cy = (fy / flen).toFloat()
+            val cz = (fz / flen).toFloat()
+
+            var bestIndex = -1
+            var bestDot = -1f
 
             sorted.forEachIndexed { index, p ->
+
+                val dLat = p.position.latDeg - phoneLat
+                val dLon = p.position.lonDeg - phoneLon
+                val dAlt = (p.position.altM - phoneAlt).toFloat()
+
+                val rawX = (dLon * metersPerDegLon).toFloat()
+                val rawY = dAlt
+                val rawZ = -(dLat * metersPerDegLat).toFloat()
+
+                val len = sqrt(rawX * rawX + rawY * rawY + rawZ * rawZ)
+                if (len > 0.01f) {
+                    val ax = rawX / len
+                    val ay = rawY / len
+                    val az = rawZ / len
+
+                    val dot = ax * cx + ay * cy + az * cz
+
+                    if (dot > bestDot) {
+                        bestDot = dot
+                        bestIndex = index
+                    }
+                }
+            }
+
+            val reordered = if (bestIndex > 0) {
+                val mutable = sorted.toMutableList()
+                val best = mutable.removeAt(bestIndex)
+                mutable.add(0, best)
+                mutable
+            } else {
+                sorted
+            }
+
+            textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+
+            reordered.forEachIndexed { index, p ->
                 // Raw direction vector from phone to aircraft (East / Up / North in meters)
                 val dLat = p.position.latDeg - phoneLat
                 val dLon = p.position.lonDeg - phoneLon
@@ -104,7 +155,7 @@ class ArPage : Page {
                 val rawLen = sqrt((rawX * rawX + rawY * rawY + rawZ * rawZ).toDouble()).toFloat()
 
                 // Avoid division by zero for aircraft exactly at phone position
-                val displayRadius = displayRadius + index * layerStep
+                val displayRadius = initialDisplayRadius + index * layerStep
 
                 val (nx, ny, nz) = if (rawLen > 0.01f) {
                     Triple(
