@@ -3,6 +3,7 @@ package edu.osu.t22.planear.scenes.pages
 import android.hardware.HardwareBuffer
 import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.adsb.AircraftOverlayStore
+import edu.osu.t22.planear.geo.Planeprojector
 import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
 import edu.osu.t22.planear.graphicsEngine.ImageMode
 import edu.osu.t22.planear.graphicsEngine.RectMode
@@ -120,13 +121,97 @@ class ArPage : Page {
             textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
             textFont("roboto", 14)
 
-            // Display orientation info
             textAlign(TextAlignH.LEFT, TextAlignV.TOP)
             textFont("roboto", 30)
             val cardinal = orientation.getCardinalDirection()
             text("Yaw: ${orientation.azimuthDeg.toInt()}° ($cardinal)", 50, 300)
             text("Pitch: ${orientation.pitchDeg.toInt()}°", 50, 400)
             text("Roll: ${orientation.rollDeg.toInt()}°", 50, 500)
+
+            val proj2DPoints = mutableListOf<Pair<String, edu.osu.t22.planear.geo.ScreenPoint>>()
+            AircraftOverlayStore.aircraftData.forEach { aircraft ->
+                val sp = edu.osu.t22.planear.geo.Planeprojector.project(
+                    user = edu.osu.t22.planear.geo.GeoPoint(phoneLat, phoneLon, phoneAlt),
+                    aircraft = aircraft.position,
+                    azimuthDeg = orientation.azimuthDeg,
+                    pitchDeg = orientation.pitchDeg,
+                    rollDeg = orientation.rollDeg,
+                    hFovDeg = edu.osu.t22.planear.adsb.AdsbManager.H_FOV_DEG,
+                    vFovDeg = edu.osu.t22.planear.adsb.AdsbManager.V_FOV_DEG,
+                    screenWidth = width.toInt(),
+                    screenHeight = height.toInt()
+                )
+                proj2DPoints.add(aircraft.label to sp)
+            }
+
+            var totalDiff = 0f
+            var count = 0
+
+            textFont("roboto", 20)
+            textAlign(TextAlignH.LEFT, TextAlignV.TOP)
+
+            for ((label, sp) in proj2DPoints) {
+                if (!sp.visible) {
+                    val edge = Planeprojector.getEdgeIndicator(sp, width.toInt(), height.toInt())
+                    pushMatrix()
+                    translate(edge.x, edge.y)
+                    rotate(edge.angleDeg)
+                    val s = 24f
+                    val h = (sqrt(3.0) / 2.0 * s).toFloat()
+                    fill(255, 200, 0)
+                    triangle(s / 2f, 0f, -s / 2f, -h / 2f, -s / 2f, h / 2f)
+                    popMatrix()
+                }
+            }
+
+            AircraftOverlayStore.aircraftData.forEachIndexed { i, aircraft ->
+                val storedPt = AircraftOverlayStore.points.firstOrNull { it.label == aircraft.label }
+                    ?: return@forEachIndexed
+                val projPt = proj2DPoints.getOrNull(i)?.second
+                    ?: return@forEachIndexed
+
+                if (projPt.visible) {
+                    val diffX = storedPt.x - projPt.x
+                    val diffY = storedPt.y - projPt.y
+                    val diff = sqrt(diffX * diffX + diffY * diffY)
+                    totalDiff += diff
+                    count++
+
+                    fill(255, 80, 80)
+                    text(
+                        "${aircraft.label}: store(${storedPt.x.toInt()},${storedPt.y.toInt()}) proj(${projPt.x.toInt()},${projPt.y.toInt()}) Δ=${diff.toInt()}px",
+                        20, 580 + i * 32
+                    )
+                }
+            }
+
+            if (count > 0) {
+                fill(255, 255, 0)
+                text("Avg pixel diff: ${(totalDiff / count).toInt()}px over $count planes", 50, 550)
+
+                var avgDx = 0f
+                var avgDy = 0f
+
+                AircraftOverlayStore.aircraftData.forEachIndexed { i, aircraft ->
+                    val storedPt = AircraftOverlayStore.points.getOrNull(i) ?: return@forEachIndexed
+                    val projPt = proj2DPoints.getOrNull(i)?.second ?: return@forEachIndexed
+                    if (projPt.visible) {
+                        avgDx += storedPt.x - projPt.x
+                        avgDy += storedPt.y - projPt.y
+                    }
+                }
+
+                avgDx /= count
+                avgDy /= count
+
+                val dirDesc = buildString {
+                    if (avgDy < -10f) append("UP ") else if (avgDy > 10f) append("DOWN ")
+                    if (avgDx < -10f) append("LEFT") else if (avgDx > 10f) append("RIGHT")
+                    if (isEmpty()) append("CENTERED")
+                }
+
+                text("Store is avg ${avgDx.toInt()}px,${avgDy.toInt()}px ($dirDesc) from Planeprojector", 50, 590)
+            }
         }
 
         postRender(sceneInfo, sceneSwitcher)
