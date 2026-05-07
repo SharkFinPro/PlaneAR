@@ -171,6 +171,7 @@ interface Page : Scene {
                         tx >= starX - 70.0f && tx <= starX + 10.0f &&
                         adjustedY >= starY - 60.0f && adjustedY <= starY + 10.0f) {
                         flightFavorites[flightIndex] = !flightFavorites[flightIndex]
+                        FlightHistoryStore.save()
                     }
 
                     val tappedClose    = tx >= btnX && tx <= btnX + btnW && adjustedY >= btnY && adjustedY <= btnY + btnH
