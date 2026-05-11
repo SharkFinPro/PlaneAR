@@ -24,6 +24,207 @@ val navEmojiLabels = listOf("📷", "🕒", "🏆", "⚙️")
 
 enum class SheetResult { ANIMATING, OPEN, DISMISSED }
 
+object FlightDetailSheet {
+
+    private const val ANIM_STEP = 0.06f
+
+    var pendingFlight: FlightEntryTest? = null
+        private set
+
+    var isOpen: Boolean = false
+        private set
+
+    private var animProgress: Float = 0f
+    private var closing: Boolean = false
+
+    /** Open the sheet for the given flight. Safe to call from any page. */
+    fun open(flight: FlightEntryTest) {
+        pendingFlight = flight
+        animProgress = 0f
+        closing = false
+        isOpen = true
+    }
+
+    /** Programmatically start the closing animation. */
+    fun dismiss() {
+        closing = true
+    }
+
+    /** Reset all state (called internally after dismiss animation completes). */
+    private fun reset() {
+        pendingFlight = null
+        animProgress = 0f
+        closing = false
+        isOpen = false
+    }
+
+    /**
+     * Draw the flight detail bottom sheet on top of the current frame.
+     * Call this at the end of any page's render() while [isOpen] is true.
+     *
+     * @param sceneInfo      Current frame's SceneInfo
+     * @param tapConsumed    Pass true if the current frame already handled a tap
+     *                       (prevents double-consuming the same gesture).
+     * @return [SheetResult] indicating current animation state.
+     */
+    fun draw(
+        sceneInfo: SceneInfo,
+        tapConsumed: Boolean = false
+    ): SheetResult {
+        val flight = pendingFlight ?: return SheetResult.DISMISSED
+
+        val screenW = sceneInfo.screenWidth
+        val screenH = sceneInfo.screenHeight
+        // Use the same navHeight constant that Page uses so the sheet never overlaps nav
+        val navHeight = 225.0f
+        val navTop = screenH - navHeight
+
+        val gestures = sceneInfo.gestures
+        val c = AppColors.current
+
+        // --- Advance animation ---
+        if (closing) {
+            animProgress = (animProgress - ANIM_STEP).coerceAtLeast(0f)
+            if (animProgress == 0f) {
+                reset()
+                return SheetResult.DISMISSED
+            }
+        } else {
+            animProgress = (animProgress + ANIM_STEP).coerceAtMost(1f)
+        }
+
+        // Ease-out curve: fast start, settles smoothly
+        val eased = 1f - (1f - animProgress) * (1f - animProgress)
+
+        // --- Layout ---
+        // Sheet covers exactly the bottom half of the screen (above the nav bar)
+        val sheetH = screenH * 0.5f
+        val sheetY = screenH - navHeight - sheetH // resting Y (fully open)
+        val slideOffset = sheetH * (1f - eased)        // 0 when open, sheetH when hidden
+        val sheetR = 32f
+        val padX = screenW * 0.08f
+        val rightEdge = screenW - padX
+
+        // Favourite state
+        val flightIndex = flightData.indexOf(flight)
+        val isFavorited = flightIndex >= 0 &&
+                flightIndex < Page.flightFavorites.size &&
+                Page.flightFavorites[flightIndex]
+
+        with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
+            rectMode(RectMode.CORNER)
+
+            // ── Backdrop ──────────────────────────────────────────────────────
+            fill(c.overlay, (140 * eased).toInt())
+            rect(0, 0, screenW, navTop)
+
+            // ── Sheet (translated up from below nav) ──────────────────────────
+            pushMatrix()
+            translate(0, slideOffset)
+
+            // Background
+            fill(c.backgroundCard)
+            rect(0, sheetY + sheetR, screenW, sheetH - sheetR)
+            rect(0, sheetY, screenW, sheetH * 0.4f, sheetR)
+
+            // Drag handle pill
+            fill(c.divider)
+            ellipseMode(EllipseMode.CENTER)
+            ellipse(screenW / 2f, sheetY + 22f, 60f, 10f)
+
+            // Callsign
+            fill(c.textPrimary)
+            textFont("roboto", 26)
+            textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
+            text(flight.callsign, padX, sheetY + 100f)
+
+            // Accent underline
+            fill(c.accent)
+            rect(padX, sheetY + 112f, 60f, 4f, 2f)
+
+            // Favourite star
+            val starX = rightEdge
+            val starY = sheetY + 90f
+            textFont("emoji", 32)
+            textAlign(TextAlignH.RIGHT, TextAlignV.BASELINE)
+            if (isFavorited) fill(239, 191, 4) else fill(c.divider)
+            text("⭐", starX, starY)
+
+            // ── Data fields ───────────────────────────────────────────────────
+            val fieldStartY = sheetY + 140f
+            val fieldGap = 72f
+
+            fun drawField(label: String, value: String, y: Float) {
+                fill(c.textHint)
+                textFont("roboto", 12)
+                textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
+                text(label, padX, y)
+
+                fill(c.textPrimary)
+                textFont("roboto", 18)
+                textAlign(TextAlignH.RIGHT, TextAlignV.BASELINE)
+                text(value, rightEdge, y + 30f)
+
+                fill(c.divider)
+                rect(padX, y + 44f, screenW - 2f * padX, 1.5f)
+            }
+
+            drawField("TAKEOFF", flight.takeoffTime, fieldStartY)
+            drawField("LANDING", flight.landingTime, fieldStartY + fieldGap)
+            drawField("AIRCRAFT TYPE", flight.planeType, fieldStartY + fieldGap * 2)
+            drawField("AIRSPEED", "${flight.airspeed} kts", fieldStartY + fieldGap * 3)
+
+            // ── Close button — anchored inside the sheet near the bottom ──────
+            val btnW = screenW * 0.60f
+            val btnH = 72f
+            val btnX = (screenW - btnW) / 2f
+            // Place it with a fixed margin above the nav bar top
+            val btnY = screenH - navHeight - btnH - 28f
+
+            fill(c.accent)
+            rect(btnX, btnY, btnW, btnH, btnH / 2f)
+            fill(c.textOnAccent)
+            textFont("roboto", 16)
+            textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+            text("Close", screenW / 2f, btnY + btnH / 2f)
+
+            popMatrix()
+
+            // ── Input handling (only when fully open and not already closing) ──
+            if (!tapConsumed && !closing && animProgress >= 1f) {
+                gestures.singleTapUpPosition?.let { (tx, ty) ->
+                    val adjY = ty + slideOffset
+
+                    // Toggle favourite
+                    if (flightIndex >= 0 &&
+                        tx >= starX - 70f && tx <= starX + 10f &&
+                        adjY >= starY - 60f && adjY <= starY + 10f
+                    ) {
+                        Page.flightFavorites[flightIndex] = !Page.flightFavorites[flightIndex]
+                    }
+
+                    // Close taps
+                    val hitClose =
+                        tx >= btnX && tx <= btnX + btnW && adjY >= btnY && adjY <= btnY + btnH
+                    val hitBackdrop = adjY < sheetY
+                    if (hitClose || hitBackdrop) closing = true
+                }
+
+                // Swipe-down to dismiss
+                if (gestures.isScrolling) {
+                    val (scrollX, scrollY) = gestures.scrollPosition ?: Pair(0f, 0f)
+                    val adjScrollY = scrollY + slideOffset
+                    val onSheet = adjScrollY >= sheetY && scrollX >= 0f && scrollX <= screenW
+                    val swipingDown = gestures.scrollDelta.second < -30f
+                    if (onSheet && swipingDown) closing = true
+                }
+            }
+        }
+
+        return if (animProgress >= 1f && !closing) SheetResult.OPEN else SheetResult.ANIMATING
+    }
+}
+
 interface Page : Scene {
     companion object {
         val flightFavorites: MutableList<Boolean> = MutableList(flightData.size) { false }
@@ -49,7 +250,7 @@ interface Page : Scene {
 
     fun drawFlightDetailWidget(
         sceneInfo: SceneInfo,
-        flight: FlightEntry,
+        flight: FlightEntryTest,
         tapAlreadyConsumed: Boolean
     ): SheetResult {
         val screenW  = sceneInfo.screenWidth
