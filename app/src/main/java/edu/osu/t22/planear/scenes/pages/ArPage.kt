@@ -56,10 +56,6 @@ class ArPage : Page {
             AppSettings.cameraIsEnabled = true
         }
 
-        if (!sheetShownOnStart && flightData.isNotEmpty()) {
-            FlightDetailSheet.open(flightData.first())
-            sheetShownOnStart = true
-        }
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 
