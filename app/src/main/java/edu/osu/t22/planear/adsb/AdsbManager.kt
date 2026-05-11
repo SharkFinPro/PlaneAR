@@ -66,7 +66,8 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
                     !ac.r.isNullOrBlank() -> ac.r.trim()
                     !ac.hex.isNullOrBlank() -> ac.hex.trim()
                     else -> "UNKNOWN"
-                }
+                },
+                rawData = ac
             )
         }
 

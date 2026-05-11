@@ -130,6 +130,10 @@ class ArPage : Page {
                 }
             }
 
+            if (bestIndex >= 0 && bestDot > 0.95f) {
+                logFlightHistory(sorted[bestIndex])
+            }
+
             val reordered = if (bestIndex > 0) {
                 val mutable = sorted.toMutableList()
                 val best = mutable.removeAt(bestIndex)

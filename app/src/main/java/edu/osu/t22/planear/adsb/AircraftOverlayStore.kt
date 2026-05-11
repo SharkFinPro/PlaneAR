@@ -1,6 +1,7 @@
 package edu.osu.t22.planear.adsb
 
 import edu.osu.t22.planear.geo.GeoPoint
+import edu.osu.t22.planear.adsb.AdsbAircraft
 
 data class AircraftScreenPoint(
     val x: Float,
@@ -11,7 +12,8 @@ data class AircraftScreenPoint(
 // Raw aircraft data for re-projection
 data class AircraftPosition(
     val position: GeoPoint,
-    val label: String
+    val label: String,
+    val rawData: AdsbAircraft? = null
 )
 
 object AircraftOverlayStore {

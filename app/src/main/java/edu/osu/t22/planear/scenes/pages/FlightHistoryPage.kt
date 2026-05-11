@@ -162,7 +162,10 @@ class FlightHistoryPage : Page {
 
                     // Tap on star to toggle favorite
                     if (tx >= starX - 44.0f && tx <= starX + 44.0f && ty >= rowY && ty <= rowY + rowHeight) {
-                        if (i < Page.flightFavorites.size) Page.flightFavorites[i] = !Page.flightFavorites[i]
+                        if (i < Page.flightFavorites.size) {
+                            Page.flightFavorites[i] = !Page.flightFavorites[i]
+                            FlightHistoryStore.save()
+                        }
                         tapConsumed = true
                     }
 

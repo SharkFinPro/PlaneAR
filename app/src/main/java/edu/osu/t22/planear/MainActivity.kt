@@ -100,6 +100,7 @@ class MainActivity : GameActivity() {
 
         // Initialize achievement persistence
         AchievementStore.init(this)
+        edu.osu.t22.planear.scenes.pages.FlightHistoryStore.init(this)
 
         sceneSwitcher = SceneSwitcher.initialize()
 
