@@ -24,6 +24,8 @@ import kotlin.math.sin
 class ArPage : Page {
     override val sceneId = SceneId.AR
 
+    // testing variable to have the data sheet open with test data
+    private var sheetShownOnStart = false;
     private var lastHb: HardwareBuffer? = null
 
     // Achievement popup state
@@ -59,6 +61,11 @@ class ArPage : Page {
 
         if (!AppSettings.cameraIsEnabled && AppSettings.canEnableCamera && AppSettings.hasCameraPermissions) {
             AppSettings.cameraIsEnabled = true
+        }
+
+        if (!sheetShownOnStart && flightData.isNotEmpty()) {
+            FlightDetailSheet.open(flightData.first())
+            sheetShownOnStart = true
         }
 
         val tapPos = sceneInfo.gestures.touchDownPosition
@@ -270,6 +277,11 @@ class ArPage : Page {
         // Draw achievement popup if active
         if (showingAchievementId != null) {
             drawAchievementPopup(sceneInfo)
+        }
+
+        // Reset to 2D before drawing 2D objects
+        with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
+            set3DView(0, 0, 0, 0f, 0f, 0f, sceneInfo.screenWidth, sceneInfo.screenHeight)
         }
 
         postRender(sceneInfo, sceneSwitcher)
