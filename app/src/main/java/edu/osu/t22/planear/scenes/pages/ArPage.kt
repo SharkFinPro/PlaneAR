@@ -63,10 +63,6 @@ class ArPage : Page {
             AppSettings.cameraIsEnabled = true
         }
 
-        if (!sheetShownOnStart && flightData.isNotEmpty()) {
-            FlightDetailSheet.open(flightData.first())
-            sheetShownOnStart = true
-        }
 
         val tapPos = sceneInfo.gestures.touchDownPosition
 

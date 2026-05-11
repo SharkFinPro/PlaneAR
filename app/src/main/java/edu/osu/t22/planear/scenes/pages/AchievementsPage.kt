@@ -90,7 +90,7 @@ class AchievementsPage : Page {
 
         // display the testing data page
         if (!sheetShownOnStart) {
-            FlightDetailSheet.open(flightData.firstOrNull() ?: FlightEntryTest(
+            FlightDetailSheet.open(FlightEntryTest(
                 callsign    = "UAL1234",
                 takeoffTime = "09:42 PDT",
                 landingTime = "12:18 PDT",
