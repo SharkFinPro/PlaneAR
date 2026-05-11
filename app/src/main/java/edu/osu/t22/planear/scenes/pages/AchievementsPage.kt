@@ -23,6 +23,8 @@ class AchievementsPage : Page {
     override val sceneId = SceneId.Achievements
 
     private var scrollOffset = 0f
+    // testing variable for flight data sheet
+    private var sheetShownOnStart = false
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val screenW  = sceneInfo.screenWidth
@@ -58,6 +60,18 @@ class AchievementsPage : Page {
         val unlocked = AchievementStore.getUnlockedCount()
         val total    = ALL_ACHIEVEMENTS.size
         val streak   = AchievementStore.getCurrentStreak()
+
+        // display the testing data page
+        if (!sheetShownOnStart) {
+            FlightDetailSheet.open(flightData.firstOrNull() ?: FlightEntryTest(
+                callsign    = "UAL1234",
+                takeoffTime = "09:42 PDT",
+                landingTime = "12:18 PDT",
+                planeType   = "Boeing 737-800",
+                airspeed    = 487
+            ))
+            sheetShownOnStart = true
+        }
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
             rectMode(RectMode.CORNER)

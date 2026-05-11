@@ -10,6 +10,14 @@ data class FlightEntry(
     val date: String
 )
 
+data class FlightEntryTest(
+    val callsign: String,
+    val takeoffTime: String,
+    val landingTime: String,
+    val planeType: String,
+    val airspeed: Int,
+)
+
 val flightData: List<FlightEntry> = listOf(
     FlightEntry("AAL1023", "06:15 AM", "09:30 AM", "Boeing 737-800",   452, "02/28/2026"),
     FlightEntry("UAL455",  "07:00 AM", "10:12 AM", "Airbus A320",      430, "02/28/2026"),
