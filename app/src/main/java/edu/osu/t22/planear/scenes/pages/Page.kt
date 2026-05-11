@@ -106,7 +106,7 @@ object FlightDetailSheet {
         val rightEdge = screenW - padX
 
         // Favourite state
-        val flightIndex = flightData.indexOf(flight)
+        val flightIndex = -1 // disabled for testing
         val isFavorited = flightIndex >= 0 &&
                 flightIndex < Page.flightFavorites.size &&
                 Page.flightFavorites[flightIndex]
@@ -245,12 +245,16 @@ interface Page : Scene {
             AchievementStore.isOnArPage = false
         }
 
+        if (FlightDetailSheet.isOpen) {
+            FlightDetailSheet.draw(sceneInfo)
+        }
+
         drawNavButtons(sceneInfo, sceneSwitcher)
     }
 
     fun drawFlightDetailWidget(
         sceneInfo: SceneInfo,
-        flight: FlightEntryTest,
+        flight: FlightEntry,
         tapAlreadyConsumed: Boolean
     ): SheetResult {
         val screenW  = sceneInfo.screenWidth
@@ -284,7 +288,7 @@ interface Page : Scene {
         val sheetR      = 32.0f
 
         // Look up the flight index for favorite state
-        val flightIndex = flightData.indexOf(flight)
+        val flightIndex = -1 // disabled for testing
         val isFavorited = flightIndex >= 0 && flightIndex < flightFavorites.size && flightFavorites[flightIndex]
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
