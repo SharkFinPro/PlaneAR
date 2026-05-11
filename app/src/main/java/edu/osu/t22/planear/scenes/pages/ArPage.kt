@@ -66,6 +66,11 @@ class ArPage : Page {
 
         val tapPos = sceneInfo.gestures.touchDownPosition
 
+        if (!sheetShownOnStart && flightData.isNotEmpty()) {
+            FlightDetailSheet.open(flightData.first())
+            sheetShownOnStart = true
+        }
+
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 
             tapPos?.let { (tx, ty) ->

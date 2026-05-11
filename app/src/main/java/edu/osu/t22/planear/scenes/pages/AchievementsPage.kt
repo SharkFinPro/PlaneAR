@@ -31,8 +31,6 @@ class AchievementsPage : Page {
     // Minimum velocity threshold below which we snap to zero
     private val minVelocity = 0.5f
 
-    // testing variable for flight data sheet
-    private var sheetShownOnStart = false
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val screenW  = sceneInfo.screenWidth
@@ -88,21 +86,6 @@ class AchievementsPage : Page {
         val unlocked = AchievementStore.getUnlockedCount()
         val total    = ALL_ACHIEVEMENTS.size
         val streak   = AchievementStore.getCurrentStreak()
-
-        if (!sheetShownOnStart) {
-            val testAircraft = Aircraft(
-                id       = "a1b2c3",
-                callsign = "UAL1234",
-                type     = "Boeing 737-800",
-                speed    = 487.0,
-                altitude = 35000.0
-            ).apply {
-                registration   = "N12345"
-                headingDegrees = 270.0
-            }
-            FlightDetailSheet.open(testAircraft)
-            sheetShownOnStart = true
-        }
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
             rectMode(RectMode.CORNER)
