@@ -12,6 +12,7 @@ import edu.osu.t22.planear.graphicsEngine.TextAlignV
 import edu.osu.t22.planear.orientation.OrientationStore
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sqrt
 
@@ -130,7 +131,7 @@ class ArPage : Page {
 
             val proj2DPoints = mutableListOf<Pair<String, edu.osu.t22.planear.geo.ScreenPoint>>()
             AircraftOverlayStore.aircraftData.forEach { aircraft ->
-                val sp = edu.osu.t22.planear.geo.Planeprojector.project(
+                val sp = Planeprojector.project(
                     user = edu.osu.t22.planear.geo.GeoPoint(phoneLat, phoneLon, phoneAlt),
                     aircraft = aircraft.position,
                     azimuthDeg = orientation.azimuthDeg,
@@ -150,9 +151,13 @@ class ArPage : Page {
             textFont("roboto", 20)
             textAlign(TextAlignH.LEFT, TextAlignV.TOP)
 
-            for ((label, sp) in proj2DPoints) {
+            proj2DPoints.forEachIndexed { i, (label, sp) ->
                 if (!sp.visible) {
                     val edge = Planeprojector.getEdgeIndicator(sp, width.toInt(), height.toInt())
+                    val angleToDeg = Math.toDegrees(
+                        atan2((sp.y - height/2).toDouble(), (sp.x - width/2).toDouble())
+                    ).toFloat()
+                    //text("$label edge:${edge.angleDeg.toInt()} exp:${angleToDeg.toInt()}", 20, 160 + i * 28)
                     pushMatrix()
                     translate(edge.x, edge.y)
                     rotate(edge.angleDeg)
@@ -178,16 +183,16 @@ class ArPage : Page {
                     count++
 
                     fill(255, 80, 80)
-                    text(
-                        "${aircraft.label}: store(${storedPt.x.toInt()},${storedPt.y.toInt()}) proj(${projPt.x.toInt()},${projPt.y.toInt()}) Δ=${diff.toInt()}px",
-                        20, 580 + i * 32
-                    )
+                    //text(
+                       // "${aircraft.label}: store(${storedPt.x.toInt()},${storedPt.y.toInt()}) proj(${projPt.x.toInt()},${projPt.y.toInt()}) Δ=${diff.toInt()}px",
+                        //20, 580 + i * 32
+                    //)
                 }
             }
 
             if (count > 0) {
                 fill(255, 255, 0)
-                text("Avg pixel diff: ${(totalDiff / count).toInt()}px over $count planes", 50, 550)
+                //text("Avg pixel diff: ${(totalDiff / count).toInt()}px over $count planes", 50, 550)
 
                 var avgDx = 0f
                 var avgDy = 0f
@@ -210,7 +215,7 @@ class ArPage : Page {
                     if (isEmpty()) append("CENTERED")
                 }
 
-                text("Store is avg ${avgDx.toInt()}px,${avgDy.toInt()}px ($dirDesc) from Planeprojector", 50, 590)
+                //text("Store is avg ${avgDx.toInt()}px,${avgDy.toInt()}px ($dirDesc) from Planeprojector", 50, 590)
             }
         }
 
