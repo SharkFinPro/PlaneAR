@@ -97,6 +97,16 @@ namespace ge::gps {
     };
   }
 
+  inline VkPipelineMultisampleStateCreateInfo multisampleStateNone {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+    .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+    .sampleShadingEnable = VK_FALSE,
+    .minSampleShading = 1.0f,
+    .pSampleMask = nullptr,
+    .alphaToCoverageEnable = VK_FALSE,
+    .alphaToOneEnable = VK_FALSE
+  };
+
   inline VkPipelineRasterizationStateCreateInfo rasterizationStateNoCull {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
     .depthClampEnable = VK_FALSE,

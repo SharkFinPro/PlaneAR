@@ -50,12 +50,10 @@ namespace ge {
     const auto shaderModules = graphicsPipelineOptions.shaders.getShaderModules(m_logicalDevice);
     const auto shaderStages = graphicsPipelineOptions.shaders.getShaderStages(shaderModules);
 
-    constexpr VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
-
     const VkPipelineRenderingCreateInfo pipelineRenderingCreateInfo = {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
       .colorAttachmentCount = 1,
-      .pColorAttachmentFormats = &colorFormat,
+      .pColorAttachmentFormats = &graphicsPipelineOptions.colorFormat,
       .depthAttachmentFormat = m_logicalDevice->getPhysicalDevice()->findDepthFormat()
     };
 
