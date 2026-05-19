@@ -19,6 +19,7 @@ namespace ge {
   class CommandBuffer;
   class Font;
   class LogicalDevice;
+  class MousePicker;
   class PipelineManager;
   class Renderer;
   struct RenderInfo;
@@ -59,7 +60,8 @@ namespace ge {
   class Renderer2D
   {
   public:
-    explicit Renderer2D(std::shared_ptr<AssetManager> assetManager);
+    Renderer2D(std::shared_ptr<LogicalDevice> logicalDevice,
+               std::shared_ptr<AssetManager> assetManager);
 
     void createNewFrame();
 
@@ -167,6 +169,10 @@ namespace ge {
                 float height);
 
   private:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+
     struct GlyphCommand {
       Glyph glyph;
       std::string fontName;
@@ -214,6 +220,10 @@ namespace ge {
     uint32_t m_currentFontSize = 12;
 
     float m_currentZ = 0.01f;
+
+    std::shared_ptr<MousePicker> m_mousePicker;
+
+    void createCommandPool();
 
     [[nodiscard]] glm::vec4 resolveRectBounds(float a,
                                               float b,

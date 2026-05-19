@@ -22,7 +22,7 @@ namespace ge {
 
     m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapchain, m_commandPool);
 
-    m_renderer2D = std::make_shared<Renderer2D>(std::move(assetManager));
+    m_renderer2D = std::make_shared<Renderer2D>(m_logicalDevice, std::move(assetManager));
   }
 
   void RenderingManager::doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,

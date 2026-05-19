@@ -1,9 +1,12 @@
 #include "Renderer2D.h"
+#include "MousePicker.h"
 #include "../../assets/AssetManager.h"
 #include "../../assets/fonts/Font.h"
 #include "../../assets/textures/CameraTexture.h"
 #include "../../assets/textures/ImageTexture.h"
 #include "../../commandBuffer/CommandBuffer.h"
+#include "../../logicalDevice/LogicalDevice.h"
+#include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/GraphicsPipeline.h"
 #include "../../pipelines/PipelineManager.h"
 #include "../LegacyRenderer.h"
@@ -11,9 +14,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace ge {
-  Renderer2D::Renderer2D(std::shared_ptr<AssetManager> assetManager)
-    : m_assetManager(std::move(assetManager))
-  {}
+  Renderer2D::Renderer2D(std::shared_ptr<LogicalDevice> logicalDevice,
+                         std::shared_ptr<AssetManager> assetManager)
+    : m_logicalDevice(std::move(logicalDevice)), m_assetManager(std::move(assetManager))
+  {
+    createCommandPool();
+
+    m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_commandPool);
+  }
 
   void Renderer2D::createNewFrame()
   {
@@ -632,6 +640,16 @@ namespace ge {
     );
 
     m_projectionMatrix[1][1] *= -1;
+  }
+
+  void Renderer2D::createCommandPool()
+  {
+    const VkCommandPoolCreateInfo poolInfo {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .queueFamilyIndex = m_logicalDevice->getPhysicalDevice()->getQueueFamilies().graphicsFamily.value()
+    };
+
+    m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
   }
 
   glm::vec4 Renderer2D::resolveRectBounds(float a,
