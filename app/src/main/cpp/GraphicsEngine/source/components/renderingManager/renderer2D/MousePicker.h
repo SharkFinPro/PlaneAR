@@ -16,6 +16,8 @@ namespace ge {
     MousePicker(std::shared_ptr<LogicalDevice> logicalDevice,
                 VkCommandPool commandPool);
 
+    ~MousePicker();
+
     void clearObjectsToMousePick();
 
     void render(const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -26,7 +28,10 @@ namespace ge {
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
-    VkCommandPool m_commandPool;
+    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+
+    VkBuffer m_stagingBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
   };
 
 } // ge
