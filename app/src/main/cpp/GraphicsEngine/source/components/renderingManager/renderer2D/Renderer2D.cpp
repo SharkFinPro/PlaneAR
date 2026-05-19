@@ -40,6 +40,8 @@ namespace ge {
     textAlign(TextAlignH::LEFT, TextAlignV::BASELINE);
 
     m_drawList.clear();
+
+    m_mousePicker->clearObjectsToMousePick();
   }
 
   void Renderer2D::render(const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -141,6 +143,28 @@ namespace ge {
         }
       }, entry.command);
     }
+  }
+
+  std::shared_ptr<MousePicker> Renderer2D::getMousePicker()
+  {
+    return m_mousePicker;
+  }
+
+  void Renderer2D::renderMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                      const RenderInfo* renderInfo) const
+  {
+    const RenderInfo renderInfoMousePicking {
+      .commandBuffer = renderInfo->commandBuffer,
+      .currentFrame = renderInfo->currentFrame,
+      .extent = renderInfo->extent
+    };
+
+    m_mousePicker->render(pipelineManager, &renderInfoMousePicking);
+  }
+
+  void Renderer2D::handleRenderedMousePickingImage(const VkImage image) const
+  {
+    m_mousePicker->handleRenderedMousePickingImage(image);
   }
 
   void Renderer2D::fill(const float r,

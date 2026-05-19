@@ -68,6 +68,13 @@ namespace ge {
     void render(const std::shared_ptr<PipelineManager>& pipelineManager,
                 const RenderInfo* renderInfo);
 
+    [[nodiscard]] std::shared_ptr<MousePicker> getMousePicker();
+
+    void renderMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,
+                            const RenderInfo* renderInfo) const;
+
+    void handleRenderedMousePickingImage(const VkImage image) const;
+
     void fill(float r,
               float g,
               float b,

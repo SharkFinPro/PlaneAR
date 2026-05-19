@@ -7,12 +7,21 @@
 namespace ge {
 
   class LogicalDevice;
+  class PipelineManager;
+  struct RenderInfo;
 
   class MousePicker
   {
   public:
     MousePicker(std::shared_ptr<LogicalDevice> logicalDevice,
                 VkCommandPool commandPool);
+
+    void clearObjectsToMousePick();
+
+    void render(const std::shared_ptr<PipelineManager>& pipelineManager,
+                const RenderInfo* renderInfo) const;
+
+    void handleRenderedMousePickingImage(VkImage image);
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
