@@ -1,6 +1,5 @@
 package edu.osu.t22.planear.scenes.pages
 
-import edu.osu.t22.planear.adsb.AircraftPosition
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

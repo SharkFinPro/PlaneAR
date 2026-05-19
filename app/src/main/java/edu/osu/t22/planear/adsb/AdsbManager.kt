@@ -110,13 +110,13 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
     ): AircraftOverlayResult? {
         val loc = location ?: appLocationManager.lastKnownLocation
         if (loc == null) {
-            AircraftOverlayStore.points = emptyList()
+//            AircraftOverlayStore.points = emptyList()
             return null
         }
 
         val aircraftData = repository.getAircraft()
         if (aircraftData.isEmpty()) {
-            AircraftOverlayStore.points = emptyList()
+//            AircraftOverlayStore.points = emptyList()
             return null
         }
 
@@ -150,13 +150,13 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
         }
 
         if (dots.isEmpty()) {
-            AircraftOverlayStore.points = emptyList()
+//            AircraftOverlayStore.points = emptyList()
             return null
         }
 
-        AircraftOverlayStore.points = xs.indices.map { i ->
-            AircraftScreenPoint(x = xs[i], y = ys[i], label = labels[i])
-        }
+//        AircraftOverlayStore.points = xs.indices.map { i ->
+//            AircraftScreenPoint(x = xs[i], y = ys[i], label = labels[i])
+//        }
 
         return AircraftOverlayResult(
             dots = dots,

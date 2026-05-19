@@ -2,7 +2,6 @@ package edu.osu.t22.planear.scenes.pages
 
 import android.hardware.HardwareBuffer
 import edu.osu.t22.planear.AppSettings
-import edu.osu.t22.planear.adsb.AircraftOverlayStore
 import edu.osu.t22.planear.geo.GeoPoint
 import edu.osu.t22.planear.geo.GeoUtils
 import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
