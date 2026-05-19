@@ -104,7 +104,8 @@ export const team = {
     {
       name: "Owen Jones",
       role: "Engineering",
-      email: "jonesow@oregonstate.edu",
+      linkedin: "https://www.linkedin.com/in/owen-jones-ojones28/",
+      email: "owenmjones28@gmail.com",
       github: "https://github.com/ojones28"
     },
   ],
