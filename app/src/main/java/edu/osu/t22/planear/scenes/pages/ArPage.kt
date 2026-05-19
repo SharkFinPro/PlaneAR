@@ -18,6 +18,7 @@ import kotlin.math.sqrt
 import edu.osu.t22.planear.AppColors
 import edu.osu.t22.planear.achievements.ALL_ACHIEVEMENTS
 import edu.osu.t22.planear.achievements.AchievementStore
+import edu.osu.t22.planear.adsb.AdsbRepository
 import kotlin.math.sin
 
 class ArPage : Page {
@@ -85,8 +86,10 @@ class ArPage : Page {
             val metersPerDegLon = 111_320.0 * cos(Math.toRadians(phoneLat))
 
             // Sort aircraft nearest-first so closer planes draw on top
-            val sorted = AircraftOverlayStore.aircraftData.sortedBy { p ->
-                GeoUtils.distanceMeters(phoneGeo, p.position)
+            val aircraftRepository = SceneSwitcher.adsbManager.getRepository()
+
+            val sorted = aircraftRepository.getAircraft().sortedBy { p ->
+                GeoUtils.distanceMeters(phoneGeo, p.getPosition())
             }
 
             val yaw = Math.toRadians((orientation.azimuthDeg - 90))
@@ -106,10 +109,10 @@ class ArPage : Page {
             var bestDot = -1f
 
             sorted.forEachIndexed { index, p ->
-
-                val dLat = p.position.latDeg - phoneLat
-                val dLon = p.position.lonDeg - phoneLon
-                val dAlt = (p.position.altM - phoneAlt).toFloat()
+                val position = p.getPosition()
+                val dLat = position.latDeg - phoneLat
+                val dLon = position.lonDeg - phoneLon
+                val dAlt = (position.altM - phoneAlt).toFloat()
 
                 val rawX = (dLon * metersPerDegLon).toFloat()
                 val rawY = dAlt
@@ -147,9 +150,10 @@ class ArPage : Page {
 
             reordered.forEachIndexed { index, p ->
                 // Raw direction vector from phone to aircraft (East / Up / North in meters)
-                val dLat = p.position.latDeg - phoneLat
-                val dLon = p.position.lonDeg - phoneLon
-                val dAlt = (p.position.altM - phoneAlt).toFloat()
+                val position = p.getPosition()
+                val dLat = position.latDeg - phoneLat
+                val dLon = position.lonDeg - phoneLon
+                val dAlt = (position.altM - phoneAlt).toFloat()
 
                 val rawX = (dLon * metersPerDegLon).toFloat()   // East
                 val rawY = dAlt                                 // Up

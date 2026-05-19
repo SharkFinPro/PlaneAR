@@ -4,8 +4,8 @@ data class AdsbResponse(
     val ac: List<AdsbAircraft>,
     val now: Long, // when file was generated
     val total: Int, // amount of aircraft returned
-    val cTime: Long, // unknown
-    val pTime: Long // unknown
+    val cTime: Long, // when data was last updated
+    val pTime: Long // time to process response
 )
 
 data class AdsbAircraft(
@@ -43,20 +43,20 @@ data class AdsbAircraft(
     // Misc
     val squawk: String? = null // squawk code
 ) {
-    val altitudeFeet: Double?
-        get() = alt_baro?.toDoubleOrNull()
+//    val altitudeFeet: Double?
+//        get() = alt_baro?.toDoubleOrNull()
 
-    val altitudeMeters: Double?
-        get() {
-            val feet = altitudeFeet ?: return null
-            return feet * 0.3048
-        }
+//    val altitudeMeters: Double?
+//        get() {
+//            val feet = altitudeFeet ?: return null
+//            return feet * 0.3048
+//        }
 
-    val isProjectable: Boolean
-        get() = lat != null && lon != null && altitudeMeters != null
+//    val isProjectable: Boolean
+//        get() = lat != null && lon != null && altitudeMeters != null
 
-    val label: String
-        get() = flight?.trim()?.takeIf { it.isNotEmpty() }
-            ?: hex?.trim()?.takeIf { it.isNotEmpty() }
-            ?: "UNKNOWN"
+//    val label: String
+//        get() = flight?.trim()?.takeIf { it.isNotEmpty() }
+//            ?: hex?.trim()?.takeIf { it.isNotEmpty() }
+//            ?: "UNKNOWN"
 }
