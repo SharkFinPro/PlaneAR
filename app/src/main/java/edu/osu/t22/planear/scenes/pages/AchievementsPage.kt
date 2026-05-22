@@ -61,15 +61,18 @@ class AchievementsPage : Page {
         val total    = ALL_ACHIEVEMENTS.size
         val streak   = AchievementStore.getCurrentStreak()
 
-        // display the testing data page
         if (!sheetShownOnStart) {
-            FlightDetailSheet.open(FlightEntryTest(
-                callsign    = "UAL1234",
-                takeoffTime = "09:42 PDT",
-                landingTime = "12:18 PDT",
-                planeType   = "Boeing 737-800",
-                airspeed    = 487
-            ))
+            FlightDetailSheet.open(
+                Aircraft(
+                    id             = "a1b2c3",
+                    callsign       = "UAL1234",
+                    type           = "Boeing 737-800",
+                    registration   = "N12345",
+                    altitudeSeaLevel = 35000.0,
+                    groundSpeed    = 487.0,
+                    headingDegrees = 270.0
+                )
+            )
             sheetShownOnStart = true
         }
 
