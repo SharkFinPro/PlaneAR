@@ -3,6 +3,7 @@ package edu.osu.t22.planear.achievements
 import android.location.Location
 import android.util.Log
 import edu.osu.t22.planear.adsb.AdsbAircraft
+import edu.osu.t22.planear.adsb.Aircraft
 import java.util.Calendar
 import kotlin.math.*
 
@@ -25,17 +26,17 @@ object AchievementTracker {
      * @param aircraft  Full list of aircraft from the API response (not just projectable).
      * @param userLocation  Current user GPS location, or null.
      */
-    fun checkAchievements(aircraft: List<AdsbAircraft>, userLocation: Location?) {
+    fun checkAchievements(aircraft: List<Aircraft>, userLocation: Location?) {
         val store = AchievementStore
         val now   = System.currentTimeMillis()
         val hour  = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
 
         // Count valid (with ICAO) aircraft
-        val validAircraft = aircraft.filter { !it.hex.isNullOrBlank() }
+        val validAircraft = aircraft.filter { !it.id.isNullOrBlank() }
 
         // Record each ICAO
         for (ac in validAircraft) {
-            store.recordIcao(ac.hex!!)
+            store.recordIcao(ac.id!!)
         }
 
         // If we have at least one aircraft, record today as a tracking day
@@ -56,50 +57,50 @@ object AchievementTracker {
 
         // --- Speed ---
         checkAndUnlock("speed_demon") {
-            validAircraft.any { (it.gs ?: 0f) > 550f }
+            validAircraft.any { (it.groundSpeed ?: 0.0) > 550.0 }
         }
 
         // --- Altitude ---
         checkAndUnlock("stratosphere_club") {
-            validAircraft.any { (it.altitudeFeet ?: 0.0) > 40_000.0 }
+            validAircraft.any { (it.altitudeSeaLevel) > 40_000.0 }
         }
         checkAndUnlock("low_rider") {
             validAircraft.any {
-                val alt = it.altitudeFeet ?: -1.0
+                val alt = it.altitudeSeaLevel
                 alt in 1.0..1_000.0
             }
         }
 
         // --- Vertical rate ---
         checkAndUnlock("climber") {
-            validAircraft.any { (it.baro_rate ?: 0) > 3_000 }
+            validAircraft.any { (it.verticalRate) > 3_000 }
         }
         checkAndUnlock("nose_diver") {
-            validAircraft.any { (it.baro_rate ?: 0) < -3_000 }
+            validAircraft.any { (it.verticalRate) < -3_000 }
         }
 
         // --- Slow flyer ---
         checkAndUnlock("easy_rider") {
             validAircraft.any {
-                val gs  = it.gs ?: Float.MAX_VALUE
-                val alt = it.altitudeFeet ?: 0.0
-                gs < 150f && alt > 5_000.0
+                val gs  = it.groundSpeed ?: Double.MAX_VALUE
+                val alt = it.altitudeSeaLevel
+                gs < 150.0 && alt > 5_000.0
             }
         }
 
         // --- Flat and fast (cruising level at high speed) ---
         checkAndUnlock("flat_and_fast") {
             validAircraft.any {
-                val alt  = it.altitudeFeet ?: 0.0
-                val rate = it.baro_rate ?: Int.MAX_VALUE
-                val gs   = it.gs ?: 0f
-                alt > 30_000.0 && rate == 0 && gs > 400f
+                val alt  = it.altitudeSeaLevel
+                val rate = it.verticalRate
+                val gs   = it.groundSpeed ?: 0.0
+                alt > 30_000.0 && rate == 0 && gs > 400.0
             }
         }
 
         // --- Ghost signal (no callsign) ---
         checkAndUnlock("ghost_signal") {
-            validAircraft.any { it.flight.isNullOrBlank() }
+            validAircraft.any { it.callsign.isNullOrBlank() }
         }
 
         // --- Time-based ---
@@ -132,9 +133,9 @@ object AchievementTracker {
         if (userLocation != null) {
             checkAndUnlock("heading_home") {
                 validAircraft.any { ac ->
-                    val acLat = ac.lat ?: return@any false
-                    val acLon = ac.lon ?: return@any false
-                    val acAltM = ac.altitudeMeters ?: return@any false
+                    val acLat = ac.latitude
+                    val acLon = ac.longitude
+                    val acAltM = ac.altitudeMeters
                     val userAltM = userLocation.altitude
 
                     val elevDeg = computeElevationAngle(
@@ -148,8 +149,8 @@ object AchievementTracker {
 
         // --- Sharp turn (heading change > 90° within 30 seconds) ---
         for (ac in validAircraft) {
-            val heading = ac.track ?: continue
-            val hex     = ac.hex ?: continue
+            val heading = ac.headingDegrees ?: continue
+            val hex     = ac.id
 
             val history = store.headingHistory.getOrPut(hex) { mutableListOf() }
             history.add(Pair(now, heading))
@@ -177,9 +178,9 @@ object AchievementTracker {
 
         // --- Holding pattern (circling same position for > 3 minutes) ---
         for (ac in validAircraft) {
-            val lat = ac.lat ?: continue
-            val lon = ac.lon ?: continue
-            val hex = ac.hex ?: continue
+            val lat = ac.latitude
+            val lon = ac.longitude
+            val hex = ac.id
 
             val history = store.positionHistory.getOrPut(hex) { mutableListOf() }
             history.add(Triple(now, lat, lon))
@@ -209,7 +210,7 @@ object AchievementTracker {
         }
 
         // Clean up stale heading/position history (aircraft no longer in range)
-        val currentHexes = validAircraft.mapNotNull { it.hex }.toSet()
+        val currentHexes = validAircraft.map { it.id }.toSet()
         store.headingHistory.keys.removeAll { it !in currentHexes }
         store.positionHistory.keys.removeAll { it !in currentHexes }
     }
