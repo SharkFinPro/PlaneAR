@@ -23,6 +23,12 @@ class AchievementsPage : Page {
     override val sceneId = SceneId.Achievements
 
     private var scrollOffset = 0f
+    private var scrollVelocity = 0f
+
+    // Friction factor applied each frame to decay velocity (0 = instant stop, 1 = no friction)
+    private val friction = 0.92f
+    // Minimum velocity threshold below which we snap to zero
+    private val minVelocity = 0.5f
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val screenW  = sceneInfo.screenWidth
@@ -36,7 +42,7 @@ class AchievementsPage : Page {
         val gridW     = screenW - 2f * margin
         val gap       = 20f
         val cardW     = (gridW - gap) / 2f
-        val cardH     = cardW * 1.15f
+        val cardH     = cardW * 1.45f
         val cornerR   = 20f
         val cols      = 2
 
@@ -46,14 +52,34 @@ class AchievementsPage : Page {
         val totalContentH = headerH + totalGridH + 60f
         val maxScroll    = (totalContentH - screenH).coerceAtLeast(0f)
 
-        // Handle scrolling
+        // Handle scrolling with velocity / momentum
         if (!inputBlocked && gestures.isScrolling) {
             val pos = gestures.scrollPosition
             if (pos != null && pos.second < screenH) {
-                scrollOffset += gestures.scrollDelta.second
+                val delta = gestures.scrollDelta.second
+                scrollOffset += delta
+                // Track velocity from finger movement for momentum
+                scrollVelocity = delta
+            }
+        } else if (!inputBlocked && gestures.flung) {
+            // Fling gesture — use the Y velocity for a big momentum push.
+            // flingVelocity is in pixels/sec; negate because fling "up" should
+            // scroll content up (increase offset). Scale down to per-frame.
+            val flingY = gestures.flingVelocity?.second ?: 0f
+            scrollVelocity = -flingY / 60f
+        } else {
+            // No finger on screen — apply inertial momentum
+            scrollOffset += scrollVelocity
+            scrollVelocity *= friction
+            if (kotlin.math.abs(scrollVelocity) < minVelocity) {
+                scrollVelocity = 0f
             }
         }
         scrollOffset = scrollOffset.coerceIn(0f, maxScroll)
+        // Clamp velocity if we've hit the scroll bounds
+        if (scrollOffset <= 0f || scrollOffset >= maxScroll) {
+            scrollVelocity = 0f
+        }
 
         val unlocked = AchievementStore.getUnlockedCount()
         val total    = ALL_ACHIEVEMENTS.size
@@ -132,7 +158,7 @@ class AchievementsPage : Page {
 
                 drawAchievementCard(
                     sceneInfo, cardX, cardY, cardW, cardH, cornerR,
-                    ach.emoji, ach.name, ach.requirement, isUnlocked
+                    ach.emoji, ach.name, ach.description, ach.requirement, isUnlocked
                 )
             }
 
@@ -168,7 +194,7 @@ class AchievementsPage : Page {
     private fun drawAchievementCard(
         sceneInfo: SceneInfo,
         x: Float, y: Float, w: Float, h: Float, r: Float,
-        emoji: String, name: String, requirement: String,
+        emoji: String, name: String, description: String, requirement: String,
         unlocked: Boolean
     ) {
         val c = AppColors.current
@@ -194,16 +220,45 @@ class AchievementsPage : Page {
 
             // Achievement name (top of card)
             if (unlocked) fill(c.textPrimary) else fill(c.textHint)
-            textFont("roboto", 12)
+            textFont("roboto", 13)
             textAlign(TextAlignH.CENTER, TextAlignV.TOP)
-            text(name, x + w / 2f, y + 20f)
+            text(name, x + w / 2f, y + 35f)
 
-            // Large emoji (centered in card)
-            val emojiY = y + h * 0.46f
+            // Large emoji
+            val emojiY = y + h * 0.38f
             textFont("emoji", if (unlocked) 40 else 32)
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
             if (!unlocked) fill(c.textHint) // dim emoji for locked
             text(emoji, x + w / 2f, emojiY)
+
+            // Description text (below emoji, above badge)
+            if (unlocked) fill(c.textSecondary) else fill(c.textHint)
+            textFont("roboto", 10)
+            textAlign(TextAlignH.CENTER, TextAlignV.TOP)
+
+            val maxChars = 24
+            val words = description.split(" ")
+            val lines = mutableListOf<String>()
+            var currentLine = ""
+            for (word in words) {
+                if (currentLine.isEmpty()) {
+                    currentLine = word
+                } else if (currentLine.length + 1 + word.length <= maxChars) {
+                    currentLine += " $word"
+                } else {
+                    lines.add(currentLine)
+                    currentLine = word
+                }
+            }
+            if (currentLine.isNotEmpty()) {
+                lines.add(currentLine)
+            }
+
+            val descY = y + h * 0.55f
+            val lineHeight = 40f
+            for (i in lines.indices) {
+                text(lines[i], x + w / 2f, descY + i * lineHeight)
+            }
 
             // Status badge at bottom
             val badgeW = w * 0.65f
