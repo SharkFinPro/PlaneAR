@@ -42,21 +42,4 @@ data class AdsbAircraft(
 
     // Misc
     val squawk: String? = null // squawk code
-) {
-//    val altitudeFeet: Double?
-//        get() = alt_baro?.toDoubleOrNull()
-
-//    val altitudeMeters: Double?
-//        get() {
-//            val feet = altitudeFeet ?: return null
-//            return feet * 0.3048
-//        }
-
-//    val isProjectable: Boolean
-//        get() = lat != null && lon != null && altitudeMeters != null
-
-//    val label: String
-//        get() = flight?.trim()?.takeIf { it.isNotEmpty() }
-//            ?: hex?.trim()?.takeIf { it.isNotEmpty() }
-//            ?: "UNKNOWN"
-}
+)

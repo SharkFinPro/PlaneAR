@@ -37,6 +37,14 @@ class Aircraft (
     val positionTimeStamp: Long
         get() = lastRecieveTime - ((seenPosSeconds ?: 0f) * 1000f).toLong()
 
+    constructor(id: String, callsign: String, type: String, speed: Double, altitude: Double) : this(id) {
+        this.callsign = callsign
+        this.type = type
+        this.groundSpeed = speed
+        this.altitudeSeaLevel = altitude
+        this.altitudeGround = altitude
+    }
+
     fun updateFrom(adsb: AdsbAircraft, recieveTime: Long = System.currentTimeMillis()) {
         isActive = adsb.lat != null && adsb.lon != null && adsb.alt_baro != null
         latitude = adsb.lat ?: latitude

@@ -27,6 +27,7 @@ class AdsbRepository (
             }
 
             //expire old aircraft
+            cachedAircraft.entries.removeIf { it.value.lastRecieveTime < now - 30_000L }
         }
     }
 
