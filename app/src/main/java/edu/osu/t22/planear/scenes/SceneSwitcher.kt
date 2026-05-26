@@ -2,6 +2,7 @@ package edu.osu.t22.planear.scenes
 
 import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.FrameGestureDetector
+import edu.osu.t22.planear.adsb.AdsbManager
 import edu.osu.t22.planear.scenes.pages.AchievementsPage
 import edu.osu.t22.planear.scenes.pages.ArPage
 import edu.osu.t22.planear.scenes.pages.FavoritesPage
@@ -56,6 +57,8 @@ class SceneSwitcher {
             instance!!.registerScenes()
             return instance!!
         }
+
+        lateinit var adsbManager: AdsbManager
     }
 
     private fun registerScenes() {

@@ -1,11 +1,11 @@
 package edu.osu.t22.planear.scenes.pages
 
-import edu.osu.t22.planear.adsb.AircraftPosition
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import android.content.Context
 import android.content.SharedPreferences
+import edu.osu.t22.planear.adsb.Aircraft
 
 // Shared flight data
 data class FlightEntry(
@@ -79,15 +79,15 @@ object FlightHistoryStore {
     }
 }
 
-fun logFlightHistory(plane: AircraftPosition) {
+fun logFlightHistory(plane: Aircraft) {
     if (flightData.none { it.callsign == plane.label }) {
         val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.US)
         val timeFormat = SimpleDateFormat("hh:mm a", Locale.US)
         val dateStr = dateFormat.format(Date())
         val timeStr = timeFormat.format(Date())
 
-        val speed = plane.rawData?.gs?.toInt() ?: 0
-        val type = plane.rawData?.t ?: "Unknown"
+        val speed = plane.groundSpeed?.toInt() ?: 0
+        val type = plane.type ?: "Unknown"
 
         flightData.add(0, FlightEntry(
             callsign = plane.label,

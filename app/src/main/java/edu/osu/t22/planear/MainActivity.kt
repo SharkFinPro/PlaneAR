@@ -103,6 +103,7 @@ class MainActivity : GameActivity() {
         edu.osu.t22.planear.scenes.pages.FlightHistoryStore.init(this)
 
         sceneSwitcher = SceneSwitcher.initialize()
+        SceneSwitcher.adsbManager = adsbManager
 
         // Gesture Detector Setup
         frameGestureDetector = FrameGestureDetector(this)
