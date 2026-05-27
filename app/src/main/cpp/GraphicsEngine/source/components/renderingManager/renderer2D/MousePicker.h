@@ -9,6 +9,7 @@ namespace ge {
   class LogicalDevice;
   class PipelineManager;
   struct RenderInfo;
+  class SingleUseCommandBuffer;
 
   class MousePicker
   {
@@ -25,6 +26,11 @@ namespace ge {
 
     void handleRenderedMousePickingImage(VkImage image);
 
+    [[nodiscard]] uint32_t getSelectedID() const;
+
+    void doMousePicking(uint32_t mouseX,
+                        uint32_t mouseY);
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -32,6 +38,20 @@ namespace ge {
 
     VkBuffer m_stagingBuffer = VK_NULL_HANDLE;
     VkDeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
+
+    uint32_t m_selectedID = 0;
+
+    [[nodiscard]] uint32_t getIDFromMousePickingImage(VkImage image,
+                                                      int32_t mouseX,
+                                                      int32_t mouseY) const;
+
+    [[nodiscard]] uint32_t getObjectIDFromBuffer(VkDeviceMemory stagingBufferMemory) const;
+
+    static void transitionImageForReading(const SingleUseCommandBuffer& commandBuffer,
+                                          VkImage image);
+
+    static void transitionImageForWriting(const SingleUseCommandBuffer& commandBuffer,
+                                          VkImage image);
   };
 
 } // ge

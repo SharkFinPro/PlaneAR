@@ -13,6 +13,8 @@ namespace ge {
   class CommandBuffer
   {
   public:
+    explicit CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice);
+
     CommandBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice, VkCommandPool commandPool);
 
     [[nodiscard]] VkCommandBuffer* getCommandBuffer();
@@ -25,7 +27,7 @@ namespace ge {
 
     void endRenderPass() const;
 
-    void record(const std::function<void()>& renderFunction) const;
+    virtual void record(const std::function<void()>& renderFunction) const;
 
     void setViewport(const VkViewport& viewport) const;
 
@@ -50,14 +52,26 @@ namespace ge {
     void clearAttachments(const std::vector<VkClearAttachment>& clearAttachments,
                           const std::vector<VkClearRect>& clearRects) const;
 
-  private:
+    void pipelineBarrier(VkPipelineStageFlags srcStageMask,
+                         VkPipelineStageFlags dstStageMask,
+                         VkDependencyFlags dependencyFlags,
+                         const std::vector<VkMemoryBarrier>& memoryBarriers,
+                         const std::vector<VkBufferMemoryBarrier>& bufferMemoryBarriers,
+                         const std::vector<VkImageMemoryBarrier>& imageMemoryBarriers) const;
+
+    void copyImageToBuffer(VkImage srcImage,
+                           VkImageLayout srcImageLayout,
+                           VkBuffer dstBuffer,
+                           const std::vector<VkBufferImageCopy>& regions) const;
+
+  protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     std::vector<VkCommandBuffer> m_commandBuffers;
 
     uint32_t m_currentFrame = 0;
 
-    void allocateCommandBuffers(VkCommandPool commandPool);
+    virtual void allocateCommandBuffers(VkCommandPool commandPool);
   };
 
 } // ge

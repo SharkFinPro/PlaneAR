@@ -12,6 +12,7 @@ add_library(${PROJECT_NAME} SHARED
   components/assets/textures/ImageTexture.cpp
   components/assets/textures/Texture.cpp
   components/commandBuffer/CommandBuffer.cpp
+  components/commandBuffer/SingleUseCommandBuffer.cpp
   components/descriptorSet/DescriptorSet.cpp
   components/framebuffers/Framebuffer.cpp
   components/framebuffers/SwapchainFramebuffer.cpp
