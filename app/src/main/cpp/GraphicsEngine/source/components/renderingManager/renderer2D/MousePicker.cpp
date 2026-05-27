@@ -29,13 +29,34 @@ namespace ge {
 
   void MousePicker::clearObjectsToMousePick()
   {
+    m_objectsToMousePick.clear();
+  }
 
+  void MousePicker::addObjectToMousePick(MousePickingPoint object)
+  {
+    m_objectsToMousePick.push_back(object);
   }
 
   void MousePicker::render(const std::shared_ptr<PipelineManager>& pipelineManager,
                            const RenderInfo* renderInfo) const
   {
     pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::mousePicking);
+
+    for (const auto& object : m_objectsToMousePick)
+    {
+      const auto pointPC = object.createPushConstant(renderInfo->extent);
+
+      pipelineManager->pushGraphicsPipelineConstants(
+        renderInfo->commandBuffer,
+        PipelineType::mousePicking,
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(pointPC),
+        &pointPC
+      );
+
+      renderInfo->commandBuffer->draw(4, 1, 0, 0);
+    }
   }
 
   void MousePicker::handleRenderedMousePickingImage(VkImage image)

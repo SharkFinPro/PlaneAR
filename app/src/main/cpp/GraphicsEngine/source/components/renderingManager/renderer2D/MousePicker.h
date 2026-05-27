@@ -1,6 +1,7 @@
 #ifndef PLANEAR_MOUSEPICKER_H
 #define PLANEAR_MOUSEPICKER_H
 
+#include "Primitives2D.h"
 #include <vulkan/vulkan.h>
 #include <memory>
 
@@ -21,6 +22,8 @@ namespace ge {
 
     void clearObjectsToMousePick();
 
+    void addObjectToMousePick(MousePickingPoint object);
+
     void render(const std::shared_ptr<PipelineManager>& pipelineManager,
                 const RenderInfo* renderInfo) const;
 
@@ -40,6 +43,8 @@ namespace ge {
     VkDeviceMemory m_stagingBufferMemory = VK_NULL_HANDLE;
 
     uint32_t m_selectedID = 0;
+
+    std::vector<MousePickingPoint> m_objectsToMousePick;
 
     [[nodiscard]] uint32_t getIDFromMousePickingImage(VkImage image,
                                                       int32_t mouseX,
