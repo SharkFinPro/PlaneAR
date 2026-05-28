@@ -147,7 +147,7 @@ namespace ge {
                            renderPass, AAssetManager, m_assetManager->getFontDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::mousePicking,
-                           PipelineConfig::createMousePickingPipelineOptions(renderPass, AAssetManager));
+                           PipelineConfig::createMousePickingPipelineOptions(m_renderer->getMousePickingRenderPass(), AAssetManager));
   }
 
   void PipelineManager::createGraphicsPipeline(PipelineType pipelineType,
