@@ -63,14 +63,7 @@ namespace ge {
     m_renderPass->begin(m_framebuffer->getFramebuffer(imageIndex), extent, commandBuffer);
   }
 
-  void Renderer::endSwapchainRendering(uint32_t imageIndex,
-                                       const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                       const std::shared_ptr<Swapchain>& swapchain)
-  {
-    endRendering(commandBuffer);
-  }
-
-  void Renderer::endRendering(const std::shared_ptr<CommandBuffer> &commandBuffer)
+  void Renderer::endRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
   {
     commandBuffer->endRenderPass();
   }
@@ -84,11 +77,6 @@ namespace ge {
       extent,
       commandBuffer
     );
-  }
-
-  void Renderer::endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
-  {
-    endRendering(commandBuffer);
   }
 
 } // ge

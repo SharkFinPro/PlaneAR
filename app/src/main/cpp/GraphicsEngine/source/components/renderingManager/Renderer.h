@@ -33,15 +33,11 @@ namespace ge {
                                  const std::shared_ptr<CommandBuffer>& commandBuffer,
                                  const std::shared_ptr<Swapchain>& swapchain);
 
-    static void endSwapchainRendering(uint32_t imageIndex,
-                                      const std::shared_ptr<CommandBuffer>& commandBuffer,
-                                      const std::shared_ptr<Swapchain>& swapchain);
-
     void beginMousePickingRendering(uint32_t imageIndex,
                                     VkExtent2D extent,
                                     const std::shared_ptr<CommandBuffer>& commandBuffer);
 
-    static void endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer);
+    static void endRendering(const std::shared_ptr<CommandBuffer>& commandBuffer);
 
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -53,8 +49,6 @@ namespace ge {
 
     std::shared_ptr<RenderPass> m_renderPass;
     std::shared_ptr<RenderPass> m_mousePickingRenderPass;
-
-    static void endRendering(const std::shared_ptr<CommandBuffer>& commandBuffer);
   };
 
 } // ge
