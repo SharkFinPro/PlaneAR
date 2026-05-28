@@ -189,6 +189,9 @@ class ArPage : Page {
                 fill(0);
                 point(bx, by, bz, 270)
 
+                // TODO: only send if mouse picking queried
+                mousePickingPoint(bx, by, bz, 270, p.id.toLong(16))
+
                 fill(245);
                 point(fx, fy, fz, 250)
 

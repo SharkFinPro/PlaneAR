@@ -442,6 +442,23 @@ namespace {
     renderer->camera(x, y, w, h);
   }
 
+  void nativeMousePickingPoint(JNIEnv* env,
+                               jobject thiz,
+                               jfloat x,
+                               jfloat y,
+                               jfloat z,
+                               jfloat size,
+                               jlong id)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+//    renderer->mousePickingPoint(x, y, z, size, id);
+  }
+
   const JNINativeMethod renderer2DMethods[] = {
     {"fill",        "(IIII)V",                    (void*)nativeFill},
     {"fill",        "(II)V",                      (void*)nativeFillRGB},
@@ -468,7 +485,8 @@ namespace {
     {"text3D",   "(Ljava/lang/String;FFF)V",      (void*)nativeText3D},
     {"updateCameraBuffer", "(Landroid/hardware/HardwareBuffer;)V", (void*)nativeUpdateCameraBuffer},
     {"camera",      "(FFFF)V",  (void*)nativeCamera},
-  };
+    {"mousePickingPoint", "(FFFFJ)V", (void*)nativeMousePickingPoint}
+    };
 
   const JNINativeMethod graphicsEngineMethods[] = {
     {"nativeGetRenderer2DPtr", "(J)J", (void*)nativeGetRenderer2DPtr}

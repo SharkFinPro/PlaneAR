@@ -212,7 +212,7 @@ namespace ge::Images {
     return logicalDevice->createImageView(imageViewCreateInfo);
   }
 
-  void copyImageToBuffer(const VkImage& image,
+  inline void copyImageToBuffer(const VkImage& image,
                          const VkOffset3D offset,
                          const VkExtent3D extent,
                          const SingleUseCommandBuffer& commandBuffer,

@@ -114,6 +114,11 @@ class Renderer2D(private val ptr: Long) {
 
     private external fun text3D(text: String, x: Float, y: Float, z: Float)
 
+    fun mousePickingPoint(x: Number, y: Number, z: Number, size: Number, id: Long)
+        = mousePickingPoint(x.toFloat(), y.toFloat(), z.toFloat(), size.toFloat(), id)
+
+    private external fun mousePickingPoint(x: Float, y: Float, z: Float, size: Float, id: Long)
+
     /* Camera */
     external fun updateCameraBuffer(buffer: android.hardware.HardwareBuffer)
 
