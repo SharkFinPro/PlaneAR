@@ -5,7 +5,7 @@ layout(push_constant) uniform pointPC {
   uint objectID;
 } pc;
 
-layout(location = 0) out vec4 outColor;
+layout(location = 0) out uvec4 outColor;
 
 void main() {
   float r = (pc.objectID >> 16) & 0xFF;
