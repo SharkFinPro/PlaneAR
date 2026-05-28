@@ -7,6 +7,7 @@
 namespace ge {
 
   class CommandBuffer;
+  class Framebuffer;
   class LogicalDevice;
   class RenderPass;
   class Swapchain;
@@ -21,7 +22,11 @@ namespace ge {
 
     [[nodiscard]] std::shared_ptr<RenderPass> getRenderPass() const;
 
+    [[nodiscard]] std::shared_ptr<RenderPass> getMousePickingRenderPass() const;
+
     void resetSwapchainImageResources(const std::shared_ptr<Swapchain>& swapchain);
+
+    void resetMousePickingImageResources(VkExtent2D mousePickingExtent);
 
     void beginSwapchainRendering(uint32_t imageIndex,
                                  VkExtent2D extent,
@@ -32,14 +37,22 @@ namespace ge {
                                       const std::shared_ptr<CommandBuffer>& commandBuffer,
                                       const std::shared_ptr<Swapchain>& swapchain);
 
+    void beginMousePickingRendering(uint32_t imageIndex,
+                                    VkExtent2D extent,
+                                    const std::shared_ptr<CommandBuffer>& commandBuffer);
+
+    static void endMousePickingRendering(const std::shared_ptr<CommandBuffer>& commandBuffer);
+
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
     std::shared_ptr<SwapchainFramebuffer> m_framebuffer;
+    std::shared_ptr<Framebuffer> m_mousePickingFramebuffer;
 
     std::shared_ptr<RenderPass> m_renderPass;
+    std::shared_ptr<RenderPass> m_mousePickingRenderPass;
 
     static void endRendering(const std::shared_ptr<CommandBuffer>& commandBuffer);
   };
