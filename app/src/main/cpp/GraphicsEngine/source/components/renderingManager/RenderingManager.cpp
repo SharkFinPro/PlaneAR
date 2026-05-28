@@ -1,5 +1,5 @@
 #include "RenderingManager.h"
-#include "LegacyRenderer.h"
+#include "Renderer.h"
 #include "renderer2D/Renderer2D.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
@@ -20,7 +20,7 @@ namespace ge {
 
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
-    m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapchain, m_commandPool);
+    m_renderer = std::make_shared<Renderer>(m_logicalDevice, m_swapchain, m_commandPool);
 
     m_renderer2D = std::make_shared<Renderer2D>(m_logicalDevice, std::move(assetManager));
   }

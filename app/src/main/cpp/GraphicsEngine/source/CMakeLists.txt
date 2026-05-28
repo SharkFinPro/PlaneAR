@@ -26,7 +26,7 @@ add_library(${PROJECT_NAME} SHARED
   components/pipelines/PipelineManager.cpp
   components/renderingManager/renderer2D/MousePicker.cpp
   components/renderingManager/renderer2D/Renderer2D.cpp
-  components/renderingManager/LegacyRenderer.cpp
+  components/renderingManager/Renderer.cpp
   components/renderingManager/RenderingManager.cpp
   components/renderPass/RenderPass.cpp
   components/shaderModule/ShaderModule.cpp

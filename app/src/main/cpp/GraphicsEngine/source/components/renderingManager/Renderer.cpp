@@ -1,4 +1,4 @@
-#include "LegacyRenderer.h"
+#include "Renderer.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../framebuffers/SwapchainFramebuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
@@ -7,10 +7,12 @@
 #include "../renderPass/RenderPass.h"
 
 namespace ge {
-  LegacyRenderer::LegacyRenderer(const std::shared_ptr<LogicalDevice>& logicalDevice,
-                                 const std::shared_ptr<Swapchain>& swapchain,
-                                 VkCommandPool commandPool)
-    : Renderer(logicalDevice, commandPool),
+
+  Renderer::Renderer(std::shared_ptr<LogicalDevice> logicalDevice,
+                     const std::shared_ptr<Swapchain>& swapchain,
+                     VkCommandPool commandPool)
+    : m_logicalDevice(std::move(logicalDevice)),
+      m_commandPool(commandPool),
       m_renderPass(std::make_shared<RenderPass>(m_logicalDevice,
                                                 swapchain->getImageFormat(),
                                                 m_logicalDevice->getPhysicalDevice()->getMsaaSamples(),
@@ -19,12 +21,12 @@ namespace ge {
     resetSwapchainImageResources(swapchain);
   }
 
-  std::shared_ptr<RenderPass> LegacyRenderer::getRenderPass() const
+  std::shared_ptr<RenderPass> Renderer::getRenderPass() const
   {
     return m_renderPass;
   }
 
-  void LegacyRenderer::resetSwapchainImageResources(std::shared_ptr<Swapchain> swapchain)
+  void Renderer::resetSwapchainImageResources(const std::shared_ptr<Swapchain>& swapchain)
   {
     m_framebuffer.reset();
     m_framebuffer = std::make_shared<SwapchainFramebuffer>(
@@ -36,22 +38,23 @@ namespace ge {
     );
   }
 
-  void LegacyRenderer::beginSwapchainRendering(uint32_t imageIndex, VkExtent2D extent,
-                                               std::shared_ptr<CommandBuffer> commandBuffer,
-                                               std::shared_ptr<Swapchain> swapchain)
+  void Renderer::beginSwapchainRendering(uint32_t imageIndex, VkExtent2D extent,
+                                         const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                         const std::shared_ptr<Swapchain>& swapchain)
   {
     m_renderPass->begin(m_framebuffer->getFramebuffer(imageIndex), extent, commandBuffer);
   }
 
-  void LegacyRenderer::endSwapchainRendering(uint32_t imageIndex,
-                                             std::shared_ptr<CommandBuffer> commandBuffer,
-                                             std::shared_ptr<Swapchain> swapchain)
+  void Renderer::endSwapchainRendering(uint32_t imageIndex,
+                                       const std::shared_ptr<CommandBuffer>& commandBuffer,
+                                       const std::shared_ptr<Swapchain>& swapchain)
   {
     endRendering(commandBuffer);
   }
 
-  void LegacyRenderer::endRendering(const std::shared_ptr<CommandBuffer>& commandBuffer)
+  void Renderer::endRendering(const std::shared_ptr<CommandBuffer> &commandBuffer)
   {
     commandBuffer->endRenderPass();
   }
+
 } // ge

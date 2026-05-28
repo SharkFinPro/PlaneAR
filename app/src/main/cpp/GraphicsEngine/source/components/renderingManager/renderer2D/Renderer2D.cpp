@@ -9,7 +9,6 @@
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/GraphicsPipeline.h"
 #include "../../pipelines/PipelineManager.h"
-#include "../LegacyRenderer.h"
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 
