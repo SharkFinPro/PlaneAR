@@ -460,33 +460,48 @@ namespace {
   }
 
   const JNINativeMethod renderer2DMethods[] = {
-    {"fill",        "(IIII)V",                    (void*)nativeFill},
-    {"fill",        "(II)V",                      (void*)nativeFillRGB},
-    {"rotate",      "(F)V",                       (void*)nativeRotate},
-    {"translate",   "(FF)V",                      (void*)nativeTranslate},
-    {"scale",       "(FF)V",                      (void*)nativeScaleXY},
-    {"scale",       "(F)V",                       (void*)nativeScale},
-    {"pushMatrix",  "()V",                        (void*)nativePushMatrix},
-    {"popMatrix",   "()V",                        (void*)nativePopMatrix},
-    {"resetMatrix", "()V",                        (void*)nativeResetMatrix},
-    {"rectMode",    "(I)V",                       (void*)nativeRectMode},
-    {"ellipseMode", "(I)V",                       (void*)nativeEllipseMode},
-    {"imageMode",   "(I)V",                       (void*)nativeImageMode},
-    {"rect",        "(FFFFF)V",                    (void*)nativeRect},
-    {"triangle",    "(FFFFFF)V",                  (void*)nativeTriangle},
-    {"ellipse",     "(FFFF)V",                    (void*)nativeEllipse},
-    {"textFont",    "(Ljava/lang/String;I)V",     (void*)nativeTextFont},
-    {"textSize",    "(I)V",                       (void*)nativeTextSize},
-    {"textAlign",   "(II)V",                      (void*)nativeTextAlign},
-    {"text",        "(Ljava/lang/String;FF)V",    (void*)nativeText},
-    {"image",       "(Ljava/lang/String;FFFF)V",  (void*)nativeImage},
-    {"point",       "(FFFF)V",                     (void*)nativePoint},
-    {"set3DView",   "(FFFFFFFF)V",                (void*)nativeSet3DView},
-    {"text3D",   "(Ljava/lang/String;FFF)V",      (void*)nativeText3D},
-    {"updateCameraBuffer", "(Landroid/hardware/HardwareBuffer;)V", (void*)nativeUpdateCameraBuffer},
-    {"camera",      "(FFFF)V",  (void*)nativeCamera},
-    {"mousePickingPoint", "(FFFFJ)V", (void*)nativeMousePickingPoint}
-    };
+    // Color / Style
+    { "fill", "(IIII)V", (void*)nativeFill },
+    { "fill", "(II)V",   (void*)nativeFillRGB },
+
+    // Transformations
+    { "rotate",      "(F)V",  (void*)nativeRotate },
+    { "translate",   "(FF)V", (void*)nativeTranslate },
+    { "scale",       "(FF)V", (void*)nativeScaleXY },
+    { "scale",       "(F)V",  (void*)nativeScale },
+    { "pushMatrix",  "()V",   (void*)nativePushMatrix },
+    { "popMatrix",   "()V",   (void*)nativePopMatrix },
+    { "resetMatrix", "()V",   (void*)nativeResetMatrix },
+
+    // Drawing Modes
+    { "rectMode",    "(I)V", (void*)nativeRectMode },
+    { "ellipseMode", "(I)V", (void*)nativeEllipseMode },
+    { "imageMode",   "(I)V", (void*)nativeImageMode },
+
+    // 2D Primitives
+    { "rect",     "(FFFFF)V",  (void*)nativeRect },
+    { "triangle", "(FFFFFF)V", (void*)nativeTriangle },
+    { "ellipse",  "(FFFF)V",   (void*)nativeEllipse },
+    { "point",    "(FFFF)V",   (void*)nativePoint },
+
+    // Text
+    { "textFont",  "(Ljava/lang/String;I)V",  (void*)nativeTextFont },
+    { "textSize",  "(I)V",                    (void*)nativeTextSize },
+    { "textAlign", "(II)V",                   (void*)nativeTextAlign },
+    { "text",      "(Ljava/lang/String;FF)V", (void*)nativeText },
+
+    // Images
+    { "image", "(Ljava/lang/String;FFFF)V", (void*)nativeImage },
+
+    // 3D
+    { "set3DView",         "(FFFFFFFF)V",           (void*)nativeSet3DView },
+    { "text3D",            "(Ljava/lang/String;FFF)V", (void*)nativeText3D },
+    { "camera",            "(FFFF)V",               (void*)nativeCamera },
+    { "mousePickingPoint", "(FFFFJ)V",              (void*)nativeMousePickingPoint },
+
+    // Camera Buffer
+    { "updateCameraBuffer", "(Landroid/hardware/HardwareBuffer;)V", (void*)nativeUpdateCameraBuffer }
+  };
 
   const JNINativeMethod graphicsEngineMethods[] = {
     {"nativeGetRenderer2DPtr", "(J)J", (void*)nativeGetRenderer2DPtr}
