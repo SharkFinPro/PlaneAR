@@ -156,6 +156,12 @@ namespace ge {
                float z,
                float size);
 
+    void mousePickingPoint(float x,
+                           float y,
+                           float z,
+                           float size,
+                           uint32_t id);
+
     void set3DView(float x,
                    float y,
                    float z,

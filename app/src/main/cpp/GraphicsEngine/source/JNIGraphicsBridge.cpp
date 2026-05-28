@@ -456,7 +456,7 @@ namespace {
       return;
     }
 
-//    renderer->mousePickingPoint(x, y, z, size, id);
+    renderer->mousePickingPoint(x, y, z, size, id);
   }
 
   const JNINativeMethod renderer2DMethods[] = {

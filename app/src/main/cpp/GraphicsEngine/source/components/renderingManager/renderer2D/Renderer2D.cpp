@@ -547,6 +547,23 @@ namespace ge {
     increaseCurrentZ();
   }
 
+  void Renderer2D::mousePickingPoint(float x,
+                                     float y,
+                                     float z,
+                                     float size,
+                                     uint32_t id)
+  {
+    m_mousePicker->addObjectToMousePick(MousePickingPoint{
+      .viewMatrix = m_viewMatrix,
+      .projMatrix = m_projectionMatrix,
+      .x = x,
+      .y = y,
+      .z = z,
+      .size = size,
+      .id = id
+    });
+  }
+
   void Renderer2D::text3D(const std::string& text,
                           float x,
                           float y,
