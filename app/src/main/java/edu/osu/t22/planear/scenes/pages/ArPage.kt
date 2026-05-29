@@ -1,6 +1,7 @@
 package edu.osu.t22.planear.scenes.pages
 
 import android.hardware.HardwareBuffer
+import android.util.Log
 import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.geo.GeoPoint
 import edu.osu.t22.planear.geo.GeoUtils
@@ -34,6 +35,12 @@ class ArPage : Page {
 
     private val layerStep = 250.0f
 
+    private var waitingOnMousePickingResult: Boolean = false
+
+    private var selectedId: Long = 0
+
+    private var lastConsumedTapPos: Pair<Float, Float>? = null
+
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val width = sceneInfo.screenWidth
         val height = sceneInfo.screenHeight - navHeight
@@ -54,7 +61,33 @@ class ArPage : Page {
             AppSettings.cameraIsEnabled = true
         }
 
+        val tapPos = sceneInfo.gestures.singleTapUpPosition
+
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
+
+            tapPos?.let { (tx, ty) ->
+                if (tapPos != lastConsumedTapPos &&
+                    tx > 0 && tx < width &&
+                    ty > 0 && ty < height &&
+                    !waitingOnMousePickingResult) {
+
+                    Log.i("picking", "Requesting mouse picking!")
+
+                    requestMousePicking(tx, ty);
+
+                    waitingOnMousePickingResult = true
+
+                    lastConsumedTapPos = tapPos
+                }
+            }
+
+            if (waitingOnMousePickingResult && hasNewMousePickingResult()) {
+                selectedId = getMousePickingResult()
+
+                Log.i("picking", "New ID selected: $selectedId")
+
+                waitingOnMousePickingResult = false
+            }
 
             if (hb != null && hb != lastHb) {
                 updateCameraBuffer(hb)
@@ -190,9 +223,14 @@ class ArPage : Page {
                 point(bx, by, bz, 270)
 
                 // TODO: only send if mouse picking queried
-                mousePickingPoint(bx, by, bz, 270, p.id.toLong(16))
+                val id: Long = p.id.toLong(16)
+                mousePickingPoint(bx, by, bz, 270, id)
 
-                fill(245);
+                if (id == selectedId) {
+                    fill(150, 245, 150)
+                } else {
+                    fill(245)
+                }
                 point(fx, fy, fz, 250)
 
                 val textRadius = displayRadius - layerStep * 0.7f

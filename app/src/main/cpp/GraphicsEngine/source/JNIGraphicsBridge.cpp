@@ -2,6 +2,7 @@
 #include "components/assets/AssetManager.h"
 #include "components/assets/textures/CameraTexture.h"
 #include "components/renderingManager/RenderingManager.h"
+#include "components/renderingManager/renderer2D/MousePicker.h"
 #include "components/renderingManager/renderer2D/Renderer2D.h"
 #include <android/hardware_buffer_jni.h>
 #include <android/hardware_buffer.h>
@@ -459,6 +460,44 @@ namespace {
     renderer->mousePickingPoint(x, y, z, size, id);
   }
 
+  jlong nativeGetMousePickingResult(JNIEnv* env,
+                                    jobject thiz)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return 0;
+    }
+
+    return renderer->getMousePicker()->getSelectedID();
+  }
+
+  jboolean nativeHasNewMousePickingResult(JNIEnv* env,
+                                          jobject thiz)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return false;
+    }
+
+    return renderer->getMousePicker()->hasNewResult();
+  }
+
+  void nativeRequestMousePicking(JNIEnv* env,
+                                 jobject thiz,
+                                 jint mouseX,
+                                 jint mouseY)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+    renderer->getMousePicker()->requestMousePicking(mouseX, mouseY);
+  }
+
   const JNINativeMethod renderer2DMethods[] = {
     // Color / Style
     { "fill", "(IIII)V", (void*)nativeFill },
@@ -497,7 +536,12 @@ namespace {
     { "set3DView",         "(FFFFFFFF)V",           (void*)nativeSet3DView },
     { "text3D",            "(Ljava/lang/String;FFF)V", (void*)nativeText3D },
     { "camera",            "(FFFF)V",               (void*)nativeCamera },
-    { "mousePickingPoint", "(FFFFJ)V",              (void*)nativeMousePickingPoint },
+
+    // Mouse Picking
+    { "mousePickingPoint",        "(FFFFJ)V", (void*)nativeMousePickingPoint },
+    { "requestMousePicking",      "(II)V",    (void*)nativeRequestMousePicking },
+    { "getMousePickingResult",    "()J",      (void*)nativeGetMousePickingResult },
+    { "hasNewMousePickingResult", "()Z",      (void*)nativeHasNewMousePickingResult },
 
     // Camera Buffer
     { "updateCameraBuffer", "(Landroid/hardware/HardwareBuffer;)V", (void*)nativeUpdateCameraBuffer }

@@ -40,6 +40,11 @@ namespace ge {
   void MousePicker::render(const std::shared_ptr<PipelineManager>& pipelineManager,
                            const RenderInfo* renderInfo) const
   {
+    if (!m_shouldMousePick)
+    {
+      return;
+    }
+
     pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::mousePicking);
 
     for (const auto& object : m_objectsToMousePick)
@@ -61,14 +66,39 @@ namespace ge {
 
   void MousePicker::handleRenderedMousePickingImage(VkImage image)
   {
+    if (!m_shouldMousePick)
+    {
+      return;
+    }
+
     const auto objectID = getIDFromMousePickingImage(image, m_mouseX, m_mouseY);
 
     m_selectedID = objectID;
+
+    m_shouldMousePick = false;
+
+    m_hasNewResult = true;
   }
 
-  uint32_t MousePicker::getSelectedID() const
+  uint32_t MousePicker::getSelectedID()
   {
+    m_hasNewResult = false;
+
     return m_selectedID;
+  }
+
+  bool MousePicker::hasNewResult() const
+  {
+    return m_hasNewResult;
+  }
+
+  void MousePicker::requestMousePicking(int32_t mouseX,
+                                        int32_t mouseY)
+  {
+    m_mouseX = mouseX;
+    m_mouseY = mouseY;
+
+    m_shouldMousePick = true;
   }
 
   uint32_t MousePicker::getIDFromMousePickingImage(VkImage image,

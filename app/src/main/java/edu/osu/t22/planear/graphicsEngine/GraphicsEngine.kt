@@ -114,10 +114,19 @@ class Renderer2D(private val ptr: Long) {
 
     private external fun text3D(text: String, x: Float, y: Float, z: Float)
 
+    /* Mouse Picking */
     fun mousePickingPoint(x: Number, y: Number, z: Number, size: Number, id: Long)
         = mousePickingPoint(x.toFloat(), y.toFloat(), z.toFloat(), size.toFloat(), id)
 
     private external fun mousePickingPoint(x: Float, y: Float, z: Float, size: Float, id: Long)
+
+    fun requestMousePicking(mouseX: Number, mouseY: Number) = requestMousePicking(mouseX.toInt(), mouseY.toInt())
+
+    private external fun requestMousePicking(mouseX: Int, mouseY: Int)
+
+    external fun getMousePickingResult(): Long
+
+    external fun hasNewMousePickingResult(): Boolean
 
     /* Camera */
     external fun updateCameraBuffer(buffer: android.hardware.HardwareBuffer)
