@@ -15,6 +15,7 @@ add_library(${PROJECT_NAME} SHARED
   components/commandBuffer/SingleUseCommandBuffer.cpp
   components/descriptorSet/DescriptorSet.cpp
   components/framebuffers/Framebuffer.cpp
+  components/framebuffers/MousePickingFramebuffer.cpp
   components/framebuffers/SwapchainFramebuffer.cpp
   components/instance/DebugMessenger.cpp
   components/instance/Instance.cpp

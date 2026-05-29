@@ -9,6 +9,7 @@ namespace ge {
   class CommandBuffer;
   class Framebuffer;
   class LogicalDevice;
+  class MousePickingFramebuffer;
   class RenderPass;
   class Swapchain;
   class SwapchainFramebuffer;
@@ -45,7 +46,7 @@ namespace ge {
     VkCommandPool m_commandPool = VK_NULL_HANDLE;
 
     std::shared_ptr<SwapchainFramebuffer> m_framebuffer;
-    std::shared_ptr<Framebuffer> m_mousePickingFramebuffer;
+    std::shared_ptr<MousePickingFramebuffer> m_mousePickingFramebuffer;
 
     std::shared_ptr<RenderPass> m_renderPass;
     std::shared_ptr<RenderPass> m_mousePickingRenderPass;

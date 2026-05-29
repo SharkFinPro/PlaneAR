@@ -46,7 +46,7 @@ namespace ge {
                                          VkFormat depthFormat,
                                          VkExtent2D extent)
   {
-    const VkSampleCountFlagBits samples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples();
+    const VkSampleCountFlagBits samples = getSampleCount();
 
     Images::createImage(
       m_logicalDevice,
@@ -90,7 +90,7 @@ namespace ge {
 
   void Framebuffer::createColorResources(VkExtent2D extent)
   {
-    const VkSampleCountFlagBits samples = m_logicalDevice->getPhysicalDevice()->getMsaaSamples();
+    const VkSampleCountFlagBits samples = getSampleCount();
 
     const auto colorFormat = getColorFormat();
 
@@ -127,16 +127,21 @@ namespace ge {
   {
     const auto imageViews = getImageViews();
 
-    m_framebuffers.resize(imageViews.size());
+    const size_t numFramebuffers = imageViews.empty() ? m_logicalDevice->getMaxFramesInFlight() : imageViews.size();
 
-    for (size_t i = 0; i < imageViews.size(); i++)
+    m_framebuffers.resize(numFramebuffers);
+
+    for (size_t i = 0; i < numFramebuffers; i++)
     {
       std::vector<VkImageView> attachments {
         m_colorImageView,
         m_depthImageView
       };
 
-      attachments.push_back(imageViews.at(i));
+      if (!imageViews.empty())
+      {
+        attachments.push_back(imageViews.at(i));
+      }
 
       const VkFramebufferCreateInfo framebufferInfo {
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,

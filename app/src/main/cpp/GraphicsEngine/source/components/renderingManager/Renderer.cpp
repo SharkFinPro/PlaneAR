@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "../commandBuffer/CommandBuffer.h"
+#include "../framebuffers/MousePickingFramebuffer.h"
 #include "../framebuffers/SwapchainFramebuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../physicalDevice/PhysicalDevice.h"
@@ -53,7 +54,12 @@ namespace ge {
   {
     m_mousePickingFramebuffer.reset();
 
-    // TODO: Create framebuffer
+    m_mousePickingFramebuffer = std::make_shared<MousePickingFramebuffer>(
+      m_logicalDevice,
+      m_commandPool,
+      m_mousePickingRenderPass,
+      mousePickingExtent
+    );
   }
 
   void Renderer::beginSwapchainRendering(uint32_t imageIndex, VkExtent2D extent,
