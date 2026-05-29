@@ -61,18 +61,14 @@ namespace ge {
 
   void MousePicker::handleRenderedMousePickingImage(VkImage image)
   {
+    const auto objectID = getIDFromMousePickingImage(image, m_mouseX, m_mouseY);
 
+    m_selectedID = objectID;
   }
 
   uint32_t MousePicker::getSelectedID() const
   {
     return m_selectedID;
-  }
-
-  void MousePicker::doMousePicking(const uint32_t mouseX,
-                                   const uint32_t mouseY)
-  {
-
   }
 
   uint32_t MousePicker::getIDFromMousePickingImage(VkImage image,

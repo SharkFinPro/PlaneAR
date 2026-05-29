@@ -31,9 +31,6 @@ namespace ge {
 
     [[nodiscard]] uint32_t getSelectedID() const;
 
-    void doMousePicking(uint32_t mouseX,
-                        uint32_t mouseY);
-
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -45,6 +42,9 @@ namespace ge {
     uint32_t m_selectedID = 0;
 
     std::vector<MousePickingPoint> m_objectsToMousePick;
+
+    int32_t m_mouseX = 0;
+    int32_t m_mouseY = 0;
 
     [[nodiscard]] uint32_t getIDFromMousePickingImage(VkImage image,
                                                       int32_t mouseX,
