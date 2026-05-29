@@ -100,7 +100,7 @@ namespace ge {
 
       m_renderer2D->render(pipelineManager, &renderInfo);
 
-      m_renderer->endRendering(renderInfo.commandBuffer);
+      ge::Renderer::endRendering(renderInfo.commandBuffer);
     });
   }
 } // ge
