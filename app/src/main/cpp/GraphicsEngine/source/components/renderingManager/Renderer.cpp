@@ -85,4 +85,9 @@ namespace ge {
     );
   }
 
+  VkImage Renderer::getMousePickingColorImage() const
+  {
+    return m_mousePickingFramebuffer->getColorImage();
+  }
+
 } // ge

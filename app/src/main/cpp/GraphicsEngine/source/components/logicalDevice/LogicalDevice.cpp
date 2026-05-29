@@ -307,9 +307,19 @@ namespace ge {
     vkWaitForFences(m_device, 1, &m_swapchainInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
   }
 
+  void LogicalDevice::waitForMousePickingFences(uint32_t currentFrame) const
+  {
+    vkWaitForFences(m_device, 1, &m_mousePickingInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+  }
+
   void LogicalDevice::resetGraphicsFences(uint32_t currentFrame) const
   {
     vkResetFences(m_device, 1, &m_swapchainInFlightFences[currentFrame]);
+  }
+
+  void LogicalDevice::resetMousePickingFences(uint32_t currentFrame) const
+  {
+    vkResetFences(m_device, 1, &m_mousePickingInFlightFences[currentFrame]);
   }
 
   VkResult LogicalDevice::acquireNextImage(const uint32_t currentFrame,
@@ -352,6 +362,31 @@ namespace ge {
     if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_swapchainInFlightFences[currentFrame]) != VK_SUCCESS)
     {
       throw std::runtime_error("failed to submit draw command buffer!");
+    }
+  }
+
+  void LogicalDevice::submitMousePickingGraphicsQueue(const uint32_t currentFrame,
+                                                      const VkCommandBuffer* commandBuffer) const
+  {
+    constexpr VkPipelineStageFlags waitStages[] = {
+      VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+    };
+
+    const VkSubmitInfo submitInfo {
+      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+      .waitSemaphoreCount = 0,
+      .pWaitSemaphores = nullptr,
+      .pWaitDstStageMask = waitStages,
+      .commandBufferCount = 1,
+      .pCommandBuffers = commandBuffer,
+      .signalSemaphoreCount = 0,
+      .pSignalSemaphores = nullptr
+    };
+
+    if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_mousePickingInFlightFences[currentFrame]) != VK_SUCCESS)
+    {
+      throw std::runtime_error("Failed to submit draw command buffer!");
     }
   }
 
@@ -454,6 +489,7 @@ namespace ge {
     m_swapchainImageAvailableSemaphores.resize(m_maxFramesInFlight);
     m_swapchainRenderFinishedSemaphores.resize(m_swapchainImageCount);
     m_swapchainInFlightFences.resize(m_maxFramesInFlight);
+    m_mousePickingInFlightFences.resize(m_maxFramesInFlight);
 
     constexpr VkSemaphoreCreateInfo semaphoreInfo {
       .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
@@ -475,7 +511,8 @@ namespace ge {
     for (size_t i = 0; i < m_maxFramesInFlight; i++)
     {
       if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_swapchainImageAvailableSemaphores[i]) != VK_SUCCESS ||
-          vkCreateFence(m_device, &fenceInfo, nullptr, &m_swapchainInFlightFences[i]) != VK_SUCCESS)
+          vkCreateFence(m_device, &fenceInfo, nullptr, &m_swapchainInFlightFences[i]) != VK_SUCCESS ||
+          vkCreateFence(m_device, &fenceInfo, nullptr, &m_mousePickingInFlightFences[i]) != VK_SUCCESS)
       {
         throw std::runtime_error("failed to create swapchain rendering sync objects!");
       }
@@ -493,6 +530,7 @@ namespace ge {
     {
       vkDestroySemaphore(m_device, m_swapchainImageAvailableSemaphores[i], nullptr);
       vkDestroyFence(m_device, m_swapchainInFlightFences[i], nullptr);
+      vkDestroyFence(m_device, m_mousePickingInFlightFences[i], nullptr);
     }
   }
 

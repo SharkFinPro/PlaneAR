@@ -25,6 +25,8 @@ namespace ge {
 
     [[nodiscard]] std::shared_ptr<RenderPass> getMousePickingRenderPass() const;
 
+    [[nodiscard]] VkImage getMousePickingColorImage() const;
+
     void resetSwapchainImageResources(const std::shared_ptr<Swapchain>& swapchain);
 
     void resetMousePickingImageResources(VkExtent2D mousePickingExtent);
