@@ -10,6 +10,7 @@ import edu.osu.t22.planear.graphicsEngine.TextAlignH
 import edu.osu.t22.planear.graphicsEngine.TextAlignV
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
+import edu.osu.t22.planear.adsb.Aircraft
 import kotlin.math.max
 import kotlin.math.min
 

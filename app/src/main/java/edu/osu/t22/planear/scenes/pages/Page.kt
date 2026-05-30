@@ -13,6 +13,7 @@ import edu.osu.t22.planear.achievements.AchievementStore
 import edu.osu.t22.planear.scenes.Scene
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
+import edu.osu.t22.planear.adsb.Aircraft
 
 enum class SceneId(val id: Int) {
     AR(2), FlightHistory(3), Settings(4), Favorites(5), Achievements(6)
@@ -185,12 +186,6 @@ object FlightDetailSheet {
             drawField("TYPE",      flight.type ?: "Unknown",                    fieldStartY + fieldGap * 3)
             drawField("HEADING",   "${flight.headingDegrees?.toInt() ?: "N/A"}°", fieldStartY + fieldGap * 4)
 
-            // ── Close button — anchored inside the sheet near the bottom ──────
-            val btnW = screenW * 0.60f
-            val btnH = 72f
-            val btnX = (screenW - btnW) / 2f
-            // Place it with a fixed margin above the nav bar top
-            val btnY = screenH - navHeight - btnH - 28f
 
             // draw buttons
             fill(c.accent)

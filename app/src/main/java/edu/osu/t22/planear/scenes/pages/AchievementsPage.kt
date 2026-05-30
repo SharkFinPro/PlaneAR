@@ -10,6 +10,7 @@ import edu.osu.t22.planear.graphicsEngine.TextAlignH
 import edu.osu.t22.planear.graphicsEngine.TextAlignV
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
+import edu.osu.t22.planear.adsb.Aircraft
 
 /**
  * Achievements page — 2-column scrollable grid of achievement cards.
@@ -89,17 +90,17 @@ class AchievementsPage : Page {
         val streak   = AchievementStore.getCurrentStreak()
 
         if (!sheetShownOnStart) {
-            FlightDetailSheet.open(
-                Aircraft(
-                    id             = "a1b2c3",
-                    callsign       = "UAL1234",
-                    type           = "Boeing 737-800",
-                    registration   = "N12345",
-                    altitudeSeaLevel = 35000.0,
-                    groundSpeed    = 487.0,
-                    headingDegrees = 270.0
-                )
-            )
+            val testAircraft = Aircraft(
+                id       = "a1b2c3",
+                callsign = "UAL1234",
+                type     = "Boeing 737-800",
+                speed    = 487.0,
+                altitude = 35000.0
+            ).apply {
+                registration   = "N12345"
+                headingDegrees = 270.0
+            }
+            FlightDetailSheet.open(testAircraft)
             sheetShownOnStart = true
         }
 
