@@ -261,7 +261,7 @@ namespace ge::PipelineConfig {
         .colorBlendState = gps::colorBlendState,
         .depthStencilState = gps::depthStencilState,
         .dynamicState = gps::dynamicState,
-        .inputAssemblyState = gps::inputAssemblyStateTriangleList,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
         .multisampleState = gps::multisampleStateNone,
         .rasterizationState = gps::rasterizationStateNoCull,
         .vertexInputState = gps::vertexInputStateRaw,

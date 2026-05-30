@@ -61,7 +61,7 @@ class ArPage : Page {
             AppSettings.cameraIsEnabled = true
         }
 
-        val tapPos = sceneInfo.gestures.singleTapUpPosition
+        val tapPos = sceneInfo.gestures.touchDownPosition
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 
