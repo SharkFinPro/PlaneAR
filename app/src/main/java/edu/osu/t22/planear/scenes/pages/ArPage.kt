@@ -71,20 +71,20 @@ class ArPage : Page {
                     ty > 0 && ty < height &&
                     !waitingOnMousePickingResult) {
 
-                    Log.i("picking", "Requesting mouse picking!")
-
                     requestMousePicking(tx, ty);
 
                     waitingOnMousePickingResult = true
 
                     lastConsumedTapPos = tapPos
+
+                    sceneInfo.gestures.markTouchDownConsumed()
                 }
             }
 
             if (waitingOnMousePickingResult && hasNewMousePickingResult()) {
                 selectedId = getMousePickingResult()
 
-                Log.i("picking", "New ID selected: $selectedId")
+                lastConsumedTapPos = null
 
                 waitingOnMousePickingResult = false
             }
