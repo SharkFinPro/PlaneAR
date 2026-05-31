@@ -440,12 +440,11 @@ namespace ge {
       createDescriptorSet(m_descriptorPool, m_descriptorSetLayout);
     }
 
-    m_descriptorSet->updateDescriptorSets(
-      [this](VkDescriptorSet descriptorSet, size_t) {
-        return std::vector<VkWriteDescriptorSet>{
-          getWriteDescriptorSet(0, descriptorSet)
-        };
-      });
+    m_descriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, size_t) {
+      return std::vector<VkWriteDescriptorSet>{
+        getWriteDescriptorSet(0, descriptorSet)
+      };
+    });
   }
 
 } // namespace ge
