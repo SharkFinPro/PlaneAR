@@ -33,6 +33,8 @@ namespace ge {
 
     void updateCameraTexture();
 
+    void flushDescriptorUpdate(size_t frame);
+
   private:
     VkCommandPool m_commandPool;
 
@@ -66,6 +68,8 @@ namespace ge {
     ACameraDevice_StateCallbacks          m_deviceCallbacks{};
     ACameraCaptureSession_stateCallbacks  m_sessionCallbacks{};
 
+    std::vector<bool> m_dirtyFrames; // one entry per frame-in-flight
+
     static void onImageAvailable(void* ctx,
                                  AImageReader* reader);
 
@@ -74,6 +78,8 @@ namespace ge {
     void createYCBCRResources(const VkAndroidHardwareBufferFormatPropertiesANDROID& formatProperties);
 
     void updateFromHardwareBuffer(AHardwareBuffer* buffer);
+
+    void markAllFramesDirty();
   };
 
 } // ge

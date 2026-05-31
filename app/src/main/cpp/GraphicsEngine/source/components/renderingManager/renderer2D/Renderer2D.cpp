@@ -854,6 +854,8 @@ namespace ge {
       return;
     }
 
+    m_assetManager->getCameraTexture()->flushDescriptorUpdate(renderInfo->currentFrame);
+
     if (!pipelineManager->hasCameraPipeline())
     {
       pipelineManager->createCameraPipeline(m_assetManager->getCameraTexture()->getDescriptorSetLayout());

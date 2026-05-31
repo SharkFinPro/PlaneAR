@@ -11,7 +11,9 @@ namespace ge {
     : ImageTexture(std::move(logicalDevice)),
       m_commandPool(commandPool),
       m_descriptorPool(descriptorPool)
-  {}
+  {
+    m_dirtyFrames.resize(m_logicalDevice->getMaxFramesInFlight(), false);
+  }
 
   CameraTexture::~CameraTexture()
   {
@@ -440,11 +442,25 @@ namespace ge {
       createDescriptorSet(m_descriptorPool, m_descriptorSetLayout);
     }
 
-    m_descriptorSet->updateDescriptorSets([this](VkDescriptorSet descriptorSet, size_t) {
+    markAllFramesDirty();
+  }
+
+  void CameraTexture::markAllFramesDirty()
+  {
+    std::fill(m_dirtyFrames.begin(), m_dirtyFrames.end(), true);
+  }
+
+  void CameraTexture::flushDescriptorUpdate(size_t frame)
+  {
+    if (!m_dirtyFrames[frame]) return;
+
+    m_descriptorSet->updateDescriptorSet(frame, [this](VkDescriptorSet descriptorSet) {
       return std::vector<VkWriteDescriptorSet>{
         getWriteDescriptorSet(0, descriptorSet)
       };
     });
+
+    m_dirtyFrames[frame] = false;
   }
 
 } // namespace ge
