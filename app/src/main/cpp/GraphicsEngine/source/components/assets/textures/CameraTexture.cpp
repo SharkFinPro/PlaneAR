@@ -62,14 +62,14 @@ namespace ge {
     ACameraIdList* cameraIdList = nullptr;
     ACameraManager_getCameraIdList(m_camManager, &cameraIdList);
 
-    const char* cameraId = nullptr;
+    std::string cameraIdStr;
     for (int i = 0; i < cameraIdList->numCameras; i++) {
       ACameraMetadata* metadata = nullptr;
       ACameraManager_getCameraCharacteristics(m_camManager, cameraIdList->cameraIds[i], &metadata);
       ACameraMetadata_const_entry entry{};
       ACameraMetadata_getConstEntry(metadata, ACAMERA_LENS_FACING, &entry);
       if (entry.data.u8[0] == ACAMERA_LENS_FACING_BACK) {
-        cameraId = cameraIdList->cameraIds[i];
+        cameraIdStr = cameraIdList->cameraIds[i];
         ACameraMetadata_free(metadata);
         break;
       }
@@ -78,7 +78,7 @@ namespace ge {
 
     // Pick best YUV size matching aspect ratio
     ACameraMetadata* metadata = nullptr;
-    ACameraManager_getCameraCharacteristics(m_camManager, cameraId, &metadata);
+    ACameraManager_getCameraCharacteristics(m_camManager, cameraIdStr.c_str(), &metadata);
 
     ACameraMetadata_const_entry orientationEntry{};
     ACameraMetadata_getConstEntry(metadata, ACAMERA_SENSOR_ORIENTATION, &orientationEntry);
@@ -127,7 +127,7 @@ namespace ge {
       .onDisconnected = [](void*, ACameraDevice* dev) { ACameraDevice_close(dev); },
       .onError         = [](void*, ACameraDevice* dev, int) { ACameraDevice_close(dev); }
     };
-    ACameraManager_openCamera(m_camManager, cameraId, &m_deviceCallbacks, &m_camDevice);
+    ACameraManager_openCamera(m_camManager, cameraIdStr.c_str(), &m_deviceCallbacks, &m_camDevice);
 
     if (m_camDevice == nullptr)
     {
