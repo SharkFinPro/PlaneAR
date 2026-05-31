@@ -13,6 +13,7 @@ namespace ge {
       m_descriptorPool(descriptorPool)
   {
     m_dirtyFrames.resize(m_logicalDevice->getMaxFramesInFlight(), false);
+    m_bufferPool.resize(m_logicalDevice->getMaxFramesInFlight(), {});
   }
 
   CameraTexture::~CameraTexture()
@@ -114,7 +115,7 @@ namespace ge {
       bestWidth, bestHeight,
       AIMAGE_FORMAT_YUV_420_888,
       AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE,
-      2,
+      m_logicalDevice->getMaxFramesInFlight(),
       &m_imageReader
     );
 
@@ -396,13 +397,13 @@ namespace ge {
   void CameraTexture::updateFromHardwareBuffer(AHardwareBuffer* buffer)
   {
     // Find if this buffer is already imported
-    for (int i = 0; i < POOL_SIZE; i++) {
+    for (int i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++) {
       if (m_bufferPool[i].buffer == buffer) return; // already current, nothing to do
     }
 
     // Evict the oldest slot
     ImportedBuffer& slot = m_bufferPool[m_poolIndex];
-    m_poolIndex = (m_poolIndex + 1) % POOL_SIZE;
+    m_poolIndex = (m_poolIndex + 1) % static_cast<int>(m_logicalDevice->getMaxFramesInFlight());
 
     // Safe to destroy — GPU is at least 1 frame behind,
     // the other slot covered the intervening frames

@@ -48,8 +48,7 @@ namespace ge {
       AHardwareBuffer* buffer  = nullptr;
     };
 
-    static constexpr int POOL_SIZE = 2;
-    ImportedBuffer m_bufferPool[POOL_SIZE];
+    std::vector<ImportedBuffer> m_bufferPool;
     int m_poolIndex = 0;
 
     VkSampler m_ycbcrSampler = VK_NULL_HANDLE;
