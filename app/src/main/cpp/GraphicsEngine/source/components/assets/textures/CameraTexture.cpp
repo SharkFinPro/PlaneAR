@@ -224,7 +224,7 @@ namespace ge {
       .pNext = &formatProperties
     };
 
-    vkGetAndroidHardwareBufferPropertiesANDROID(m_logicalDevice->getDevice(), hardwareBuffer, &ahbProperties);
+    m_logicalDevice->getAndroidHardwareBufferPropertiesANDROID(hardwareBuffer, &ahbProperties);
 
     createYCBCRResources(formatProperties);
 
@@ -254,7 +254,7 @@ namespace ge {
       .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
     };
 
-    vkCreateImage(m_logicalDevice->getDevice(), &imageInfo, nullptr, &slot.image);
+    slot.image = m_logicalDevice->createImage(imageInfo);
 
     VkImportAndroidHardwareBufferInfoANDROID importInfo = {
       .sType = VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
@@ -276,8 +276,9 @@ namespace ge {
                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
     };
 
-    vkAllocateMemory(m_logicalDevice->getDevice(), &memoryAllocateInfo, nullptr, &slot.memory);
-    vkBindImageMemory(m_logicalDevice->getDevice(), slot.image, slot.memory, 0);
+    m_logicalDevice->allocateMemory(memoryAllocateInfo, slot.memory);
+
+    m_logicalDevice->bindImageMemory(slot.image, slot.memory, 0);
 
     VkSamplerYcbcrConversionInfo conversionInfo = {
       .sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
@@ -299,7 +300,7 @@ namespace ge {
       .subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
     };
 
-    vkCreateImageView(m_logicalDevice->getDevice(), &viewInfo, nullptr, &slot.imageView);
+    slot.imageView = m_logicalDevice->createImageView(viewInfo);
 
     slot.buffer = hardwareBuffer;
 
@@ -316,20 +317,14 @@ namespace ge {
 
     if (m_ycbcrConversion != VK_NULL_HANDLE)
     {
-      vkDeviceWaitIdle(m_logicalDevice->getDevice());
-      vkDestroySamplerYcbcrConversion(
-        m_logicalDevice->getDevice(),
-        m_ycbcrConversion,
-        nullptr
-      );
+      m_logicalDevice->waitIdle();
 
-      m_ycbcrConversion = VK_NULL_HANDLE;
+      m_logicalDevice->destroySamplerYcbcrConversion(m_ycbcrConversion);
+
       m_logicalDevice->destroySampler(m_ycbcrSampler);
 
-      if (m_descriptorSetLayout != VK_NULL_HANDLE)
-      {
-        m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
-      }
+      m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
+
       m_descriptorSet.reset();
     }
 
@@ -355,7 +350,7 @@ namespace ge {
       .forceExplicitReconstruction = VK_FALSE
     };
 
-    vkCreateSamplerYcbcrConversion(m_logicalDevice->getDevice(), &ycbcrInfo, nullptr, &m_ycbcrConversion);
+    m_ycbcrConversion = m_logicalDevice->createSamplerYcbcrConversion(ycbcrInfo);
 
     VkSamplerYcbcrConversionInfo conversionInfo = {
       .sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
@@ -385,7 +380,7 @@ namespace ge {
       .unnormalizedCoordinates = VK_FALSE
     };
 
-    vkCreateSampler(m_logicalDevice->getDevice(), &samplerInfo, nullptr, &m_ycbcrSampler);
+    m_ycbcrSampler = m_logicalDevice->createSampler(samplerInfo);
   }
 
   void CameraTexture::onImageAvailable(void* ctx,

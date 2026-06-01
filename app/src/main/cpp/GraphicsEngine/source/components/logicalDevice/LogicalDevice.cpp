@@ -21,11 +21,6 @@ namespace ge {
     vkDestroyDevice(m_device, nullptr);
   }
 
-  VkDevice LogicalDevice::getDevice() const
-  {
-    return m_device;
-  }
-
   std::shared_ptr<PhysicalDevice> LogicalDevice::getPhysicalDevice() const
   {
     return m_physicalDevice;
@@ -682,5 +677,25 @@ namespace ge {
     vkDestroySamplerYcbcrConversion(m_device, ycbcrConversion, nullptr);
 
     ycbcrConversion = VK_NULL_HANDLE;
+  }
+
+  VkSamplerYcbcrConversion LogicalDevice::createSamplerYcbcrConversion(VkSamplerYcbcrConversionCreateInfo& ycbcrInfo)
+  {
+    VkSamplerYcbcrConversion ycbcrConversion = VK_NULL_HANDLE;
+
+    vkCreateSamplerYcbcrConversion(
+      m_device,
+      &ycbcrInfo,
+      nullptr,
+      &ycbcrConversion
+    );
+
+    return ycbcrConversion;
+  }
+
+  void LogicalDevice::getAndroidHardwareBufferPropertiesANDROID(const struct AHardwareBuffer* buffer,
+                                                                VkAndroidHardwareBufferPropertiesANDROID* pProperties)
+  {
+    vkGetAndroidHardwareBufferPropertiesANDROID(m_device, buffer, pProperties);
   }
 } // ge
