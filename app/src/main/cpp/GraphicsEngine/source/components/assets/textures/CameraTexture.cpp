@@ -14,7 +14,7 @@ namespace ge {
       m_descriptorPool(descriptorPool)
   {
     m_dirtyFrames.resize(m_logicalDevice->getMaxFramesInFlight(), false);
-    m_bufferPool.resize(m_logicalDevice->getMaxFramesInFlight(), {});
+    m_bufferPool.resize(m_logicalDevice->getMaxFramesInFlight() * 2, {});
   }
 
   CameraTexture::~CameraTexture()
@@ -105,12 +105,19 @@ namespace ge {
       if (sizesEntry.data.i32[i + 3] != 0) continue; // skip input streams
       int w = sizesEntry.data.i32[i + 1];
       int h = sizesEntry.data.i32[i + 2];
+
+      // Cap the max resolution
+      if (w > 1920 || h > 1080) continue;
+//      if (w > 1280 || h > 720) continue;
+
       float aspect = isRotated ? (float)h / (float)w : (float)w / (float)h;
       float diff = std::abs(aspect - portraitAspect);
       if (diff < bestDiff) { bestDiff = diff; bestWidth = w; bestHeight = h; }
     }
     ACameraMetadata_free(metadata);
     ACameraManager_deleteCameraIdList(cameraIdList);
+
+    LOGI("Best Width: %d, Best Height: %d", bestWidth, bestHeight);
 
     // ImageReader
     AImageReader_newWithUsage(
@@ -238,79 +245,85 @@ namespace ge {
 
     createYCBCRResources(formatProperties);
 
-    VkExternalFormatANDROID externalFormat = {
-      .sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID,
-      .externalFormat = formatProperties.externalFormat
-    };
+    if (slot.image == VK_NULL_HANDLE) {
+      VkExternalFormatANDROID externalFormat = {
+        .sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID,
+        .externalFormat = formatProperties.externalFormat
+      };
 
-    VkExternalMemoryImageCreateInfo extMemImageInfo = {
-      .sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
-      .pNext = (formatProperties.format == VK_FORMAT_UNDEFINED) ? &externalFormat : nullptr,
-      .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID
-    };
+      VkExternalMemoryImageCreateInfo extMemImageInfo = {
+        .sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
+        .pNext = (formatProperties.format == VK_FORMAT_UNDEFINED) ? &externalFormat : nullptr,
+        .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID
+      };
 
-    VkImageCreateInfo imageInfo = {
-      .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-      .pNext = &extMemImageInfo,
-      .imageType = VK_IMAGE_TYPE_2D,
-      .format = formatProperties.format,
-      .extent = { ahbDesc.width, ahbDesc.height, 1 },
-      .mipLevels = 1,
-      .arrayLayers = 1,
-      .samples = VK_SAMPLE_COUNT_1_BIT,
-      .tiling = VK_IMAGE_TILING_OPTIMAL,
-      .usage = VK_IMAGE_USAGE_SAMPLED_BIT,
-      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
-    };
+      VkImageCreateInfo imageInfo = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .pNext = &extMemImageInfo,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .format = formatProperties.format,
+        .extent = { ahbDesc.width, ahbDesc.height, 1 },
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .tiling = VK_IMAGE_TILING_OPTIMAL,
+        .usage = VK_IMAGE_USAGE_SAMPLED_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+      };
 
-    slot.image = m_logicalDevice->createImage(imageInfo);
+      slot.image = m_logicalDevice->createImage(imageInfo);
+    }
 
-    VkImportAndroidHardwareBufferInfoANDROID importInfo = {
-      .sType = VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
-      .buffer = hardwareBuffer
-    };
+    if (slot.memory == VK_NULL_HANDLE) {
+      VkImportAndroidHardwareBufferInfoANDROID importInfo = {
+        .sType = VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
+        .buffer = hardwareBuffer
+      };
 
-    VkMemoryDedicatedAllocateInfo dedicatedInfo = {
-      .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
-      .pNext = &importInfo,
-      .image = slot.image
-    };
+      VkMemoryDedicatedAllocateInfo dedicatedInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
+        .pNext = &importInfo,
+        .image = slot.image
+      };
 
-    VkMemoryAllocateInfo memoryAllocateInfo = {
-      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-      .pNext = &dedicatedInfo,
-      .allocationSize = ahbProperties.allocationSize,
-      .memoryTypeIndex = m_logicalDevice->getPhysicalDevice()->findMemoryType(
-                           ahbProperties.memoryTypeBits,
-                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-    };
+      VkMemoryAllocateInfo memoryAllocateInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .pNext = &dedicatedInfo,
+        .allocationSize = ahbProperties.allocationSize,
+        .memoryTypeIndex = m_logicalDevice->getPhysicalDevice()->findMemoryType(
+          ahbProperties.memoryTypeBits,
+          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+      };
 
-    m_logicalDevice->allocateMemory(memoryAllocateInfo, slot.memory);
+      m_logicalDevice->allocateMemory(memoryAllocateInfo, slot.memory);
+    }
 
     m_logicalDevice->bindImageMemory(slot.image, slot.memory, 0);
 
-    VkSamplerYcbcrConversionInfo conversionInfo = {
-      .sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
-      .conversion = m_ycbcrConversion
-    };
+    if (slot.imageView == VK_NULL_HANDLE) {
+      VkSamplerYcbcrConversionInfo conversionInfo = {
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
+        .conversion = m_ycbcrConversion
+      };
 
-    VkImageViewCreateInfo viewInfo = {
-      .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-      .pNext = &conversionInfo,
-      .image = slot.image,
-      .viewType = VK_IMAGE_VIEW_TYPE_2D,
-      .format = VK_FORMAT_UNDEFINED,
-      .components = {
-        VK_COMPONENT_SWIZZLE_IDENTITY,
-        VK_COMPONENT_SWIZZLE_IDENTITY,
-        VK_COMPONENT_SWIZZLE_IDENTITY,
-        VK_COMPONENT_SWIZZLE_IDENTITY
-      },
-      .subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
-    };
+      VkImageViewCreateInfo viewInfo = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext = &conversionInfo,
+        .image = slot.image,
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .format = VK_FORMAT_UNDEFINED,
+        .components = {
+          VK_COMPONENT_SWIZZLE_IDENTITY,
+          VK_COMPONENT_SWIZZLE_IDENTITY,
+          VK_COMPONENT_SWIZZLE_IDENTITY,
+          VK_COMPONENT_SWIZZLE_IDENTITY
+        },
+        .subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
+      };
 
-    slot.imageView = m_logicalDevice->createImageView(viewInfo);
+      slot.imageView = m_logicalDevice->createImageView(viewInfo);
+    }
 
     slot.buffer = hardwareBuffer;
 
@@ -319,26 +332,10 @@ namespace ge {
 
   void CameraTexture::createYCBCRResources(const VkAndroidHardwareBufferFormatPropertiesANDROID& formatProperties)
   {
-    if (m_ycbcrConversion != VK_NULL_HANDLE &&
-        m_currentExternalFormat == formatProperties.externalFormat)
+    if (m_ycbcrConversion != VK_NULL_HANDLE)
     {
       return;
     }
-
-    if (m_ycbcrConversion != VK_NULL_HANDLE)
-    {
-      m_logicalDevice->waitIdle();
-
-      m_logicalDevice->destroySamplerYcbcrConversion(m_ycbcrConversion);
-
-      m_logicalDevice->destroySampler(m_ycbcrSampler);
-
-      m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
-
-      m_descriptorSet.reset();
-    }
-
-    m_currentExternalFormat = formatProperties.externalFormat;
 
     VkExternalFormatANDROID ycbcrExtFormat = {
       .sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID,
@@ -445,10 +442,6 @@ namespace ge {
     m_poolIndex = (m_poolIndex + 1) % static_cast<int>(m_bufferPool.size());
 
     if (slot.buffer != nullptr) {
-      m_logicalDevice->waitIdle();
-      m_logicalDevice->destroyImageView(slot.imageView);
-      m_logicalDevice->destroyImage(slot.image);
-      m_logicalDevice->freeMemory(slot.memory);
       AHardwareBuffer_release(slot.buffer);
     }
 
@@ -478,20 +471,9 @@ namespace ge {
       };
       m_descriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(layoutInfo);
       createDescriptorSet(m_descriptorPool, m_descriptorSetLayout);
-      m_pipelineDirty = true;
     }
 
     markAllFramesDirty();
-  }
-
-  bool CameraTexture::isPipelineDirty() const
-  {
-    return m_pipelineDirty;
-  }
-
-  void CameraTexture::clearPipelineDirty()
-  {
-    m_pipelineDirty = false;
   }
 
   void CameraTexture::markAllFramesDirty()

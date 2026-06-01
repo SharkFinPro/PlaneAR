@@ -35,10 +35,6 @@ namespace ge {
 
     void flushDescriptorUpdate(size_t frame);
 
-    [[nodiscard]] bool isPipelineDirty() const;
-
-    void clearPipelineDirty();
-
   private:
     VkCommandPool m_commandPool;
 
@@ -72,10 +68,6 @@ namespace ge {
     ACameraCaptureSession_stateCallbacks  m_sessionCallbacks{};
 
     std::vector<bool> m_dirtyFrames; // one entry per frame-in-flight
-
-    uint64_t m_currentExternalFormat = 0;
-
-    bool m_pipelineDirty = false;
 
     uint8_t m_colorFilterArrangement = 0;
 

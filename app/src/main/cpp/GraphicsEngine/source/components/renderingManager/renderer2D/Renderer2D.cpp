@@ -951,11 +951,9 @@ namespace ge {
 
     cameraTexture->flushDescriptorUpdate(renderInfo->currentFrame);
 
-    if (!pipelineManager->hasCameraPipeline() || cameraTexture->isPipelineDirty())
+    if (!pipelineManager->hasCameraPipeline())
     {
       pipelineManager->createCameraPipeline(cameraTexture->getDescriptorSetLayout());
-
-      cameraTexture->clearPipelineDirty();
     }
 
     pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::camera);
