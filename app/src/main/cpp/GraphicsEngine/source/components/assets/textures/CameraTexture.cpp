@@ -430,8 +430,11 @@ namespace ge {
     m_poolIndex = (m_poolIndex + 1) % static_cast<int>(m_bufferPool.size());
 
     if (slot.buffer != nullptr) {
+      m_logicalDevice->destroyImage(slot.image);
       m_logicalDevice->freeMemory(slot.memory);
       AHardwareBuffer_release(slot.buffer);
+      slot.buffer = nullptr;
+      m_logicalDevice->destroyImageView(slot.imageView);
     }
 
     AHardwareBuffer_acquire(buffer);
