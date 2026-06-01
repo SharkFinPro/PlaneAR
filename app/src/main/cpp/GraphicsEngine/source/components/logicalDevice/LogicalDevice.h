@@ -28,8 +28,6 @@ namespace ge {
 
     [[nodiscard]] VkQueue getPresentQueue() const;
 
-    [[nodiscard]] VkQueue getComputeQueue() const;
-
     [[nodiscard]] uint32_t getMaxFramesInFlight() const;
 
     [[nodiscard]] VkCommandPool createCommandPool(const VkCommandPoolCreateInfo& commandPoolCreateInfo) const;
@@ -162,7 +160,6 @@ namespace ge {
 
     VkQueue m_graphicsQueue = VK_NULL_HANDLE;
     VkQueue m_presentQueue = VK_NULL_HANDLE;
-    VkQueue m_computeQueue = VK_NULL_HANDLE;
 
     std::vector<VkSemaphore> m_swapchainImageAvailableSemaphores;
 

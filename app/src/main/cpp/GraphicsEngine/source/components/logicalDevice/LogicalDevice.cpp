@@ -41,11 +41,6 @@ namespace ge {
     return m_presentQueue;
   }
 
-  VkQueue LogicalDevice::getComputeQueue() const
-  {
-    return m_computeQueue;
-  }
-
   uint32_t LogicalDevice::getMaxFramesInFlight() const
   {
     return m_maxFramesInFlight;
@@ -100,7 +95,6 @@ namespace ge {
 
     m_device = m_physicalDevice->createLogicalDevice(createInfo);
 
-    vkGetDeviceQueue(m_device, queueFamilyIndices.computeFamily.value(), 0, &m_computeQueue);
     vkGetDeviceQueue(m_device, queueFamilyIndices.graphicsFamily.value(), 0, &m_graphicsQueue);
     vkGetDeviceQueue(m_device, queueFamilyIndices.presentFamily.value(), 0, &m_presentQueue);
   }
