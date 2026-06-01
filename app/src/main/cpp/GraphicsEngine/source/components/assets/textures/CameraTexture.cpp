@@ -117,7 +117,7 @@ namespace ge {
       bestWidth, bestHeight,
       AIMAGE_FORMAT_YUV_420_888,
       AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE,
-      static_cast<int32_t>(m_logicalDevice->getMaxFramesInFlight()),
+      static_cast<int32_t>(m_bufferPool.size()),
       &m_imageReader
     );
 
@@ -442,7 +442,7 @@ namespace ge {
 
     // Evict the oldest slot
     ImportedBuffer& slot = m_bufferPool[m_poolIndex];
-    m_poolIndex = (m_poolIndex + 1) % static_cast<int>(m_logicalDevice->getMaxFramesInFlight());
+    m_poolIndex = (m_poolIndex + 1) % static_cast<int>(m_bufferPool.size());
 
     if (slot.buffer != nullptr) {
       m_logicalDevice->waitIdle();
