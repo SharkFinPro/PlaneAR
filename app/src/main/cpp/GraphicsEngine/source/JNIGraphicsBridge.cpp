@@ -2,6 +2,7 @@
 #include "components/assets/AssetManager.h"
 #include "components/assets/textures/CameraTexture.h"
 #include "components/renderingManager/RenderingManager.h"
+#include "components/renderingManager/renderer2D/MousePicker.h"
 #include "components/renderingManager/renderer2D/Renderer2D.h"
 #include <android/hardware_buffer_jni.h>
 #include <android/hardware_buffer.h>
@@ -473,35 +474,112 @@ namespace {
     renderer->camera(x, y, w, h);
   }
 
+  void nativeMousePickingPoint(JNIEnv* env,
+                               jobject thiz,
+                               jfloat x,
+                               jfloat y,
+                               jfloat z,
+                               jfloat size,
+                               jlong id)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+    renderer->mousePickingPoint(x, y, z, size, id);
+  }
+
+  jlong nativeGetMousePickingResult(JNIEnv* env,
+                                    jobject thiz)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return 0;
+    }
+
+    return renderer->getMousePicker()->getSelectedID();
+  }
+
+  jboolean nativeHasNewMousePickingResult(JNIEnv* env,
+                                          jobject thiz)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return false;
+    }
+
+    return renderer->getMousePicker()->hasNewResult();
+  }
+
+  void nativeRequestMousePicking(JNIEnv* env,
+                                 jobject thiz,
+                                 jint mouseX,
+                                 jint mouseY)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+    renderer->getMousePicker()->requestMousePicking(mouseX, mouseY);
+  }
+
   const JNINativeMethod renderer2DMethods[] = {
-    {"fill",        "(IIII)V",                    (void*)nativeFill},
-    {"fill",        "(II)V",                      (void*)nativeFillRGB},
-    {"rotate",      "(F)V",                       (void*)nativeRotate},
-    {"translate",   "(FF)V",                      (void*)nativeTranslate},
-    {"scale",       "(FF)V",                      (void*)nativeScaleXY},
-    {"scale",       "(F)V",                       (void*)nativeScale},
-    {"pushMatrix",  "()V",                        (void*)nativePushMatrix},
-    {"popMatrix",   "()V",                        (void*)nativePopMatrix},
-    {"resetMatrix", "()V",                        (void*)nativeResetMatrix},
-    {"rectMode",    "(I)V",                       (void*)nativeRectMode},
-    {"ellipseMode", "(I)V",                       (void*)nativeEllipseMode},
-    {"imageMode",   "(I)V",                       (void*)nativeImageMode},
-    {"rect",        "(FFFFF)V",                    (void*)nativeRect},
-    {"triangle",    "(FFFFFF)V",                  (void*)nativeTriangle},
-    {"ellipse",     "(FFFF)V",                    (void*)nativeEllipse},
-    {"textFont",    "(Ljava/lang/String;I)V",     (void*)nativeTextFont},
-    {"textSize",    "(I)V",                       (void*)nativeTextSize},
-    {"textAlign",   "(II)V",                      (void*)nativeTextAlign},
-    {"text",        "(Ljava/lang/String;FF)V",    (void*)nativeText},
-    {"image",       "(Ljava/lang/String;FFFF)V",  (void*)nativeImage},
-    {"point",       "(FFFF)V",                     (void*)nativePoint},
-    {"set3DView",   "(FFFFFFFF)V",                (void*)nativeSet3DView},
-    {"text3D",   "(Ljava/lang/String;FFF)V",      (void*)nativeText3D},
+    // Color / Style
+    { "fill", "(IIII)V", (void*)nativeFill },
+    { "fill", "(II)V",   (void*)nativeFillRGB },
+
+    // Transformations
+    { "rotate",      "(F)V",  (void*)nativeRotate },
+    { "translate",   "(FF)V", (void*)nativeTranslate },
+    { "scale",       "(FF)V", (void*)nativeScaleXY },
+    { "scale",       "(F)V",  (void*)nativeScale },
+    { "pushMatrix",  "()V",   (void*)nativePushMatrix },
+    { "popMatrix",   "()V",   (void*)nativePopMatrix },
+    { "resetMatrix", "()V",   (void*)nativeResetMatrix },
+
+    // Drawing Modes
+    { "rectMode",    "(I)V", (void*)nativeRectMode },
+    { "ellipseMode", "(I)V", (void*)nativeEllipseMode },
+    { "imageMode",   "(I)V", (void*)nativeImageMode },
+
+    // 2D Primitives
+    { "rect",     "(FFFFF)V",  (void*)nativeRect },
+    { "triangle", "(FFFFFF)V", (void*)nativeTriangle },
+    { "ellipse",  "(FFFF)V",   (void*)nativeEllipse },
+    { "point",    "(FFFF)V",   (void*)nativePoint },
+
+    // Text
+    { "textFont",  "(Ljava/lang/String;I)V",  (void*)nativeTextFont },
+    { "textSize",  "(I)V",                    (void*)nativeTextSize },
+    { "textAlign", "(II)V",                   (void*)nativeTextAlign },
+    { "text",      "(Ljava/lang/String;FF)V", (void*)nativeText },
+
+    // Images
+    { "image", "(Ljava/lang/String;FFFF)V", (void*)nativeImage },
+
+    // 3D
+    { "set3DView",         "(FFFFFFFF)V",           (void*)nativeSet3DView },
+    { "text3D",            "(Ljava/lang/String;FFF)V", (void*)nativeText3D },
+    { "camera",            "(FFFF)V",               (void*)nativeCamera },
+
+    // Mouse Picking
+    { "mousePickingPoint",        "(FFFFJ)V", (void*)nativeMousePickingPoint },
+    { "requestMousePicking",      "(II)V",    (void*)nativeRequestMousePicking },
+    { "getMousePickingResult",    "()J",      (void*)nativeGetMousePickingResult },
+    { "hasNewMousePickingResult", "()Z",      (void*)nativeHasNewMousePickingResult },
+
+    // Camera
+    {"updateCameraTexture", "()V", (void*)nativeUpdateCameraTexture }
     {"startCamera", "(II)V", (void*)nativeStartCamera},
     {"stopCamera", "()V", (void*)nativeStopCamera},
     {"isCameraOpen", "()Z", (void*)nativeIsCameraOpen},
-    {"updateCameraTexture", "()V", (void*)nativeUpdateCameraTexture},
-    {"camera",      "(FFFF)V",  (void*)nativeCamera},
+
   };
 
   const JNINativeMethod graphicsEngineMethods[] = {

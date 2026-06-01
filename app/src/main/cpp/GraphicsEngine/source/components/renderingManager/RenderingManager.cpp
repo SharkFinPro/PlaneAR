@@ -1,5 +1,5 @@
 #include "RenderingManager.h"
-#include "LegacyRenderer.h"
+#include "Renderer.h"
 #include "renderer2D/Renderer2D.h"
 #include "../commandBuffer/CommandBuffer.h"
 #include "../logicalDevice/LogicalDevice.h"
@@ -20,9 +20,11 @@ namespace ge {
 
     m_swapchainCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
-    m_renderer = std::make_shared<LegacyRenderer>(m_logicalDevice, m_swapchain, m_commandPool);
+    m_mousePickingCommandBuffer = std::make_shared<CommandBuffer>(m_logicalDevice, m_commandPool);
 
-    m_renderer2D = std::make_shared<Renderer2D>(std::move(assetManager));
+    m_renderer = std::make_shared<Renderer>(m_logicalDevice, m_swapchain, m_commandPool);
+
+    m_renderer2D = std::make_shared<Renderer2D>(m_logicalDevice, std::move(assetManager));
   }
 
   void RenderingManager::doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -39,6 +41,8 @@ namespace ge {
     }
 
     m_logicalDevice->resetGraphicsFences(currentFrame);
+
+    doMousePicking(pipelineManager, currentFrame);
 
     m_swapchainCommandBuffer->setCurrentFrame(currentFrame);
     m_swapchainCommandBuffer->resetCommandBuffer();
@@ -100,7 +104,61 @@ namespace ge {
 
       m_renderer2D->render(pipelineManager, &renderInfo);
 
-      m_renderer->endSwapchainRendering(imageIndex, renderInfo.commandBuffer, m_swapchain);
+      ge::Renderer::endRendering(renderInfo.commandBuffer);
     });
+  }
+
+  void RenderingManager::recordMousePickingCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                                         uint32_t currentFrame) const
+  {
+    m_mousePickingCommandBuffer->record([this, pipelineManager, currentFrame]
+    {
+      const RenderInfo renderInfo {
+        .commandBuffer = m_mousePickingCommandBuffer,
+        .currentFrame = currentFrame,
+        .extent = m_swapchain->getExtent(),
+      };
+
+      if (renderInfo.extent.width == 0 || renderInfo.extent.height == 0)
+      {
+        return;
+      }
+
+      m_renderer->beginMousePickingRendering(currentFrame, renderInfo.extent, renderInfo.commandBuffer);
+
+      const VkViewport viewport = {
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = static_cast<float>(renderInfo.extent.width),
+        .height = static_cast<float>(renderInfo.extent.height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f
+      };
+      renderInfo.commandBuffer->setViewport(viewport);
+
+      const VkRect2D scissor = {
+        .offset = {0, 0},
+        .extent = renderInfo.extent
+      };
+      renderInfo.commandBuffer->setScissor(scissor);
+
+      m_renderer2D->renderMousePicking(pipelineManager, &renderInfo);
+
+      ge::Renderer::endRendering(renderInfo.commandBuffer);
+    });
+  }
+
+  void RenderingManager::doMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                        uint32_t currentFrame) const
+  {
+    m_logicalDevice->resetMousePickingFences(currentFrame);
+
+    m_mousePickingCommandBuffer->setCurrentFrame(currentFrame);
+    m_mousePickingCommandBuffer->resetCommandBuffer();
+    recordMousePickingCommandBuffer(pipelineManager, currentFrame);
+    m_logicalDevice->submitMousePickingGraphicsQueue(currentFrame, m_mousePickingCommandBuffer->getCommandBuffer());
+
+    m_logicalDevice->waitForMousePickingFences(currentFrame);
+    m_renderer2D->handleRenderedMousePickingImage(m_renderer->getMousePickingColorImage());
   }
 } // ge

@@ -10,7 +10,7 @@ namespace ge {
   class SwapchainFramebuffer final : public Framebuffer
   {
   public:
-    SwapchainFramebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
+    SwapchainFramebuffer(std::shared_ptr<LogicalDevice> logicalDevice,
                          const std::shared_ptr<Swapchain>& swapchain,
                          const VkCommandPool& commandPool,
                          const std::shared_ptr<RenderPass>& renderPass,
@@ -22,6 +22,8 @@ namespace ge {
     [[nodiscard]] VkFormat getColorFormat() override;
 
     [[nodiscard]] const std::vector<VkImageView>& getImageViews() override;
+
+    [[nodiscard]] VkSampleCountFlagBits getSampleCount() override;
   };
 
 } // ge

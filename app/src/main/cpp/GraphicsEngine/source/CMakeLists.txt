@@ -12,8 +12,10 @@ add_library(${PROJECT_NAME} SHARED
   components/assets/textures/ImageTexture.cpp
   components/assets/textures/Texture.cpp
   components/commandBuffer/CommandBuffer.cpp
+  components/commandBuffer/SingleUseCommandBuffer.cpp
   components/descriptorSet/DescriptorSet.cpp
   components/framebuffers/Framebuffer.cpp
+  components/framebuffers/MousePickingFramebuffer.cpp
   components/framebuffers/SwapchainFramebuffer.cpp
   components/instance/DebugMessenger.cpp
   components/instance/Instance.cpp
@@ -23,8 +25,9 @@ add_library(${PROJECT_NAME} SHARED
   components/pipelines/GraphicsPipeline.cpp
   components/pipelines/Pipeline.cpp
   components/pipelines/PipelineManager.cpp
+  components/renderingManager/renderer2D/MousePicker.cpp
   components/renderingManager/renderer2D/Renderer2D.cpp
-  components/renderingManager/LegacyRenderer.cpp
+  components/renderingManager/Renderer.cpp
   components/renderingManager/RenderingManager.cpp
   components/renderPass/RenderPass.cpp
   components/shaderModule/ShaderModule.cpp

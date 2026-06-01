@@ -22,7 +22,8 @@ namespace ge {
     point,
     font3D,
     image,
-    camera
+    camera,
+    mousePicking
   };
 
   class PipelineManager

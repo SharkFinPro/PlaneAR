@@ -2,11 +2,15 @@
 #include "../logicalDevice/LogicalDevice.h"
 
 namespace ge {
+  CommandBuffer::CommandBuffer(std::shared_ptr<LogicalDevice> logicalDevice)
+    : m_logicalDevice(std::move(logicalDevice))
+  {}
+
   CommandBuffer::CommandBuffer(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                VkCommandPool commandPool)
     : m_logicalDevice(logicalDevice)
   {
-    allocateCommandBuffers(commandPool);
+    CommandBuffer::allocateCommandBuffers(commandPool);
   }
 
   VkCommandBuffer* CommandBuffer::getCommandBuffer()
@@ -129,4 +133,41 @@ namespace ge {
       clearRects.data()
     );
   }
+
+  void CommandBuffer::pipelineBarrier(const VkPipelineStageFlags srcStageMask,
+                                      const VkPipelineStageFlags dstStageMask,
+                                      const VkDependencyFlags dependencyFlags,
+                                      const std::vector<VkMemoryBarrier>& memoryBarriers,
+                                      const std::vector<VkBufferMemoryBarrier>& bufferMemoryBarriers,
+                                      const std::vector<VkImageMemoryBarrier>& imageMemoryBarriers) const
+  {
+    vkCmdPipelineBarrier(
+      m_commandBuffers[m_currentFrame],
+      srcStageMask,
+      dstStageMask,
+      dependencyFlags,
+      memoryBarriers.size(),
+      memoryBarriers.data(),
+      bufferMemoryBarriers.size(),
+      bufferMemoryBarriers.data(),
+      imageMemoryBarriers.size(),
+      imageMemoryBarriers.data()
+    );
+  }
+
+  void CommandBuffer::copyImageToBuffer(VkImage srcImage,
+                                        const VkImageLayout srcImageLayout,
+                                        VkBuffer dstBuffer,
+                                        const std::vector<VkBufferImageCopy>& regions) const
+  {
+    vkCmdCopyImageToBuffer(
+      m_commandBuffers[m_currentFrame],
+      srcImage,
+      srcImageLayout,
+      dstBuffer,
+      regions.size(),
+      regions.data()
+    );
+  }
+
 } // ge

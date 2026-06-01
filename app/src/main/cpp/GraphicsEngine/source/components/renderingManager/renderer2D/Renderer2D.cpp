@@ -1,19 +1,26 @@
 #include "Renderer2D.h"
+#include "MousePicker.h"
 #include "../../assets/AssetManager.h"
 #include "../../assets/fonts/Font.h"
 #include "../../assets/textures/CameraTexture.h"
 #include "../../assets/textures/ImageTexture.h"
 #include "../../commandBuffer/CommandBuffer.h"
+#include "../../logicalDevice/LogicalDevice.h"
+#include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/GraphicsPipeline.h"
 #include "../../pipelines/PipelineManager.h"
-#include "../LegacyRenderer.h"
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace ge {
-  Renderer2D::Renderer2D(std::shared_ptr<AssetManager> assetManager)
-    : m_assetManager(std::move(assetManager))
-  {}
+  Renderer2D::Renderer2D(std::shared_ptr<LogicalDevice> logicalDevice,
+                         std::shared_ptr<AssetManager> assetManager)
+    : m_logicalDevice(std::move(logicalDevice)), m_assetManager(std::move(assetManager))
+  {
+    createCommandPool();
+
+    m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_commandPool);
+  }
 
   void Renderer2D::createNewFrame()
   {
@@ -32,6 +39,8 @@ namespace ge {
     textAlign(TextAlignH::LEFT, TextAlignV::BASELINE);
 
     m_drawList.clear();
+
+    m_mousePicker->clearObjectsToMousePick();
   }
 
   void Renderer2D::render(const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -133,6 +142,28 @@ namespace ge {
         }
       }, entry.command);
     }
+  }
+
+  std::shared_ptr<MousePicker> Renderer2D::getMousePicker()
+  {
+    return m_mousePicker;
+  }
+
+  void Renderer2D::renderMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                      const RenderInfo* renderInfo) const
+  {
+    const RenderInfo renderInfoMousePicking {
+      .commandBuffer = renderInfo->commandBuffer,
+      .currentFrame = renderInfo->currentFrame,
+      .extent = renderInfo->extent
+    };
+
+    m_mousePicker->render(pipelineManager, &renderInfoMousePicking);
+  }
+
+  void Renderer2D::handleRenderedMousePickingImage(const VkImage image) const
+  {
+    m_mousePicker->handleRenderedMousePickingImage(image);
   }
 
   void Renderer2D::fill(const float r,
@@ -515,6 +546,23 @@ namespace ge {
     increaseCurrentZ();
   }
 
+  void Renderer2D::mousePickingPoint(float x,
+                                     float y,
+                                     float z,
+                                     float size,
+                                     uint32_t id)
+  {
+    m_mousePicker->addObjectToMousePick(MousePickingPoint{
+      .viewMatrix = m_viewMatrix,
+      .projMatrix = m_projectionMatrix,
+      .x = x,
+      .y = y,
+      .z = z,
+      .size = size,
+      .id = id
+    });
+  }
+
   void Renderer2D::text3D(const std::string& text,
                           float x,
                           float y,
@@ -632,6 +680,16 @@ namespace ge {
     );
 
     m_projectionMatrix[1][1] *= -1;
+  }
+
+  void Renderer2D::createCommandPool()
+  {
+    const VkCommandPoolCreateInfo poolInfo {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .queueFamilyIndex = m_logicalDevice->getPhysicalDevice()->getQueueFamilies().graphicsFamily.value()
+    };
+
+    m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
   }
 
   glm::vec4 Renderer2D::resolveRectBounds(float a,

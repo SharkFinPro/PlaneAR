@@ -1,6 +1,7 @@
 package edu.osu.t22.planear
 
 import android.content.Context
+import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -81,6 +82,7 @@ class FrameGestureDetector(context: Context) {
         private set
 
     /* Internals */
+    private var touchDownConsumed = false
 
     private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
 
@@ -157,6 +159,10 @@ class FrameGestureDetector(context: Context) {
 
     /* Public API */
 
+    fun markTouchDownConsumed() {
+        touchDownConsumed = true
+    }
+
     /** Feed a MotionEvent from Activity.onTouchEvent. */
     fun onTouchEvent(event: MotionEvent) {
         // Update persistent touch state — intentionally NOT reset each frame
@@ -168,6 +174,7 @@ class FrameGestureDetector(context: Context) {
                 if (event.actionMasked == MotionEvent.ACTION_DOWN) {
                     anyTouchDown      = true
                     touchDownPosition = Pair(event.x, event.y)
+                    touchDownConsumed = false
                 }
             }
             MotionEvent.ACTION_UP,
@@ -215,7 +222,12 @@ class FrameGestureDetector(context: Context) {
         scaleFocusPosition = null
 
         anyTouchDown = false
-        touchDownPosition = null
+
+        if (touchDownConsumed) {
+            touchDownPosition = null
+            touchDownConsumed = false
+        }
+
         // isTouching and fingerCount intentionally NOT reset here
     }
 
