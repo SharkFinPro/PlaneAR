@@ -318,10 +318,32 @@ namespace ge {
 
   void CameraTexture::createYCBCRResources(const VkAndroidHardwareBufferFormatPropertiesANDROID& formatProperties)
   {
-    if (m_ycbcrConversion != VK_NULL_HANDLE)
+    if (m_ycbcrConversion != VK_NULL_HANDLE &&
+        m_currentExternalFormat == formatProperties.externalFormat)
     {
       return;
     }
+
+    if (m_ycbcrConversion != VK_NULL_HANDLE)
+    {
+      vkDeviceWaitIdle(m_logicalDevice->getDevice());
+      vkDestroySamplerYcbcrConversion(
+        m_logicalDevice->getDevice(),
+        m_ycbcrConversion,
+        nullptr
+      );
+
+      m_ycbcrConversion = VK_NULL_HANDLE;
+      m_logicalDevice->destroySampler(m_ycbcrSampler);
+
+      if (m_descriptorSetLayout != VK_NULL_HANDLE)
+      {
+        m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
+      }
+      m_descriptorSet.reset();
+    }
+
+    m_currentExternalFormat = formatProperties.externalFormat;
 
     VkExternalFormatANDROID ycbcrExtFormat = {
       .sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID,

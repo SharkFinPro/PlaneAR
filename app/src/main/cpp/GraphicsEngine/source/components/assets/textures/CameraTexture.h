@@ -69,6 +69,8 @@ namespace ge {
 
     std::vector<bool> m_dirtyFrames; // one entry per frame-in-flight
 
+    uint64_t m_currentExternalFormat = 0;
+
     static void onImageAvailable(void* ctx,
                                  AImageReader* reader);
 
