@@ -2,6 +2,7 @@
 #define PLANEAR_RENDERER2D_H
 
 #include "Primitives2D.h"
+#include "../../descriptorSet/UniformBuffer.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <vulkan/vulkan.h>
@@ -17,6 +18,7 @@ namespace ge {
 
   class AssetManager;
   class CommandBuffer;
+  class DescriptorSet;
   class Font;
   class LogicalDevice;
   class MousePicker;
@@ -62,6 +64,8 @@ namespace ge {
   public:
     Renderer2D(std::shared_ptr<LogicalDevice> logicalDevice,
                std::shared_ptr<AssetManager> assetManager);
+
+    ~Renderer2D();
 
     void createNewFrame();
 
@@ -235,6 +239,12 @@ namespace ge {
     float m_currentZ = 0.01f;
 
     std::shared_ptr<MousePicker> m_mousePicker;
+
+    std::shared_ptr<DescriptorSet> m_glyph3DDescriptorSet;
+
+    std::unique_ptr<UniformBuffer> m_cameraUniform;
+
+    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
     void createCommandPool();
 

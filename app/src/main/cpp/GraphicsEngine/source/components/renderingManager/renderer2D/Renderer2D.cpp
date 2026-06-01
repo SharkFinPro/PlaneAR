@@ -5,6 +5,7 @@
 #include "../../assets/textures/CameraTexture.h"
 #include "../../assets/textures/ImageTexture.h"
 #include "../../commandBuffer/CommandBuffer.h"
+#include "../../descriptorSet/DescriptorSet.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../physicalDevice/PhysicalDevice.h"
 #include "../../pipelines/GraphicsPipeline.h"
@@ -20,6 +21,40 @@ namespace ge {
     createCommandPool();
 
     m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_commandPool);
+
+    std::vector<VkDescriptorPoolSize> poolSizes {{
+      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 4}
+    }};
+
+    m_cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(glm::mat4));
+
+    const VkDescriptorPoolCreateInfo poolCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+      .maxSets = m_logicalDevice->getMaxFramesInFlight() * 3,
+      .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
+      .pPoolSizes = poolSizes.data()
+    };
+
+    m_descriptorPool = m_logicalDevice->createDescriptorPool(poolCreateInfo);
+
+    m_glyph3DDescriptorSet = std::make_shared<DescriptorSet>(
+      m_logicalDevice,
+      m_descriptorPool,
+      m_assetManager->getGlyph3DDescriptorSetLayout()
+    );
+    m_glyph3DDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
+    {
+      std::vector descriptorWrites{{
+        m_cameraUniform->getDescriptorSet(0, descriptorSet, frame)
+      }};
+
+      return descriptorWrites;
+    });
+  }
+
+  Renderer2D::~Renderer2D()
+  {
+    m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
   }
 
   void Renderer2D::createNewFrame()
@@ -962,6 +997,17 @@ namespace ge {
                                  const RenderInfo* renderInfo,
                                  const Glyph3DCommand& glyphCmd) const
   {
+    glm::mat4 cameraUBO = glyphCmd.glyph.projMatrix * glyphCmd.glyph.viewMatrix;
+
+    m_cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
+
+    pipelineManager->bindGraphicsPipelineDescriptorSet(
+      renderInfo->commandBuffer,
+      PipelineType::font3D,
+      m_glyph3DDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
+      1
+    );
+
     const auto descriptorSet = m_assetManager->getFont(glyphCmd.fontName, glyphCmd.fontSize)->getDescriptorSet(renderInfo->currentFrame);
 
     pipelineManager->bindGraphicsPipelineDescriptorSet(
