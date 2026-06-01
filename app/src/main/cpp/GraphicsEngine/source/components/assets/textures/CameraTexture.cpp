@@ -434,6 +434,7 @@ namespace ge {
     m_poolIndex = (m_poolIndex + 1) % static_cast<int>(m_logicalDevice->getMaxFramesInFlight());
 
     if (slot.buffer != nullptr) {
+      m_logicalDevice->waitIdle();
       m_logicalDevice->destroyImageView(slot.imageView);
       m_logicalDevice->destroyImage(slot.image);
       m_logicalDevice->freeMemory(slot.memory);
