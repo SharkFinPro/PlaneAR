@@ -311,6 +311,8 @@ namespace ge {
 
     vkCreateImageView(m_logicalDevice->getDevice(), &viewInfo, nullptr, &slot.imageView);
 
+    slot.buffer = hardwareBuffer;
+
     return slot;
   }
 
@@ -418,10 +420,9 @@ namespace ge {
 
     AHardwareBuffer_acquire(buffer);
     slot = importBuffer(buffer);
-    slot.buffer = buffer;  // importBuffer returns ImportedBuffer without buffer field, set it
 
-    m_textureImage     = slot.image;
-    m_textureImageView = slot.imageView;
+    m_textureImage          = slot.image;
+    m_textureImageView      = slot.imageView;
     m_imageInfo.imageView   = slot.imageView;
     m_imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
     m_imageInfo.sampler     = VK_NULL_HANDLE;
