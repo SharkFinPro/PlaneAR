@@ -436,11 +436,11 @@ namespace ge {
         .stageFlags         = VK_SHADER_STAGE_FRAGMENT_BIT,
         .pImmutableSamplers = &m_ycbcrSampler
       };
-      const std::array bindings { binding };
+
       const VkDescriptorSetLayoutCreateInfo layoutInfo {
         .sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .bindingCount = static_cast<uint32_t>(bindings.size()),
-        .pBindings    = bindings.data()
+        .bindingCount = 1,
+        .pBindings    = &binding
       };
       m_descriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(layoutInfo);
       createDescriptorSet(m_descriptorPool, m_descriptorSetLayout);
