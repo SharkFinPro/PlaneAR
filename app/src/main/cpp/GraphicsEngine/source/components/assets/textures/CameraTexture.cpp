@@ -14,7 +14,7 @@ namespace ge {
       m_descriptorPool(descriptorPool)
   {
     m_dirtyFrames.resize(m_logicalDevice->getMaxFramesInFlight(), false);
-    m_bufferPool.resize(m_logicalDevice->getMaxFramesInFlight() * 2, {});
+    m_bufferPool.resize(m_logicalDevice->getMaxFramesInFlight(), {});
   }
 
   CameraTexture::~CameraTexture()
@@ -107,8 +107,8 @@ namespace ge {
       int h = sizesEntry.data.i32[i + 2];
 
       // Cap the max resolution
-      if (w > 1920 || h > 1080) continue;
-//      if (w > 1280 || h > 720) continue;
+//      if (w > 1920 || h > 1080) continue;
+      if (w > 1280 || h > 720) continue;
 
       float aspect = isRotated ? (float)h / (float)w : (float)w / (float)h;
       float diff = std::abs(aspect - portraitAspect);
@@ -430,18 +430,12 @@ namespace ge {
 
   void CameraTexture::updateFromHardwareBuffer(AHardwareBuffer* buffer)
   {
-    // Find if this buffer is already imported
-    for (const auto& bufferPoolEntry : m_bufferPool) {
-      if (bufferPoolEntry.buffer == buffer) {
-        return;
-      }
-    }
-
     // Evict the oldest slot
     ImportedBuffer& slot = m_bufferPool[m_poolIndex];
     m_poolIndex = (m_poolIndex + 1) % static_cast<int>(m_bufferPool.size());
 
     if (slot.buffer != nullptr) {
+      m_logicalDevice->waitIdle();
       AHardwareBuffer_release(slot.buffer);
     }
 
