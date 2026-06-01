@@ -353,7 +353,7 @@ namespace ge {
         VK_COMPONENT_SWIZZLE_IDENTITY
       };
 
-      VkSamplerYcbcrConversionCreateInfo ycbcrInfo = {
+    VkSamplerYcbcrConversionCreateInfo ycbcrInfo = {
       .sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO,
       .pNext = &ycbcrExtFormat,
       .format = VK_FORMAT_UNDEFINED,
