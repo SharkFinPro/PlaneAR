@@ -148,6 +148,8 @@ namespace ge {
 
     void destroySampler(VkSampler& sampler) const;
 
+    void destroySamplerYcbcrConversion(VkSamplerYcbcrConversion& ycbcrConversion) const;
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 

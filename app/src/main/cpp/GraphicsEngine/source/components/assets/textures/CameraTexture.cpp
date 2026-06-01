@@ -31,21 +31,11 @@ namespace ge {
       }
     }
 
-    if (m_ycbcrConversion != VK_NULL_HANDLE)
-    {
-      vkDestroySamplerYcbcrConversion(
-        m_logicalDevice->getDevice(),
-        m_ycbcrConversion,
-        nullptr
-      );
-    }
+    m_logicalDevice->destroySamplerYcbcrConversion(m_ycbcrConversion);
 
     m_logicalDevice->destroySampler(m_ycbcrSampler);
 
-    if (m_descriptorSetLayout != VK_NULL_HANDLE)
-    {
-      m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
-    }
+    m_logicalDevice->destroyDescriptorSetLayout(m_descriptorSetLayout);
   }
 
   bool CameraTexture::isCameraOpen() const

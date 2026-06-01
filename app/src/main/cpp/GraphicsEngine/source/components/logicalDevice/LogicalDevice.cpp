@@ -188,6 +188,11 @@ namespace ge {
 
   void LogicalDevice::destroyImageView(VkImageView& imageView) const
   {
+    if (imageView == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
     vkDestroyImageView(m_device, imageView, nullptr);
 
     imageView = VK_NULL_HANDLE;
@@ -241,6 +246,11 @@ namespace ge {
 
   void LogicalDevice::destroyImage(VkImage& image) const
   {
+    if (image == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
     vkDestroyImage(m_device, image, nullptr);
 
     image = VK_NULL_HANDLE;
@@ -618,6 +628,11 @@ namespace ge {
 
   void LogicalDevice::destroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout) const
   {
+    if (descriptorSetLayout == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
     vkDestroyDescriptorSetLayout(m_device, descriptorSetLayout, nullptr);
 
     descriptorSetLayout = VK_NULL_HANDLE;
@@ -655,5 +670,17 @@ namespace ge {
     vkDestroySampler(m_device, sampler, nullptr);
 
     sampler = VK_NULL_HANDLE;
+  }
+
+  void LogicalDevice::destroySamplerYcbcrConversion(VkSamplerYcbcrConversion& ycbcrConversion) const
+  {
+    if (ycbcrConversion == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    vkDestroySamplerYcbcrConversion(m_device, ycbcrConversion, nullptr);
+
+    ycbcrConversion = VK_NULL_HANDLE;
   }
 } // ge
