@@ -399,16 +399,16 @@ namespace ge {
   void CameraTexture::updateFromHardwareBuffer(AHardwareBuffer* buffer)
   {
     // Find if this buffer is already imported
-    for (int i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++) {
-      if (m_bufferPool[i].buffer == buffer) return; // already current, nothing to do
+    for (const auto& bufferPoolEntry : m_bufferPool) {
+      if (bufferPoolEntry.buffer == buffer) {
+        return;
+      }
     }
 
     // Evict the oldest slot
     ImportedBuffer& slot = m_bufferPool[m_poolIndex];
     m_poolIndex = (m_poolIndex + 1) % static_cast<int>(m_logicalDevice->getMaxFramesInFlight());
 
-    // Safe to destroy — GPU is at least 1 frame behind,
-    // the other slot covered the intervening frames
     if (slot.buffer != nullptr) {
       m_logicalDevice->destroyImageView(slot.imageView);
       m_logicalDevice->destroyImage(slot.image);
