@@ -58,6 +58,8 @@ namespace ge {
 
     [[nodiscard]] VkDescriptorSetLayout getFontDescriptorSetLayout() const;
 
+    [[nodiscard]] VkDescriptorSetLayout getGlyph3DDescriptorSetLayout() const;
+
     void registerImage(std::string imageName,
                        std::string imagePath);
 
@@ -82,6 +84,8 @@ namespace ge {
 
     VkDescriptorSetLayout m_fontDescriptorSetLayout = VK_NULL_HANDLE;
 
+    VkDescriptorSetLayout m_glyph3DDescriptorSetLayout = VK_NULL_HANDLE;
+
     struct FontRegistration {
       std::string path;
       CharsetMode charsetMode;
@@ -98,6 +102,8 @@ namespace ge {
     void createDescriptorSetLayouts();
 
     void createFontDescriptorSetLayout();
+
+    void createGlyph3DDescriptorSetLayout();
 
     void createImageDescriptorSetLayout();
 
