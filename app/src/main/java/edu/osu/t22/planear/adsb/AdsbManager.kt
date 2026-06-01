@@ -90,14 +90,13 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
         val userPoint = GeoPoint(loc.latitude, loc.longitude, loc.altitude)
         val acPoints = aircraftData.map { ac -> ac.getPosition() }
 
+        // FOV is now baked into Planeprojector (matches engine's hardcoded 50° vFOV)
         val screenPoints = Planeprojector.projectAll(
             user = userPoint,
             aircraft = acPoints,
             azimuthDeg = azimuthDeg,
             pitchDeg = pitchDeg,
             rollDeg = rollDeg,
-            hFovDeg = H_FOV_DEG,
-            vFovDeg = V_FOV_DEG,
             screenWidth = screenW,
             screenHeight = screenH
         )
