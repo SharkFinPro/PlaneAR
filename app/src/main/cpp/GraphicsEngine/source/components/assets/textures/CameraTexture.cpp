@@ -18,6 +18,8 @@ namespace ge {
 
   CameraTexture::~CameraTexture()
   {
+    stopCamera();
+
     for (auto & i : m_bufferPool)
     {
       if (i.buffer)
