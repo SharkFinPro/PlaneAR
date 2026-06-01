@@ -74,7 +74,8 @@ namespace ge {
     static void onImageAvailable(void* ctx,
                                  AImageReader* reader);
 
-    ImportedBuffer importBuffer(AHardwareBuffer* buffer);
+    void importBuffer(AHardwareBuffer* buffer,
+                      ImportedBuffer& slot);
 
     void createYCBCRResources(const VkAndroidHardwareBufferFormatPropertiesANDROID& formatProperties);
 

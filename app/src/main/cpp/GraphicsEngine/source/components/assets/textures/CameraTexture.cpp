@@ -226,10 +226,9 @@ namespace ge {
     AHardwareBuffer_release(buffer);
   }
 
-  CameraTexture::ImportedBuffer CameraTexture::importBuffer(AHardwareBuffer* hardwareBuffer)
+  void CameraTexture::importBuffer(AHardwareBuffer* hardwareBuffer,
+                                   ImportedBuffer& slot)
   {
-    ImportedBuffer slot{};
-
     AHardwareBuffer_Desc ahbDesc = {};
     AHardwareBuffer_describe(hardwareBuffer, &ahbDesc);
 
@@ -275,29 +274,27 @@ namespace ge {
       slot.image = m_logicalDevice->createImage(imageInfo);
     }
 
-    if (slot.memory == VK_NULL_HANDLE) {
-      VkImportAndroidHardwareBufferInfoANDROID importInfo = {
-        .sType = VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
-        .buffer = hardwareBuffer
-      };
+    VkImportAndroidHardwareBufferInfoANDROID importInfo = {
+      .sType = VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID,
+      .buffer = hardwareBuffer
+    };
 
-      VkMemoryDedicatedAllocateInfo dedicatedInfo = {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
-        .pNext = &importInfo,
-        .image = slot.image
-      };
+    VkMemoryDedicatedAllocateInfo dedicatedInfo = {
+      .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
+      .pNext = &importInfo,
+      .image = slot.image
+    };
 
-      VkMemoryAllocateInfo memoryAllocateInfo = {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .pNext = &dedicatedInfo,
-        .allocationSize = ahbProperties.allocationSize,
-        .memoryTypeIndex = m_logicalDevice->getPhysicalDevice()->findMemoryType(
-          ahbProperties.memoryTypeBits,
-          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-      };
+    VkMemoryAllocateInfo memoryAllocateInfo = {
+      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+      .pNext = &dedicatedInfo,
+      .allocationSize = ahbProperties.allocationSize,
+      .memoryTypeIndex = m_logicalDevice->getPhysicalDevice()->findMemoryType(
+        ahbProperties.memoryTypeBits,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+    };
 
-      m_logicalDevice->allocateMemory(memoryAllocateInfo, slot.memory);
-    }
+    m_logicalDevice->allocateMemory(memoryAllocateInfo, slot.memory);
 
     m_logicalDevice->bindImageMemory(slot.image, slot.memory, 0);
 
@@ -326,8 +323,6 @@ namespace ge {
     }
 
     slot.buffer = hardwareBuffer;
-
-    return slot;
   }
 
   void CameraTexture::createYCBCRResources(const VkAndroidHardwareBufferFormatPropertiesANDROID& formatProperties)
@@ -435,11 +430,12 @@ namespace ge {
     m_poolIndex = (m_poolIndex + 1) % static_cast<int>(m_bufferPool.size());
 
     if (slot.buffer != nullptr) {
+      m_logicalDevice->freeMemory(slot.memory);
       AHardwareBuffer_release(slot.buffer);
     }
 
     AHardwareBuffer_acquire(buffer);
-    slot = importBuffer(buffer);
+    importBuffer(buffer, slot);
 
     m_textureImage          = slot.image;
     m_textureImageView      = slot.imageView;
