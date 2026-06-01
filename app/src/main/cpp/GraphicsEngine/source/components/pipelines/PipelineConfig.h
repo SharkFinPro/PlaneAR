@@ -204,7 +204,8 @@ namespace ge::PipelineConfig {
   inline GraphicsPipelineOptions createFont3DPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                              const std::shared_ptr<RenderPass>& renderPass,
                                                              AAssetManager* assetManager,
-                                                             VkDescriptorSetLayout fontDescriptorSetLayout)
+                                                             VkDescriptorSetLayout fontDescriptorSetLayout,
+                                                             VkDescriptorSetLayout glyph3DDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -230,7 +231,8 @@ namespace ge::PipelineConfig {
         }
       },
       .descriptorSetLayouts {
-        fontDescriptorSetLayout
+        fontDescriptorSetLayout,
+        glyph3DDescriptorSetLayout
       },
       .renderPass = renderPass
     };
