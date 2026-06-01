@@ -117,7 +117,7 @@ namespace ge {
       bestWidth, bestHeight,
       AIMAGE_FORMAT_YUV_420_888,
       AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE,
-      m_logicalDevice->getMaxFramesInFlight(),
+      static_cast<int32_t>(m_logicalDevice->getMaxFramesInFlight()),
       &m_imageReader
     );
 
