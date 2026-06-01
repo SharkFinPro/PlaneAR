@@ -77,6 +77,8 @@ namespace ge {
 
     bool m_pipelineDirty = false;
 
+    uint8_t m_colorFilterArrangement = 0;
+
     static void onImageAvailable(void* ctx,
                                  AImageReader* reader);
 

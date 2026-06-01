@@ -2,6 +2,7 @@
 #include "../../descriptorSet/DescriptorSet.h"
 #include "../../logicalDevice/LogicalDevice.h"
 #include "../../../utilities/Buffers.h"
+#include "../../../../Logger.h"
 
 namespace ge {
 
@@ -82,6 +83,15 @@ namespace ge {
 
     ACameraMetadata_const_entry sizesEntry{};
     ACameraMetadata_getConstEntry(metadata, ACAMERA_SCALER_AVAILABLE_STREAM_CONFIGURATIONS, &sizesEntry);
+
+    ACameraMetadata_const_entry colorFilterEntry{};
+    if (ACameraMetadata_getConstEntry(metadata,
+                                      ACAMERA_SENSOR_INFO_COLOR_FILTER_ARRANGEMENT,
+                                      &colorFilterEntry) == ACAMERA_OK)
+    {
+      m_colorFilterArrangement = colorFilterEntry.data.u8[0];
+      LOGI("Color filter arrangement: %d", m_colorFilterArrangement);
+    }
 
     const float portraitAspect = (viewWidth < viewHeight)
                                  ? (float)viewWidth  / (float)viewHeight
@@ -335,13 +345,29 @@ namespace ge {
       .externalFormat = formatProperties.externalFormat
     };
 
-    VkSamplerYcbcrConversionCreateInfo ycbcrInfo = {
+    const bool needsSwap =
+      m_colorFilterArrangement == ACAMERA_SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_GRBG ||
+      m_colorFilterArrangement == ACAMERA_SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_BGGR;
+
+    const VkComponentMapping componentMapping = needsSwap ? VkComponentMapping{
+        VK_COMPONENT_SWIZZLE_B,
+        VK_COMPONENT_SWIZZLE_G,
+        VK_COMPONENT_SWIZZLE_R,
+        VK_COMPONENT_SWIZZLE_A
+      } : VkComponentMapping{
+        VK_COMPONENT_SWIZZLE_IDENTITY,
+        VK_COMPONENT_SWIZZLE_IDENTITY,
+        VK_COMPONENT_SWIZZLE_IDENTITY,
+        VK_COMPONENT_SWIZZLE_IDENTITY
+      };
+
+      VkSamplerYcbcrConversionCreateInfo ycbcrInfo = {
       .sType = VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO,
       .pNext = &ycbcrExtFormat,
       .format = VK_FORMAT_UNDEFINED,
       .ycbcrModel = formatProperties.suggestedYcbcrModel,
       .ycbcrRange = formatProperties.suggestedYcbcrRange,
-      .components = formatProperties.samplerYcbcrConversionComponents,
+      .components = componentMapping,
       .xChromaOffset = formatProperties.suggestedXChromaOffset,
       .yChromaOffset = formatProperties.suggestedYChromaOffset,
       .chromaFilter = (formatProperties.formatFeatures &
