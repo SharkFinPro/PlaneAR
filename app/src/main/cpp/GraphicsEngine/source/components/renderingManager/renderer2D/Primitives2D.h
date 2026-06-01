@@ -344,7 +344,6 @@ namespace ge {
     glm::vec4 color;
 
     struct PushConstant {
-      glm::mat4 mvp;
       glm::vec3 worldPos;
       float width;
       glm::vec3 camRight;
@@ -365,7 +364,6 @@ namespace ge {
       const glm::vec3 camUp = glm::vec3(invView[1]);
 
       return {
-        .mvp = projMatrix * viewMatrix,
         .worldPos = { x, y, z },
         .width = width,
         .camRight = camRight,

@@ -1,7 +1,6 @@
 #version 450
 
 layout(push_constant) uniform Glyph3DPC {
-  mat4 mvp;
   vec3 worldPos;
   float width;
   vec3 camRight;
@@ -15,6 +14,10 @@ layout(push_constant) uniform Glyph3DPC {
   float v1;
   float r, g, b, a;
 } pc;
+
+layout(set = 1, binding = 0) uniform Camera {
+  mat4 mvp;
+} camera;
 
 layout(location = 0) out vec2 fragUV;
 layout(location = 1) out vec4 fragColor;
@@ -39,7 +42,7 @@ void main() {
     + pc.camRight * totalOffset.x
     - pc.camUp    * totalOffset.y;
 
-  gl_Position = pc.mvp * vec4(finalWorldPos, 1.0);
+  gl_Position = camera.mvp * vec4(finalWorldPos, 1.0);
 
   vec2 uvCorner = vec2(gl_VertexIndex & 1, gl_VertexIndex >> 1);
   fragUV = mix(

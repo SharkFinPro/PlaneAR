@@ -29,6 +29,8 @@ namespace ge {
 
     m_logicalDevice->destroyDescriptorSetLayout(m_fontDescriptorSetLayout);
 
+    m_logicalDevice->destroyDescriptorSetLayout(m_glyph3DDescriptorSetLayout);
+
     m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
 
     m_logicalDevice->destroyCommandPool(m_commandPool);
@@ -82,6 +84,11 @@ namespace ge {
     return m_fontDescriptorSetLayout;
   }
 
+  VkDescriptorSetLayout AssetManager::getGlyph3DDescriptorSetLayout() const
+  {
+    return m_glyph3DDescriptorSetLayout;
+  }
+
   void AssetManager::registerImage(std::string imageName,
                                    std::string imagePath)
   {
@@ -116,6 +123,8 @@ namespace ge {
   {
     createFontDescriptorSetLayout();
 
+    createGlyph3DDescriptorSetLayout();
+
     createImageDescriptorSetLayout();
   }
 
@@ -139,6 +148,28 @@ namespace ge {
     };
 
     m_fontDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
+  }
+
+  void AssetManager::createGlyph3DDescriptorSetLayout()
+  {
+    constexpr VkDescriptorSetLayoutBinding glyphDescriptorSetLayoutBinding {
+      .binding = 0,
+      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      .descriptorCount = 1,
+      .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+    };
+
+    constexpr std::array descriptorSetLayoutBindings {
+      glyphDescriptorSetLayoutBinding
+    };
+
+    const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+      .bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size()),
+      .pBindings = descriptorSetLayoutBindings.data()
+    };
+
+    m_glyph3DDescriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
   }
 
   void AssetManager::createImageDescriptorSetLayout()

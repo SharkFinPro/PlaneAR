@@ -223,7 +223,7 @@ class ArPage : Page {
                 point(bx, by, bz, 270)
 
                 // TODO: only send if mouse picking queried
-                val id: Long = p.id.toLong(16)
+                val id = p.id.toLongOrNull(16) ?: 0L
                 mousePickingPoint(bx, by, bz, 270, id)
 
                 if (id == selectedId) {
