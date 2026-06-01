@@ -145,20 +145,6 @@ class MainActivity : GameActivity() {
                                 screenH = dm.heightPixels
                             )
                         }
-
-                        // TODO
-//                        if (!AppSettings.cameraIsEnabled && cameraManager.isActive) {
-//                            cameraManager.stop()
-//                        }
-//                        else if (AppSettings.cameraIsEnabled && !cameraManager.isActive) {
-//                            window.decorView.post {
-//                                cameraManager.start(
-//                                    window.decorView.width,
-//                                    window.decorView.height
-//                                )
-//                            }
-//                        }
-
                     } catch (e: Exception) {
                         Log.e("ADSB_EXECUTION", "ADS-B projection failed", e)
                     }
@@ -199,8 +185,6 @@ class MainActivity : GameActivity() {
         sensorManager.unregisterListener(sensorListener)
         appLocationManager.stop()
 
-        // TODO
-//        cameraManager.stop()
         AppSettings.cameraIsEnabled = false
     }
 
