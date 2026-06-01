@@ -2,6 +2,7 @@
 #define PLANEAR_IMAGES_H
 
 #include "Buffers.h"
+#include "../components/commandBuffer/SingleUseCommandBuffer.h"
 #include "../components/logicalDevice/LogicalDevice.h"
 #include "../components/physicalDevice/PhysicalDevice.h"
 #include <vulkan/vulkan.h>
@@ -209,6 +210,34 @@ namespace ge::Images {
     };
 
     return logicalDevice->createImageView(imageViewCreateInfo);
+  }
+
+  inline void copyImageToBuffer(const VkImage& image,
+                         const VkOffset3D offset,
+                         const VkExtent3D extent,
+                         const SingleUseCommandBuffer& commandBuffer,
+                         VkBuffer stagingBuffer)
+  {
+    const VkBufferImageCopy region{
+      .bufferOffset = 0,
+      .bufferRowLength = 0,
+      .bufferImageHeight = 0,
+      .imageSubresource {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .mipLevel = 0,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+      },
+      .imageOffset = offset,
+      .imageExtent = extent
+    };
+
+    commandBuffer.copyImageToBuffer(
+      image,
+      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+      stagingBuffer,
+      { region }
+    );
   }
 }
 
