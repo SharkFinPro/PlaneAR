@@ -14,7 +14,7 @@ namespace ge {
       m_descriptorPool(descriptorPool)
   {
     m_dirtyFrames.resize(m_logicalDevice->getMaxFramesInFlight(), false);
-    m_bufferPool.resize(m_logicalDevice->getMaxFramesInFlight(), {});
+    m_bufferPool.resize(m_logicalDevice->getMaxFramesInFlight() * 3, {});
   }
 
   CameraTexture::~CameraTexture()
