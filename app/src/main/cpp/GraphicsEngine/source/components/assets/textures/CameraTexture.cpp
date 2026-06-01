@@ -435,7 +435,6 @@ namespace ge {
     m_poolIndex = (m_poolIndex + 1) % static_cast<int>(m_bufferPool.size());
 
     if (slot.buffer != nullptr) {
-      m_logicalDevice->waitIdle();
       AHardwareBuffer_release(slot.buffer);
     }
 
