@@ -452,9 +452,20 @@ namespace ge {
       };
       m_descriptorSetLayout = m_logicalDevice->createDescriptorSetLayout(layoutInfo);
       createDescriptorSet(m_descriptorPool, m_descriptorSetLayout);
+      m_pipelineDirty = true;
     }
 
     markAllFramesDirty();
+  }
+
+  bool CameraTexture::isPipelineDirty()
+  {
+    return m_pipelineDirty;
+  }
+
+  void CameraTexture::clearPipelineDirty()
+  {
+    m_pipelineDirty = false;
   }
 
   void CameraTexture::markAllFramesDirty()

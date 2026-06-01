@@ -59,6 +59,8 @@ namespace ge {
 
   void PipelineManager::createCameraPipeline(VkDescriptorSetLayout cameraLayout)
   {
+    m_graphicsPipelines.erase(PipelineType::camera);
+
     const auto renderPass = m_renderer->getRenderPass();
 
     createGraphicsPipeline(PipelineType::camera,

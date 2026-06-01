@@ -35,6 +35,10 @@ namespace ge {
 
     void flushDescriptorUpdate(size_t frame);
 
+    [[nodiscard]] bool isPipelineDirty();
+
+    void clearPipelineDirty();
+
   private:
     VkCommandPool m_commandPool;
 
@@ -70,6 +74,8 @@ namespace ge {
     std::vector<bool> m_dirtyFrames; // one entry per frame-in-flight
 
     uint64_t m_currentExternalFormat = 0;
+
+    bool m_pipelineDirty = false;
 
     static void onImageAvailable(void* ctx,
                                  AImageReader* reader);
