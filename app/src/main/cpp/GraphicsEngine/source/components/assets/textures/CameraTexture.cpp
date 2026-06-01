@@ -458,7 +458,7 @@ namespace ge {
     markAllFramesDirty();
   }
 
-  bool CameraTexture::isPipelineDirty()
+  bool CameraTexture::isPipelineDirty() const
   {
     return m_pipelineDirty;
   }

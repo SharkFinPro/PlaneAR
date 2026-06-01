@@ -35,7 +35,7 @@ namespace ge {
 
     void flushDescriptorUpdate(size_t frame);
 
-    [[nodiscard]] bool isPipelineDirty();
+    [[nodiscard]] bool isPipelineDirty() const;
 
     void clearPipelineDirty();
 
