@@ -60,7 +60,6 @@ class ArPage : Page {
         val tapPos = sceneInfo.gestures.touchDownPosition
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
-
             tapPos?.let { (tx, ty) ->
                 if (tapPos != lastConsumedTapPos &&
                     tx > 0 && tx < width &&
@@ -83,11 +82,6 @@ class ArPage : Page {
                 lastConsumedTapPos = null
 
                 waitingOnMousePickingResult = false
-            }
-
-            if (hb != null && hb != lastHb) {
-                updateCameraBuffer(hb)
-                lastHb = hb
             }
 
             if (AppSettings.cameraIsEnabled) {

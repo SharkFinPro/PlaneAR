@@ -575,11 +575,10 @@ namespace {
     { "hasNewMousePickingResult", "()Z",      (void*)nativeHasNewMousePickingResult },
 
     // Camera
-    {"updateCameraTexture", "()V", (void*)nativeUpdateCameraTexture }
+    {"updateCameraTexture", "()V", (void*)nativeUpdateCameraTexture },
     {"startCamera", "(II)V", (void*)nativeStartCamera},
     {"stopCamera", "()V", (void*)nativeStopCamera},
-    {"isCameraOpen", "()Z", (void*)nativeIsCameraOpen},
-
+    {"isCameraOpen", "()Z", (void*)nativeIsCameraOpen}
   };
 
   const JNINativeMethod graphicsEngineMethods[] = {
