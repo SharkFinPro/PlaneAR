@@ -92,12 +92,14 @@ class ArPage : Page {
             if (waitingOnMousePickingResult && hasNewMousePickingResult()) {
                 selectedId = getMousePickingResult()
 
-                val selectedAircraft = aircraftRepository.getAircraft().find {
-                    (it.id.toLongOrNull(16) ?: 0L) == selectedId
-                }
+                if (selectedId != 0L) {
+                    val selectedAircraft = aircraftRepository.getAircraft().find {
+                        (it.id.toLongOrNull(16) ?: 0L) == selectedId
+                    }
 
-                selectedAircraft?.let {
-                    FlightDetailSheet.open(it)
+                    selectedAircraft?.let {
+                        FlightDetailSheet.open(it)
+                    }
                 }
 
                 lastConsumedTapPos = null
@@ -281,11 +283,6 @@ class ArPage : Page {
         // Draw achievement popup if active
         if (showingAchievementId != null) {
             drawAchievementPopup(sceneInfo)
-        }
-
-        // Reset to 2D before drawing 2D objects
-        with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
-            set3DView(0, 0, 0, 0f, 0f, 0f, sceneInfo.screenWidth, sceneInfo.screenHeight)
         }
 
         postRender(sceneInfo, sceneSwitcher)
