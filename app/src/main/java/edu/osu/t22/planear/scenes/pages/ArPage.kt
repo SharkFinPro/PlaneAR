@@ -309,15 +309,6 @@ class ArPage : Page {
             val avgError = if (errorCount > 0) totalError / errorCount else 0f
 
             projections.forEach { (label, spVec, _) ->
-                if (spVec.visible && spVec.x.isFinite() && spVec.y.isFinite()) {
-                    fill(0, 255, 0)
-                    ellipse(spVec.x, spVec.y, 12f, 12f)
-
-                    textFont("roboto", 14)
-                    textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
-                    text(label, spVec.x + 10f, spVec.y)
-                }
-
                 if (!spVec.visible) {
                     if (spVec.camZ <= 0f) return@forEach
 
@@ -338,15 +329,6 @@ class ArPage : Page {
                     triangle(s / 2f, 0f, -s / 2f, -h / 2f, -s / 2f, h / 2f)
 
                     popMatrix()
-
-                    fill(255, 255, 0)
-                    textFont("roboto", 18)
-                    textAlign(TextAlignH.LEFT, TextAlignV.CENTER)
-                    text(
-                        "${label}: ${spVec.x.toInt()}, ${spVec.y.toInt()}",
-                        (edge.x + 20f).coerceIn(0f, width - 260f),
-                        edge.y.coerceIn(20f, height - 20f)
-                    )
                 }
             }
 
@@ -364,11 +346,6 @@ class ArPage : Page {
             text("Yaw: ${orientation.azimuthDeg.toInt()}° ($cardinal)", 50, 300)
             text("Pitch: ${orientation.pitchDeg.toInt()}°", 50, 400)
             text("Roll: ${orientation.rollDeg.toInt()}°", 50, 500)
-
-            // Error metric display
-            fill(255, 255, 0)
-            text("Offscreen Avg Error: ${"%.1f".format(avgError)} px", 50, 600)
-            text("Offscreen Targets: $offscreenCount",                 50, 700)
         }
 
         // Check for new achievement notifications
