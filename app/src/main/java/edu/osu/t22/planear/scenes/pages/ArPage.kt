@@ -24,8 +24,6 @@ import kotlin.math.sin
 class ArPage : Page {
     override val sceneId = SceneId.AR
 
-    // testing variable to have the data sheet open with test data
-    private var sheetShownOnStart = false;
     private var lastHb: HardwareBuffer? = null
 
     // Achievement popup state
@@ -66,10 +64,6 @@ class ArPage : Page {
 
         val tapPos = sceneInfo.gestures.touchDownPosition
 
-        if (!sheetShownOnStart && flightData.isNotEmpty()) {
-            FlightDetailSheet.open(flightData.first())
-            sheetShownOnStart = true
-        }
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 

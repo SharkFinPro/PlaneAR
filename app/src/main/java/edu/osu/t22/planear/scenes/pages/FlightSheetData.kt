@@ -39,6 +39,13 @@ data class FlightSheetData(
             else       -> "Cruising ~"
         }
 
+        private fun formatHeading(degrees: Double?): String {
+            degrees ?: return NA
+            val cardinals = listOf("N","NE","E","SE","S","SW","W","NW")
+            val cardinal = cardinals[((degrees + 22.5) / 45.0).toInt() % 8]
+            return "${degrees.toInt()}° $cardinal"
+        }
+
         fun fromAircraft(aircraft: Aircraft): FlightSheetData {
             val (csValue, csLabel) = resolveCallsign(
                 aircraft.callsign, aircraft.registration, aircraft.id
@@ -50,7 +57,7 @@ data class FlightSheetData(
                 type          = aircraft.type?.takeIf { it.isNotBlank() } ?: NA,
                 altitudeFt    = "%.0f ft".format(aircraft.altitudeSeaLevel),
                 speedKts      = "${aircraft.groundSpeed?.toInt() ?: NA} kts",
-                headingDeg    = "${aircraft.headingDegrees?.toInt() ?: NA}°",
+                headingDeg    = formatHeading(aircraft.headingDegrees),
                 verticalRate  = formatVerticalRate(aircraft.verticalRate),
                 date          = NA,
                 takeoffTime   = NA,
@@ -82,7 +89,7 @@ data class FlightSheetData(
                 altitudeFt    = live?.let { "%.0f ft".format(it.altitudeSeaLevel) } ?: NA,
                 speedKts      = live?.groundSpeed?.let { "${it.toInt()} kts" }
                     ?: "${entry.airspeed} kts",
-                headingDeg    = live?.headingDegrees?.let { "${it.toInt()}°" } ?: NA,
+                headingDeg    = formatHeading(live?.headingDegrees),
                 verticalRate  = live?.let { formatVerticalRate(it.verticalRate) } ?: NA,
                 date          = entry.date,
                 takeoffTime   = entry.takeoffTime,

@@ -108,7 +108,7 @@ object FlightDetailSheet {
 
         // --- Layout ---
         // Sheet covers exactly the bottom half of the screen (above the nav bar)
-        val sheetH = screenH * 0.5f
+        val sheetH = screenH * 0.655f
         val sheetY = screenH - navHeight - sheetH // resting Y (fully open)
         val slideOffset = sheetH * (1f - eased)        // 0 when open, sheetH when hidden
         val sheetR = 32f
@@ -145,14 +145,14 @@ object FlightDetailSheet {
             // "LIVE" badge or date pill
             if (flight.isLive) {
                 fill(c.accent)
-                rect(padX, sheetY + 60f, 70f, 28f, 14f)
+                rect(padX, sheetY + 60f, 80f, 28f, 14f)
                 fill(c.textOnAccent)
                 textFont("roboto", 11)
                 textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-                text("● LIVE", padX + 35f, sheetY + 74f)
+                text("● LIVE", padX + 35f, sheetY + 30f)
             } else if (flight.date != "N/A") {
                 fill(c.divider)
-                rect(padX, sheetY + 60f, 130f, 28f, 14f)
+                rect(padX, sheetY + 60f, 180f, 28f, 14f)
                 fill(c.textSecondary)
                 textFont("roboto", 11)
                 textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
@@ -163,11 +163,11 @@ object FlightDetailSheet {
             fill(c.textPrimary)
             textFont("roboto", 26)
             textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
-            text(flight.callsign, padX, sheetY + 100f)
+            text(flight.callsign, padX, sheetY + 120f)
 
             // Accent underline
             fill(c.accent)
-            rect(padX, sheetY + 112f, 60f, 4f, 2f)
+            rect(padX, sheetY + 132f, 200f, 4f, 2f)
 
             // Favourite star
             val starX = rightEdge
@@ -186,9 +186,8 @@ object FlightDetailSheet {
             val btnY = screenH - navHeight - btnH - 28f
 
             // ── Data fields ───────────────────────────────────────────────────
-            val fieldStartY = sheetY + 180f
+            val fieldStartY = sheetY + 200f
             val fieldEnd    = screenH - navHeight - btnH - 28f - 20f
-            val fieldGap    = (fieldEnd - fieldStartY) / 5f
 
             fun drawField(label: String, value: String, y: Float) {
                 fill(c.textHint)
@@ -205,13 +204,26 @@ object FlightDetailSheet {
                 rect(padX, y + 44f, screenW - 2f * padX, 1.5f)
             }
 
-            // draw data fields
-            drawField("CALLSIGN",  flight.callsign,                                  fieldStartY)
-            drawField("ALTITUDE",  "${"%.0f".format(flight.altitudeFt)} ft", fieldStartY + fieldGap)
-            drawField("SPEED",     "${flight.speedKts?.toInt() ?: "N/A"} kts",       fieldStartY + fieldGap * 2)
-            drawField("TYPE",      flight.type ?: "Unknown",                         fieldStartY + fieldGap * 3)
-            drawField("HEADING",   "${flight.headingDeg?.toInt() ?: "N/A"}°",        fieldStartY + fieldGap * 4)
+            // Build field list dynamically
+            val fields = buildList {
+                add(flight.callsignLabel to flight.callsign)
+                if (flight.callsignLabel != "REGISTRATION" &&
+                    flight.registration != "N/A" &&
+                    flight.registration != flight.callsign) {
+                    add("REGISTRATION" to flight.registration)
+                }
+                add("ALTITUDE"  to flight.altitudeFt)
+                add("SPEED"     to flight.speedKts)
+                add("TYPE"      to flight.type)
+                add("HEADING"   to flight.headingDeg)
+                add("VERT RATE" to flight.verticalRate)
+            }
 
+            val fieldGap = (fieldEnd - fieldStartY) / fields.size.toFloat()
+
+            fields.forEachIndexed { index, (label, value) ->
+                drawField(label, value, fieldStartY + fieldGap * index)
+            }
 
             // close button
             fill(c.accent)
