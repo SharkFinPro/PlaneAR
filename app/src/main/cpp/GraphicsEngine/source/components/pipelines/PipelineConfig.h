@@ -281,6 +281,41 @@ namespace ge::PipelineConfig {
     };
   }
 
+  // ── Compass ──────────────────────────────────────────────────────────────────
+  // Shares the same pipeline state configuration as the point pipeline
+  // (billboard triangle-strip, transparent blending, depth test) but uses its
+  // own shaders so the fragment stage can draw the compass face procedurally.
+  inline GraphicsPipelineOptions createCompassPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                                              const std::shared_ptr<RenderPass>& renderPass,
+                                                              AAssetManager* assetManager)
+  {
+    return {
+      .shaders {
+        .assetManager = assetManager,
+        .vertexShader = "shaders/compass.vert.spv",
+        .fragmentShader = "shaders/compass.frag.spv"
+      },
+      .states {
+        .colorBlendState = gps::colorBlendStateTransparent,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
+        .multisampleState = gps::getMultsampleState(logicalDevice),
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(Compass::PushConstant)
+        }
+      },
+      .renderPass = renderPass
+    };
+  }
+
 }
 
 #endif //PLANEAR_PIPELINECONFIG_H

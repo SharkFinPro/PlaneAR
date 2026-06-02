@@ -233,6 +233,22 @@ class ArPage : Page {
                 }
                 point(fx, fy, fz, 250)
 
+                // Compass attached to aircraft
+                val headingRad = Math.toRadians(
+                    p.headingDegrees ?: 0.0
+                ).toFloat()
+
+                compass(
+                    fx * 0.99,
+                    fy * 0.99,
+                    fz * 0.99,
+                    100f,
+                    180f,
+                    180f,
+                    headingRad,
+                    1f
+                )
+
                 val textRadius = displayRadius - layerStep * 0.7f
                 val tx = nx / displayRadius * textRadius
                 val ty = ny / displayRadius * textRadius

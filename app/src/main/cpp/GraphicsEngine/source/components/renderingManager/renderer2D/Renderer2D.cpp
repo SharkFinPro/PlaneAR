@@ -22,9 +22,9 @@ namespace ge {
 
     m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_commandPool);
 
-    std::vector<VkDescriptorPoolSize> poolSizes {{
+    std::vector<VkDescriptorPoolSize> poolSizes {{\
       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 4}
-    }};
+                                                 }};
 
     m_cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(glm::mat4));
 
@@ -43,13 +43,13 @@ namespace ge {
       m_assetManager->getGlyph3DDescriptorSetLayout()
     );
     m_glyph3DDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
-    {
-      std::vector descriptorWrites{{
-        m_cameraUniform->getDescriptorSet(0, descriptorSet, frame)
-      }};
+                                                 {
+                                                   std::vector descriptorWrites{{
+                                                                                  m_cameraUniform->getDescriptorSet(0, descriptorSet, frame)
+                                                                                }};
 
-      return descriptorWrites;
-    });
+                                                   return descriptorWrites;
+                                                 });
   }
 
   Renderer2D::~Renderer2D()
@@ -110,9 +110,12 @@ namespace ge {
 
     auto bindIfNeeded = [&](PipelineType type)
     {
+      // Pipelines that operate in 3-D world space (they share the view/projection
+      // matrices set by set3DView and need depth buffer management).
       constexpr static std::array pipelines3D {
         PipelineType::point,
-        PipelineType::font3D
+        PipelineType::font3D,
+        PipelineType::compass   // compass is also a 3-D billboard
       };
 
       const bool was3D = std::ranges::contains(pipelines3D, currentPipeline);
@@ -174,6 +177,11 @@ namespace ge {
         else if constexpr (std::is_same_v<T, Camera>)
         {
           renderCamera(pipelineManager, renderInfo, cmd);
+        }
+        else if constexpr (std::is_same_v<T, Compass>)
+        {
+          bindIfNeeded(PipelineType::compass);
+          renderCompass(pipelineManager, renderInfo, cmd);
         }
       }, entry.command);
     }
@@ -296,15 +304,15 @@ namespace ge {
     const auto bounds = resolveRectBounds(x, y, width, height);
 
     m_drawList.push_back({
-      Rect{
-        .bounds = bounds,
-        .color = m_currentFill,
-        .transform = m_currentTransform,
-        .z = m_currentZ,
-        .radius = radius
-      },
-      m_currentZ
-    });
+                           Rect{
+                             .bounds = bounds,
+                             .color = m_currentFill,
+                             .transform = m_currentTransform,
+                             .z = m_currentZ,
+                             .radius = radius
+                           },
+                           m_currentZ
+                         });
 
     increaseCurrentZ();
   }
@@ -317,16 +325,16 @@ namespace ge {
                             const float y3)
   {
     m_drawList.push_back({
-      Triangle{
-        .p1 = glm::vec2(x1, y1),
-        .p2 = glm::vec2(x2, y2),
-        .p3 = glm::vec2(x3, y3),
-        .color = m_currentFill,
-        .transform = m_currentTransform,
-        .z = m_currentZ
-      },
-      m_currentZ
-    });
+                           Triangle{
+                             .p1 = glm::vec2(x1, y1),
+                             .p2 = glm::vec2(x2, y2),
+                             .p3 = glm::vec2(x3, y3),
+                             .color = m_currentFill,
+                             .transform = m_currentTransform,
+                             .z = m_currentZ
+                           },
+                           m_currentZ
+                         });
 
     increaseCurrentZ();
   }
@@ -339,14 +347,14 @@ namespace ge {
     const auto bounds = resolveEllipseBounds(x, y, width, height);
 
     m_drawList.push_back({
-      Ellipse{
-        .bounds = bounds,
-        .color = m_currentFill,
-        .transform = m_currentTransform,
-        .z = m_currentZ
-      },
-      m_currentZ
-    });
+                           Ellipse{
+                             .bounds = bounds,
+                             .color = m_currentFill,
+                             .transform = m_currentTransform,
+                             .z = m_currentZ
+                           },
+                           m_currentZ
+                         });
 
     increaseCurrentZ();
   }
@@ -484,29 +492,29 @@ namespace ge {
       if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
       {
         m_drawList.push_back({
-          GlyphCommand{
-            .glyph = {
-              .bounds = glm::vec4(
-                currentX + glyphInfo->bearingX,
-                adjustedY - glyphInfo->bearingY,
-                glyphInfo->width,
-                glyphInfo->height
-              ),
-              .color = m_currentFill,
-              .transform = m_currentTransform,
-              .uv = glm::vec4(
-                glyphInfo->u0,
-                glyphInfo->v0,
-                glyphInfo->u1,
-                glyphInfo->v1
-              ),
-              .z = textZ
-            },
-            .fontName = m_currentFontName,
-            .fontSize = m_currentFontSize
-          },
-          textZ
-        });
+                               GlyphCommand{
+                                 .glyph = {
+                                   .bounds = glm::vec4(
+                                     currentX + glyphInfo->bearingX,
+                                     adjustedY - glyphInfo->bearingY,
+                                     glyphInfo->width,
+                                     glyphInfo->height
+                                   ),
+                                   .color = m_currentFill,
+                                   .transform = m_currentTransform,
+                                   .uv = glm::vec4(
+                                     glyphInfo->u0,
+                                     glyphInfo->v0,
+                                     glyphInfo->u1,
+                                     glyphInfo->v1
+                                   ),
+                                   .z = textZ
+                                 },
+                                 .fontName = m_currentFontName,
+                                 .fontSize = m_currentFontSize
+                               },
+                               textZ
+                             });
 
         currentX += glyphInfo->advance;
       }
@@ -524,14 +532,14 @@ namespace ge {
     const auto bounds = resolveImageBounds(x, y, width, height);
 
     m_drawList.push_back({
-      Image{
-        .imageName = std::move(image),
-        .bounds = bounds,
-        .transform = m_currentTransform,
-        .z = m_currentZ
-      },
-      m_currentZ
-    });
+                           Image{
+                             .imageName = std::move(image),
+                             .bounds = bounds,
+                             .transform = m_currentTransform,
+                             .z = m_currentZ
+                           },
+                           m_currentZ
+                         });
 
     increaseCurrentZ();
   }
@@ -549,13 +557,13 @@ namespace ge {
     const auto bounds = resolveImageBounds(x, y, width, height);
 
     m_drawList.push_back({
-      Camera{
-        .bounds = bounds,
-        .transform = m_currentTransform,
-        .z = m_currentZ
-      },
-      m_currentZ
-    });
+                           Camera{
+                             .bounds = bounds,
+                             .transform = m_currentTransform,
+                             .z = m_currentZ
+                           },
+                           m_currentZ
+                         });
 
     increaseCurrentZ();
   }
@@ -566,17 +574,17 @@ namespace ge {
                          float size)
   {
     m_drawList.push_back({
-      Point{
-        .viewMatrix = m_viewMatrix,
-        .projMatrix = m_projectionMatrix,
-        .x = x,
-        .y = y,
-        .z = z,
-        .size = size,
-        .color = m_currentFill
-      },
-      m_currentZ
-    });
+                           Point{
+                             .viewMatrix = m_viewMatrix,
+                             .projMatrix = m_projectionMatrix,
+                             .x = x,
+                             .y = y,
+                             .z = z,
+                             .size = size,
+                             .color = m_currentFill
+                           },
+                           m_currentZ
+                         });
 
     increaseCurrentZ();
   }
@@ -648,32 +656,32 @@ namespace ge {
         float gy = adjustedY - glyphInfo->bearingY;
 
         m_drawList.push_back({
-          Glyph3DCommand{
-            .glyph = {
-              .viewMatrix = m_viewMatrix,
-              .projMatrix = m_projectionMatrix,
-              .x = x,
-              .y = y,
-              .z = z,
-              .glyphOffset = glm::vec2(
-                gx - x + glyphInfo->width * 0.5f,
-                gy - y + glyphInfo->height * 0.5f
-              ),
-              .width = glyphInfo->width,
-              .height = glyphInfo->height,
-              .uv = glm::vec4(
-                glyphInfo->u0,
-                glyphInfo->v0,
-                glyphInfo->u1,
-                glyphInfo->v1
-              ),
-              .color = m_currentFill
-            },
-            .fontName = m_currentFontName,
-            .fontSize = m_currentFontSize
-          },
-          textZ
-        });
+                               Glyph3DCommand{
+                                 .glyph = {
+                                   .viewMatrix = m_viewMatrix,
+                                   .projMatrix = m_projectionMatrix,
+                                   .x = x,
+                                   .y = y,
+                                   .z = z,
+                                   .glyphOffset = glm::vec2(
+                                     gx - x + glyphInfo->width * 0.5f,
+                                     gy - y + glyphInfo->height * 0.5f
+                                   ),
+                                   .width = glyphInfo->width,
+                                   .height = glyphInfo->height,
+                                   .uv = glm::vec4(
+                                     glyphInfo->u0,
+                                     glyphInfo->v0,
+                                     glyphInfo->u1,
+                                     glyphInfo->v1
+                                   ),
+                                   .color = m_currentFill
+                                 },
+                                 .fontName = m_currentFontName,
+                                 .fontSize = m_currentFontSize
+                               },
+                               textZ
+                             });
 
         currentX += glyphInfo->advance;
       }
@@ -716,6 +724,38 @@ namespace ge {
 
     m_projectionMatrix[1][1] *= -1;
   }
+
+  // ── Compass ────────────────────────────────────────────────────────────────
+
+  void Renderer2D::compass(float x,
+                           float y,
+                           float z,
+                           float size,
+                           float offsetX,
+                           float offsetY,
+                           float headingRad,
+                           float alpha)
+  {
+    m_drawList.push_back({
+                           Compass{
+                             .viewMatrix = m_viewMatrix,
+                             .projMatrix = m_projectionMatrix,
+                             .x          = x,
+                             .y          = y,
+                             .z          = z,
+                             .size       = size,
+                             .offsetX    = offsetX,
+                             .offsetY    = offsetY,
+                             .headingRad = headingRad,
+                             .alpha      = alpha
+                           },
+                           m_currentZ
+                         });
+
+    increaseCurrentZ();
+  }
+
+  // ── Private helpers ────────────────────────────────────────────────────────
 
   void Renderer2D::createCommandPool()
   {
@@ -821,13 +861,19 @@ namespace ge {
         {
           cmd.glyph.z = flipped;
         }
-        else if constexpr(!std::is_same_v<T, Glyph3DCommand> && !std::is_same_v<T, Point>)
+          // 3-D primitives (Point, Compass, Glyph3DCommand) don't carry a Z field
+          // that maps to NDC depth — depth is handled by the projection matrix.
+        else if constexpr (!std::is_same_v<T, Glyph3DCommand> &&
+                           !std::is_same_v<T, Point>          &&
+                           !std::is_same_v<T, Compass>)
         {
           cmd.z = flipped;
         }
       }, entry.command);
     }
   }
+
+  // ── Static render helpers ──────────────────────────────────────────────────
 
   void Renderer2D::renderRect(const std::shared_ptr<PipelineManager>& pipelineManager,
                               const RenderInfo* renderInfo,
@@ -1026,6 +1072,24 @@ namespace ge {
       0,
       sizeof(glyphPC),
       &glyphPC
+    );
+
+    renderInfo->commandBuffer->draw(4, 1, 0, 0);
+  }
+
+  void Renderer2D::renderCompass(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                 const RenderInfo* renderInfo,
+                                 const Compass& compass)
+  {
+    const auto compassPC = compass.createPushConstant(renderInfo->extent);
+
+    pipelineManager->pushGraphicsPipelineConstants(
+      renderInfo->commandBuffer,
+      PipelineType::compass,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(compassPC),
+      &compassPC
     );
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);

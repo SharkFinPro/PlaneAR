@@ -185,6 +185,26 @@ namespace ge {
                 float width,
                 float height);
 
+    // Draw a compass billboard anchored to the given 3-D world position.
+    //
+    // x, y, z      — aircraft world position (same coords used for point()).
+    // size         — half-size of the quad in world units (controls how large
+    //                the compass appears regardless of depth).
+    // offsetX/Y    — shift in world units along camRight / camUp so the compass
+    //                sits top-right of the aircraft dot.
+    // headingRad   — aircraft heading in radians, already adjusted for the
+    //                active compass mode (Always North vs User Relative).
+    //                0 = pointing up (+Y / north), increases clockwise.
+    // alpha        — opacity 0–1.
+    void compass(float x,
+                 float y,
+                 float z,
+                 float size,
+                 float offsetX,
+                 float offsetY,
+                 float headingRad,
+                 float alpha);
+
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 
@@ -202,7 +222,9 @@ namespace ge {
       uint32_t fontSize;
     };
 
-    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image, Point, Glyph3DCommand, Camera>;
+    // Compass is a plain value — no additional bookkeeping needed beyond the
+    // Compass struct itself.
+    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image, Point, Glyph3DCommand, Camera, Compass>;
 
     struct DrawEntry {
       DrawCommand command;
@@ -290,8 +312,8 @@ namespace ge {
                      const Image& image) const;
 
     static void renderPoint(const std::shared_ptr<PipelineManager>& pipelineManager,
-                     const RenderInfo* renderInfo,
-                     const Point& point);
+                            const RenderInfo* renderInfo,
+                            const Point& point);
 
     void renderGlyph3D(const std::shared_ptr<PipelineManager>& pipelineManager,
                        const RenderInfo* renderInfo,
@@ -300,6 +322,10 @@ namespace ge {
     void renderCamera(const std::shared_ptr<PipelineManager>& pipelineManager,
                       const RenderInfo* renderInfo,
                       const Camera& camera) const;
+
+    static void renderCompass(const std::shared_ptr<PipelineManager>& pipelineManager,
+                              const RenderInfo* renderInfo,
+                              const Compass& compass);
   };
 
 } // ge
