@@ -42,7 +42,6 @@ class ArPage : Page {
         val hb          = AppSettings.hb
         val orientation = OrientationStore.data
 
-        // ── Phone position ───────────────────────────────────────────────────
         val phoneLat: Double = orientation.x.toDouble()
         val phoneLon: Double = orientation.z.toDouble()
         val phoneAlt: Double = orientation.y.toDouble()
@@ -52,16 +51,12 @@ class ArPage : Page {
             AppSettings.cameraIsEnabled = true
         }
 
-        // Metres per degree at the phone's latitude
         val metersPerDegLat = 111_320.0
         val metersPerDegLon = 111_320.0 * cos(Math.toRadians(phoneLat))
 
-        // Shared camera parameters used for both projection calls
-        // ArPage passes azimuthDeg - 90 so that 0° faces East in the rotation math.
         val camAzimuth = orientation.azimuthDeg - 90.0
         val camPitch   = orientation.pitchDeg.toDouble()
         val camRoll    = orientation.rollDeg.toDouble()
-        // FOV is baked into Planeprojector (matches engine's hardcoded 50° vFOV)
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 
@@ -80,7 +75,6 @@ class ArPage : Page {
                 rect(0, 0, width, height)
             }
 
-            // ── 3-D view matrix ─────────────────────────────────────────────
             set3DView(
                 0,
                 phoneAlt,
@@ -92,14 +86,12 @@ class ArPage : Page {
                 height
             )
 
-            // ── Aircraft list (sorted nearest → farthest) ────────────────────
             val aircraftRepository = SceneSwitcher.adsbManager.getRepository()
 
             val sorted = aircraftRepository.getAircraft().sortedBy { p ->
                 GeoUtils.distanceMeters(phoneGeo, p.getPosition())
             }
 
-            // ── Find the aircraft most centred in the view (for history log) ─
             val yaw   = Math.toRadians(orientation.azimuthDeg - 90)
             val pitch = Math.toRadians(orientation.pitchDeg)
 
@@ -117,7 +109,6 @@ class ArPage : Page {
 
             sorted.forEachIndexed { index, p ->
                 val position = p.getPosition()
-                // ArPage vector convention: rawZ = –north
                 val rawX = ((position.lonDeg - phoneLon) * metersPerDegLon).toFloat()
                 val rawY = (position.altM - phoneAlt).toFloat()
                 val rawZ = -((position.latDeg - phoneLat) * metersPerDegLat).toFloat()
@@ -136,7 +127,6 @@ class ArPage : Page {
                 logFlightHistory(sorted[bestIndex])
             }
 
-            // Draw best-match aircraft first so its label renders on top
             val reordered = if (bestIndex > 0) {
                 val mutable = sorted.toMutableList()
                 val best = mutable.removeAt(bestIndex)
@@ -146,14 +136,10 @@ class ArPage : Page {
                 sorted
             }
 
-            // ── 3-D aircraft dots + labels ───────────────────────────────────
-            // Also compute and store the normalized display-radius vectors so the
-            // 2-D overlay projection can use the exact same world positions.
             data class AircraftRenderData(
                 val label:         String,
                 val rawLen:        Float,
                 val displayRadius: Float,
-                // Normalised direction × displayRadius – what the 3D engine draws
                 val nx: Float,
                 val ny: Float,
                 val nz: Float
@@ -164,10 +150,6 @@ class ArPage : Page {
             val renderData = reordered.mapIndexed { index, p ->
                 val position = p.getPosition()
 
-                // ArPage vector convention
-                //   +rawX = East
-                //   +rawY = Up
-                //   +rawZ = –North  (camera forward when azimuth offset = 0)
                 val rawX = ((position.lonDeg - phoneLon) * metersPerDegLon).toFloat()
                 val rawY = (position.altM - phoneAlt).toFloat()
                 val rawZ = -((position.latDeg - phoneLat) * metersPerDegLat).toFloat()
@@ -176,8 +158,6 @@ class ArPage : Page {
 
                 val displayRadius = initialDisplayRadius + index * layerStep
 
-                // Normalise direction then scale to display radius —
-                // these are the exact world positions the 3D engine will render.
                 val (nx, ny, nz) = if (rawLen > 0.01f) {
                     Triple(
                         rawX / rawLen * displayRadius,
@@ -185,7 +165,7 @@ class ArPage : Page {
                         rawZ / rawLen * displayRadius
                     )
                 } else {
-                    Triple(0f, 0f, -displayRadius)   // directly in front
+                    Triple(0f, 0f, -displayRadius)
                 }
 
                 val distKm  = rawLen / 1000.0
@@ -226,28 +206,20 @@ class ArPage : Page {
                 AircraftRenderData(p.label, rawLen, displayRadius, nx, ny, nz)
             }
 
-            // ── 2-D projected overlay (debug dots + edge arrows) ─────────────
-            //
-            // Both projection methods now use the SAME world-space position:
-            //   (nx, ny, nz) = normalised direction × displayRadius
-            // This matches exactly where the 3D engine placed the dots/labels,
-            // so green 2D debug dots will align with the white 3D squares.
-
             data class AircraftProjection(
                 val label:  String,
-                val spVec:  ScreenPoint,   // ArPage-vector projection (normalised)
-                val spGeo:  ScreenPoint    // ENH geo projection (ground-truth check)
+                val spVec:  ScreenPoint,
+                val spGeo:  ScreenPoint
             )
 
             val projections = reordered.mapIndexed { index, aircraft ->
                 val rd = renderData[index]
 
-                // 2-D projection uses the same normalised world position as the 3D engine.
                 val spVec = Planeprojector.projectFromArVector(
                     rawX       = rd.nx,
                     rawY       = rd.ny,
                     rawZ       = rd.nz,
-                    distance   = rd.rawLen,   // real distance for the distance label
+                    distance   = rd.rawLen,
                     azimuthDeg = camAzimuth,
                     pitchDeg   = camPitch,
                     rollDeg    = camRoll,
@@ -255,7 +227,6 @@ class ArPage : Page {
                     screenHeight = height.toInt()
                 )
 
-                // Geo-based projection (wZ = +north internally, DO NOT negate)
                 val spGeo = Planeprojector.project(
                     user       = phoneGeo,
                     aircraft   = aircraft.getPosition(),
@@ -269,9 +240,6 @@ class ArPage : Page {
                 AircraftProjection(rd.label, spVec, spGeo)
             }
 
-            // ── Error metric ─────────────────────────────────────────────────
-            // Measure pixel distance between the two projection methods for
-            // offscreen targets (where disagreement is most visible).
             var totalError  = 0f
             var errorCount  = 0
             var visibleCount    = 0
@@ -290,7 +258,6 @@ class ArPage : Page {
 
             val avgError = if (errorCount > 0) totalError / errorCount else 0f
 
-            // ── Debug dots ───────────────────────────────────────────────────
             projections.forEach { (label, spVec, _) ->
                 if (spVec.visible && spVec.x.isFinite() && spVec.y.isFinite()) {
                     fill(0, 255, 0)
@@ -331,7 +298,6 @@ class ArPage : Page {
                 }
             }
 
-            // ── HUD ──────────────────────────────────────────────────────────
             fill(0)
             textFont("roboto", 18)
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
@@ -353,7 +319,6 @@ class ArPage : Page {
             text("Offscreen Targets: $offscreenCount",                 50, 700)
         }
 
-        // ── Achievement popup ────────────────────────────────────────────────
         if (showingAchievementId == null) {
             val nextId = AchievementStore.popNotification()
             if (nextId != null) {
@@ -370,9 +335,6 @@ class ArPage : Page {
         postRender(sceneInfo, sceneSwitcher)
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Achievement popup
-    // ─────────────────────────────────────────────────────────────────────────
     private fun drawAchievementPopup(sceneInfo: SceneInfo) {
         val screenW  = sceneInfo.screenWidth
         val screenH  = sceneInfo.screenHeight - navHeight
@@ -397,7 +359,6 @@ class ArPage : Page {
             achievementAnimProgress = (achievementAnimProgress + step).coerceAtMost(1f)
         }
 
-        // Ease-out quadratic
         val eased = 1f - (1f - achievementAnimProgress) * (1f - achievementAnimProgress)
 
         val cardW = screenW * 0.75f

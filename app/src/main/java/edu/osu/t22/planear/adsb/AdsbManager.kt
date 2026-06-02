@@ -64,11 +64,6 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
     fun getRepository(): AdsbRepository {
         return repository
     }
-
-    /**
-     * Project stored aircraft positions to screen coordinates using current orientation.
-     * Call this at high frequency (e.g., every frame).
-     */
     fun projectToScreen(
         location: Location?,
         azimuthDeg: Double,
@@ -90,7 +85,6 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
         val userPoint = GeoPoint(loc.latitude, loc.longitude, loc.altitude)
         val acPoints = aircraftData.map { ac -> ac.getPosition() }
 
-        // FOV is now baked into Planeprojector (matches engine's hardcoded 50° vFOV)
         val screenPoints = Planeprojector.projectAll(
             user = userPoint,
             aircraft = acPoints,
