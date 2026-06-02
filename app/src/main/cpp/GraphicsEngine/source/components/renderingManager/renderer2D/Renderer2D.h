@@ -251,6 +251,8 @@ namespace ge {
 
     VkDescriptorSet currentGlyphFontSet = VK_NULL_HANDLE;
 
+    VkDescriptorSet currentPointCameraSet = VK_NULL_HANDLE;
+
     glm::vec3 m_camRight = glm::vec3(0.0f);
     glm::vec3 m_camUp = glm::vec3(0.0f);
 
@@ -297,7 +299,7 @@ namespace ge {
                      const RenderInfo* renderInfo,
                      const Image& image) const;
 
-    static void renderPoint(const std::shared_ptr<PipelineManager>& pipelineManager,
+    void renderPoint(const std::shared_ptr<PipelineManager>& pipelineManager,
                      const RenderInfo* renderInfo,
                      const Point& point);
 

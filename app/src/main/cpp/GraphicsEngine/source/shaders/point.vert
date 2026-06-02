@@ -1,7 +1,6 @@
 #version 450
 
 layout(push_constant) uniform pointPC {
-  mat4 mvp;
   vec3 worldPos;
   float size;
   vec3 camRight;
@@ -9,6 +8,10 @@ layout(push_constant) uniform pointPC {
   vec3 camUp;
   float _pad1;
 } pc;
+
+layout(set = 0, binding = 0) uniform Camera {
+  mat4 mvp;
+} camera;
 
 void main() {
   vec2 corners[4] = vec2[](
@@ -24,5 +27,5 @@ void main() {
     + pc.camRight * offset.x
     + pc.camUp    * offset.y;
 
-  gl_Position = pc.mvp * vec4(worldPos, 1.0);
+  gl_Position = camera.mvp * vec4(worldPos, 1.0);
 }

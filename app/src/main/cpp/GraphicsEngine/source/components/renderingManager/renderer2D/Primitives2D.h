@@ -246,8 +246,6 @@ namespace ge {
   };
 
   struct Point {
-    glm::mat4 viewMatrix;
-    glm::mat4 projMatrix;
     float x;
     float y;
     float z;
@@ -255,7 +253,6 @@ namespace ge {
     glm::vec4 color;
 
     struct PushConstant {
-      glm::mat4 mvp;
       glm::vec3 worldPos;
       float size;
       glm::vec3 camRight;
@@ -268,15 +265,11 @@ namespace ge {
       float a;
     };
 
-    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent) const
+    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent,
+                                                  glm::vec3 camRight,
+                                                  glm::vec3 camUp) const
     {
-      const glm::mat4 invView = glm::inverse(viewMatrix);
-
-      const glm::vec3 camRight = glm::vec3(invView[0]);
-      const glm::vec3 camUp    = glm::vec3(invView[1]);
-
       return {
-        .mvp      = projMatrix * viewMatrix,
         .worldPos = { x, y, z },
         .size     = size,
         .camRight = camRight,

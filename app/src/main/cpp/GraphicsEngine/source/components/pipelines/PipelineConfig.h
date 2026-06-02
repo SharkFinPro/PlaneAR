@@ -172,7 +172,8 @@ namespace ge::PipelineConfig {
 
   inline GraphicsPipelineOptions createPointPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                             const std::shared_ptr<RenderPass>& renderPass,
-                                                            AAssetManager* assetManager)
+                                                            AAssetManager* assetManager,
+                                                            VkDescriptorSetLayout glyph3DDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -196,6 +197,9 @@ namespace ge::PipelineConfig {
           .offset = 0,
           .size = sizeof(Point::PushConstant)
         }
+      },
+      .descriptorSetLayouts {
+        glyph3DDescriptorSetLayout
       },
       .renderPass = renderPass
     };

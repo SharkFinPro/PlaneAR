@@ -135,8 +135,13 @@ namespace ge {
 
         if (type != PipelineType::font3D)
         {
-          currentGlyph3DCameraSet = VK_NULL_HANDLE;
           currentGlyph3DFontSet = VK_NULL_HANDLE;
+          currentGlyph3DCameraSet = VK_NULL_HANDLE;
+        }
+
+        if (type != PipelineType::point)
+        {
+          currentPointCameraSet = VK_NULL_HANDLE;
         }
 
         if (type != PipelineType::font)
@@ -584,8 +589,6 @@ namespace ge {
   {
     m_drawList.push_back({
       Point{
-        .viewMatrix = m_viewMatrix,
-        .projMatrix = m_projectionMatrix,
         .x = x,
         .y = y,
         .z = z,
@@ -1006,7 +1009,26 @@ namespace ge {
                                const RenderInfo* renderInfo,
                                const Point& point)
   {
-    const auto pointPC = point.createPushConstant(renderInfo->extent);
+    const VkDescriptorSet cameraSet =
+      m_glyph3DDescriptorSet->getDescriptorSet(renderInfo->currentFrame);
+
+    if (cameraSet != currentPointCameraSet)
+    {
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        PipelineType::point,
+        cameraSet,
+        0
+      );
+
+      currentPointCameraSet = cameraSet;
+    }
+
+    const auto pointPC = point.createPushConstant(
+      renderInfo->extent,
+      m_camRight,
+      m_camUp
+    );
 
     pipelineManager->pushGraphicsPipelineConstants(
       renderInfo->commandBuffer,

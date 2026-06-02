@@ -1,7 +1,7 @@
 #version 450
 
 layout(push_constant) uniform pointPC {
-  layout(offset = 112)
+  layout(offset = 48)
   float r;
   float g;
   float b;
