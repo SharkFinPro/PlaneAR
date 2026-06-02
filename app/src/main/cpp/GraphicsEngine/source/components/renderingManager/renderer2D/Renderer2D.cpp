@@ -86,6 +86,10 @@ namespace ge {
     });
     normalizeZValues();
 
+    glm::mat4 cameraUBO = m_projectionMatrix * m_viewMatrix;
+
+    m_cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
+
     PipelineType currentPipeline = PipelineType::rect;
     bool firstDraw = true;
 
@@ -128,6 +132,17 @@ namespace ge {
         pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, type);
         currentPipeline = type;
         firstDraw = false;
+
+        if (type != PipelineType::font3D)
+        {
+          currentGlyph3DCameraSet = VK_NULL_HANDLE;
+          currentGlyph3DFontSet = VK_NULL_HANDLE;
+        }
+
+        if (type != PipelineType::font)
+        {
+          currentGlyphFontSet = VK_NULL_HANDLE;
+        }
       }
     };
 
@@ -380,7 +395,7 @@ namespace ge {
     m_textAlignV = v;
   }
 
-  float Renderer2D::textWidth(const std::string& text) const
+  float Renderer2D::textWidth(const std::vector<uint32_t>& codepoints) const
   {
     if (!m_currentFont)
     {
@@ -388,7 +403,7 @@ namespace ge {
     }
 
     float width = 0.0f;
-    for (const auto codepoint : decodeUTF8(text))
+    for (const auto codepoint : codepoints)
     {
       if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
       {
@@ -399,7 +414,7 @@ namespace ge {
     return width;
   }
 
-  float Renderer2D::textAscent(const std::string &text) const
+  float Renderer2D::textAscent(const std::vector<uint32_t>& codepoints) const
   {
     if (!m_currentFont)
     {
@@ -407,7 +422,7 @@ namespace ge {
     }
 
     float maxAscent = 0.0f;
-    for (const auto codepoint : decodeUTF8(text))
+    for (const auto codepoint : codepoints)
     {
       if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
       {
@@ -418,7 +433,7 @@ namespace ge {
     return maxAscent;
   }
 
-  float Renderer2D::textDescent(const std::string &text) const
+  float Renderer2D::textDescent(const std::vector<uint32_t>& codepoints) const
   {
     if (!m_currentFont)
     {
@@ -426,7 +441,7 @@ namespace ge {
     }
 
     float maxDescent = 0.0f;
-    for (const auto codepoint : decodeUTF8(text))
+    for (const auto codepoint : codepoints)
     {
       if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
       {
@@ -442,16 +457,18 @@ namespace ge {
                         float x,
                         float y)
   {
+    const auto codepoints = decodeUTF8(text);
+
     float xOffset = 0.0f;
     if (m_textAlignH == TextAlignH::CENTER || m_textAlignH == TextAlignH::RIGHT)
     {
-      const float stringWidth = textWidth(text);
+      const float stringWidth = textWidth(codepoints);
       xOffset = (m_textAlignH == TextAlignH::CENTER) ? -stringWidth * 0.5f : -stringWidth;
     }
 
     float yOffset = 0.0f;
-    const float ascent  = textAscent(text);
-    const float descent = textDescent(text);
+    const float ascent  = textAscent(codepoints);
+    const float descent = textDescent(codepoints);
     const float height  = ascent + descent;
 
     switch (m_textAlignV)
@@ -603,16 +620,18 @@ namespace ge {
                           float y,
                           float z)
   {
+    const auto codepoints = decodeUTF8(text);
+
     float xOffset = 0.0f;
     if (m_textAlignH == TextAlignH::CENTER || m_textAlignH == TextAlignH::RIGHT)
     {
-      const float stringWidth = textWidth(text);
+      const float stringWidth = textWidth(codepoints);
       xOffset = (m_textAlignH == TextAlignH::CENTER) ? -stringWidth * 0.5f : -stringWidth;
     }
 
     float yOffset = 0.0f;
-    const float ascent  = textAscent(text);
-    const float descent = textDescent(text);
+    const float ascent  = textAscent(codepoints);
+    const float descent = textDescent(codepoints);
     const float height  = ascent + descent;
 
     switch (m_textAlignV)
@@ -885,16 +904,21 @@ namespace ge {
 
   void Renderer2D::renderGlyph(const std::shared_ptr<PipelineManager>& pipelineManager,
                                const RenderInfo* renderInfo,
-                               const GlyphCommand& glyphCmd) const
+                               const GlyphCommand& glyphCmd)
   {
-    const auto descriptorSet = m_assetManager->getFont(glyphCmd.fontName, glyphCmd.fontSize)->getDescriptorSet(renderInfo->currentFrame);
+    const auto fontSet = m_assetManager->getFont(glyphCmd.fontName, glyphCmd.fontSize)->getDescriptorSet(renderInfo->currentFrame);
 
-    pipelineManager->bindGraphicsPipelineDescriptorSet(
-      renderInfo->commandBuffer,
-      PipelineType::font,
-      descriptorSet,
-      0
-    );
+    if (fontSet != currentGlyphFontSet)
+    {
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        PipelineType::font,
+        fontSet,
+        0
+      );
+
+      currentGlyphFontSet = fontSet;
+    }
 
     const auto glyphPC = glyphCmd.glyph.createPushConstant(renderInfo->extent);
 
@@ -995,27 +1019,39 @@ namespace ge {
 
   void Renderer2D::renderGlyph3D(const std::shared_ptr<PipelineManager>& pipelineManager,
                                  const RenderInfo* renderInfo,
-                                 const Glyph3DCommand& glyphCmd) const
+                                 const Glyph3DCommand& glyphCmd)
   {
-    glm::mat4 cameraUBO = glyphCmd.glyph.projMatrix * glyphCmd.glyph.viewMatrix;
+    const VkDescriptorSet cameraSet =
+      m_glyph3DDescriptorSet->getDescriptorSet(renderInfo->currentFrame);
 
-    m_cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
+    if (cameraSet != currentGlyph3DCameraSet)
+    {
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        PipelineType::font3D,
+        cameraSet,
+        1
+      );
 
-    pipelineManager->bindGraphicsPipelineDescriptorSet(
-      renderInfo->commandBuffer,
-      PipelineType::font3D,
-      m_glyph3DDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
-      1
-    );
+      currentGlyph3DCameraSet = cameraSet;
+    }
 
-    const auto descriptorSet = m_assetManager->getFont(glyphCmd.fontName, glyphCmd.fontSize)->getDescriptorSet(renderInfo->currentFrame);
+    const VkDescriptorSet fontSet =
+      m_assetManager
+        ->getFont(glyphCmd.fontName, glyphCmd.fontSize)
+        ->getDescriptorSet(renderInfo->currentFrame);
 
-    pipelineManager->bindGraphicsPipelineDescriptorSet(
-      renderInfo->commandBuffer,
-      PipelineType::font3D,
-      descriptorSet,
-      0
-    );
+    if (fontSet != currentGlyph3DFontSet)
+    {
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        PipelineType::font3D,
+        fontSet,
+        0
+      );
+
+      currentGlyph3DFontSet = fontSet;
+    }
 
     const auto glyphPC = glyphCmd.glyph.createPushConstant(renderInfo->extent);
 

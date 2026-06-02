@@ -137,11 +137,11 @@ namespace ge {
     void textAlign(TextAlignH h,
                    TextAlignV v = TextAlignV::BASELINE);
 
-    [[nodiscard]] float textWidth(const std::string& text) const;
+    [[nodiscard]] float textWidth(const std::vector<uint32_t>& codepoints) const;
 
-    [[nodiscard]] float textAscent(const std::string& text) const;
+    [[nodiscard]] float textAscent(const std::vector<uint32_t>& codepoints) const;
 
-    [[nodiscard]] float textDescent(const std::string& text) const;
+    [[nodiscard]] float textDescent(const std::vector<uint32_t>& codepoints) const;
 
     void text(const std::string& text,
               float x,
@@ -246,6 +246,11 @@ namespace ge {
 
     VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
 
+    VkDescriptorSet currentGlyph3DCameraSet = VK_NULL_HANDLE;
+    VkDescriptorSet currentGlyph3DFontSet = VK_NULL_HANDLE;
+
+    VkDescriptorSet currentGlyphFontSet = VK_NULL_HANDLE;
+
     void createCommandPool();
 
     [[nodiscard]] glm::vec4 resolveRectBounds(float a,
@@ -283,7 +288,7 @@ namespace ge {
 
     void renderGlyph(const std::shared_ptr<PipelineManager>& pipelineManager,
                      const RenderInfo* renderInfo,
-                     const GlyphCommand& glyphCmd) const;
+                     const GlyphCommand& glyphCmd);
 
     void renderImage(const std::shared_ptr<PipelineManager>& pipelineManager,
                      const RenderInfo* renderInfo,
@@ -295,7 +300,7 @@ namespace ge {
 
     void renderGlyph3D(const std::shared_ptr<PipelineManager>& pipelineManager,
                        const RenderInfo* renderInfo,
-                       const Glyph3DCommand& glyphCmd) const;
+                       const Glyph3DCommand& glyphCmd);
 
     void renderCamera(const std::shared_ptr<PipelineManager>& pipelineManager,
                       const RenderInfo* renderInfo,
