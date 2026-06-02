@@ -269,6 +269,8 @@ class ArPage : Page {
                 }
 
                 if (!spVec.visible) {
+                    if (spVec.camZ <= 0f) return@forEach
+
                     val edge = Planeprojector.getEdgeIndicator(
                         spVec,
                         width.toInt(),
