@@ -13,8 +13,8 @@ namespace ge {
   class Framebuffer
   {
   public:
-    inline explicit Framebuffer(const std::shared_ptr<LogicalDevice>& logicalDevice)
-      : m_logicalDevice(logicalDevice)
+    inline explicit Framebuffer(std::shared_ptr<LogicalDevice> logicalDevice)
+      : m_logicalDevice(std::move(logicalDevice))
     {}
 
     virtual ~Framebuffer();
@@ -51,6 +51,8 @@ namespace ge {
     [[nodiscard]] virtual VkFormat getColorFormat() = 0;
 
     [[nodiscard]] virtual const std::vector<VkImageView>& getImageViews() = 0;
+
+    [[nodiscard]] virtual VkSampleCountFlagBits getSampleCount() = 0;
   };
 
 } // ge

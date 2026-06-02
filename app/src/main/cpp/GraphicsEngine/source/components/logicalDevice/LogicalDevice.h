@@ -79,7 +79,11 @@ namespace ge {
 
     void waitForGraphicsFences(uint32_t currentFrame) const;
 
+    void waitForMousePickingFences(uint32_t currentFrame) const;
+
     void resetGraphicsFences(uint32_t currentFrame) const;
+
+    void resetMousePickingFences(uint32_t currentFrame) const;
 
     VkResult acquireNextImage(uint32_t currentFrame,
                               const std::shared_ptr<Swapchain>& swapchain,
@@ -88,6 +92,9 @@ namespace ge {
     void submitGraphicsQueue(uint32_t currentFrame,
                              uint32_t imageIndex,
                              const std::shared_ptr<CommandBuffer>& commandBuffer);
+
+    void submitMousePickingGraphicsQueue(uint32_t currentFrame,
+                                         const VkCommandBuffer* commandBuffer) const;
 
     VkResult queuePresent(uint32_t imageIndex,
                           const std::shared_ptr<Swapchain>& swapchain) const;
@@ -155,6 +162,8 @@ namespace ge {
     std::vector<VkSemaphore> m_swapchainRenderFinishedSemaphores;
 
     std::vector<VkFence> m_swapchainInFlightFences;
+
+    std::vector<VkFence> m_mousePickingInFlightFences;
 
     uint8_t m_maxFramesInFlight = 2;
 

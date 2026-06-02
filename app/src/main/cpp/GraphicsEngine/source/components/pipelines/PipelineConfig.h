@@ -204,7 +204,8 @@ namespace ge::PipelineConfig {
   inline GraphicsPipelineOptions createFont3DPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                              const std::shared_ptr<RenderPass>& renderPass,
                                                              AAssetManager* assetManager,
-                                                             VkDescriptorSetLayout fontDescriptorSetLayout)
+                                                             VkDescriptorSetLayout fontDescriptorSetLayout,
+                                                             VkDescriptorSetLayout glyph3DDescriptorSetLayout)
   {
     return {
       .shaders {
@@ -230,7 +231,8 @@ namespace ge::PipelineConfig {
         }
       },
       .descriptorSetLayouts {
-        fontDescriptorSetLayout
+        fontDescriptorSetLayout,
+        glyph3DDescriptorSetLayout
       },
       .renderPass = renderPass
     };
@@ -246,6 +248,37 @@ namespace ge::PipelineConfig {
     cameraPipelineOptions.shaders.fragmentShader = "shaders/camera.frag.spv";
 
     return cameraPipelineOptions;
+  }
+
+  inline GraphicsPipelineOptions createMousePickingPipelineOptions(const std::shared_ptr<RenderPass>& renderPass,
+                                                                   AAssetManager* assetManager)
+  {
+    return {
+      .shaders {
+        .assetManager = assetManager,
+        .vertexShader = "shaders/mousePicking.vert.spv",
+        .fragmentShader = "shaders/mousePicking.frag.spv"
+      },
+      .states {
+        .colorBlendState = gps::colorBlendState,
+        .depthStencilState = gps::depthStencilState,
+        .dynamicState = gps::dynamicState,
+        .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
+        .multisampleState = gps::multisampleStateNone,
+        .rasterizationState = gps::rasterizationStateNoCull,
+        .vertexInputState = gps::vertexInputStateRaw,
+        .viewportState = gps::viewportState
+      },
+      .pushConstantRanges {
+        {
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+          .offset = 0,
+          .size = sizeof(MousePickingPoint::PushConstant)
+        }
+      },
+      .renderPass = renderPass,
+      .colorFormat = VK_FORMAT_R8G8B8A8_UINT
+    };
   }
 
 }

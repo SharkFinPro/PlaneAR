@@ -291,6 +291,46 @@ namespace ge {
     }
   };
 
+  struct MousePickingPoint {
+    glm::mat4 viewMatrix;
+    glm::mat4 projMatrix;
+    float x;
+    float y;
+    float z;
+    float size;
+    uint32_t id;
+
+    struct PushConstant {
+      glm::mat4 mvp;
+      glm::vec3 worldPos;
+      float size;
+      glm::vec3 camRight;
+      float _pad0;
+      glm::vec3 camUp;
+      float _pad1;
+      uint32_t id;
+    };
+
+    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent) const
+    {
+      const glm::mat4 invView = glm::inverse(viewMatrix);
+
+      const glm::vec3 camRight = glm::vec3(invView[0]);
+      const glm::vec3 camUp    = glm::vec3(invView[1]);
+
+      return {
+        .mvp      = projMatrix * viewMatrix,
+        .worldPos = { x, y, z },
+        .size     = size,
+        .camRight = camRight,
+        ._pad0    = 0.f,
+        .camUp    = camUp,
+        ._pad1    = 0.f,
+        .id = id
+      };
+    }
+  };
+
   struct Glyph3D {
     glm::mat4 viewMatrix;
     glm::mat4 projMatrix;
@@ -304,7 +344,6 @@ namespace ge {
     glm::vec4 color;
 
     struct PushConstant {
-      glm::mat4 mvp;
       glm::vec3 worldPos;
       float width;
       glm::vec3 camRight;
@@ -325,7 +364,6 @@ namespace ge {
       const glm::vec3 camUp = glm::vec3(invView[1]);
 
       return {
-        .mvp = projMatrix * viewMatrix,
         .worldPos = { x, y, z },
         .width = width,
         .camRight = camRight,

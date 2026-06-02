@@ -2,6 +2,7 @@
 #define PLANEAR_RENDERER2D_H
 
 #include "Primitives2D.h"
+#include "../../descriptorSet/UniformBuffer.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <vulkan/vulkan.h>
@@ -17,8 +18,10 @@ namespace ge {
 
   class AssetManager;
   class CommandBuffer;
+  class DescriptorSet;
   class Font;
   class LogicalDevice;
+  class MousePicker;
   class PipelineManager;
   class Renderer;
   struct RenderInfo;
@@ -59,12 +62,22 @@ namespace ge {
   class Renderer2D
   {
   public:
-    explicit Renderer2D(std::shared_ptr<AssetManager> assetManager);
+    Renderer2D(std::shared_ptr<LogicalDevice> logicalDevice,
+               std::shared_ptr<AssetManager> assetManager);
+
+    ~Renderer2D();
 
     void createNewFrame();
 
     void render(const std::shared_ptr<PipelineManager>& pipelineManager,
                 const RenderInfo* renderInfo);
+
+    [[nodiscard]] std::shared_ptr<MousePicker> getMousePicker();
+
+    void renderMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,
+                            const RenderInfo* renderInfo) const;
+
+    void handleRenderedMousePickingImage(const VkImage image) const;
 
     void fill(float r,
               float g,
@@ -147,6 +160,12 @@ namespace ge {
                float z,
                float size);
 
+    void mousePickingPoint(float x,
+                           float y,
+                           float z,
+                           float size,
+                           uint32_t id);
+
     void set3DView(float x,
                    float y,
                    float z,
@@ -167,6 +186,10 @@ namespace ge {
                 float height);
 
   private:
+    std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    VkCommandPool m_commandPool = VK_NULL_HANDLE;
+
     struct GlyphCommand {
       Glyph glyph;
       std::string fontName;
@@ -214,6 +237,16 @@ namespace ge {
     uint32_t m_currentFontSize = 12;
 
     float m_currentZ = 0.01f;
+
+    std::shared_ptr<MousePicker> m_mousePicker;
+
+    std::shared_ptr<DescriptorSet> m_glyph3DDescriptorSet;
+
+    std::unique_ptr<UniformBuffer> m_cameraUniform;
+
+    VkDescriptorPool m_descriptorPool = VK_NULL_HANDLE;
+
+    void createCommandPool();
 
     [[nodiscard]] glm::vec4 resolveRectBounds(float a,
                                               float b,

@@ -1,0 +1,70 @@
+#include "UniformBuffer.h"
+#include "../logicalDevice/LogicalDevice.h"
+#include "../../utilities/Buffers.h"
+#include <cstring>
+
+namespace ge {
+
+  UniformBuffer::UniformBuffer(std::shared_ptr<LogicalDevice> logicalDevice,
+                               const VkDeviceSize bufferSize)
+    : m_logicalDevice(std::move(logicalDevice)), m_bufferSize(bufferSize)
+  {
+    const auto maxFramesInFlight = m_logicalDevice->getMaxFramesInFlight();
+
+    m_uniformBuffers.resize(maxFramesInFlight);
+    m_uniformBuffersMemory.resize(maxFramesInFlight);
+    m_uniformBuffersMapped.resize(maxFramesInFlight);
+
+    for (size_t i = 0; i < maxFramesInFlight; i++)
+    {
+      Buffers::createBuffer(m_logicalDevice, m_bufferSize,
+                            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                            m_uniformBuffers[i], m_uniformBuffersMemory[i]);
+
+      m_logicalDevice->mapMemory(m_uniformBuffersMemory[i], 0, m_bufferSize, 0, &m_uniformBuffersMapped[i]);
+
+      const VkDescriptorBufferInfo bufferInfo {
+        .buffer = m_uniformBuffers[i],
+        .offset = 0,
+        .range = m_bufferSize
+      };
+
+      m_bufferInfos.push_back(bufferInfo);
+    }
+  }
+
+  UniformBuffer::~UniformBuffer()
+  {
+    for (size_t i = 0; i < m_logicalDevice->getMaxFramesInFlight(); i++)
+    {
+      m_logicalDevice->unmapMemory(m_uniformBuffersMemory[i]);
+
+      Buffers::destroyBuffer(m_logicalDevice, m_uniformBuffers[i], m_uniformBuffersMemory[i]);
+    }
+  }
+
+  VkWriteDescriptorSet UniformBuffer::getDescriptorSet(const uint32_t binding,
+                                                       const VkDescriptorSet& dstSet,
+                                                       const size_t frame) const
+  {
+    const VkWriteDescriptorSet uniformDescriptorSet {
+      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+      .dstSet = dstSet,
+      .dstBinding = binding,
+      .dstArrayElement = 0,
+      .descriptorCount = 1,
+      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      .pBufferInfo = &m_bufferInfos[frame]
+    };
+
+    return uniformDescriptorSet;
+  }
+
+  void UniformBuffer::update(const uint32_t frame,
+                             const void* data) const
+  {
+    memcpy(m_uniformBuffersMapped[frame], data, m_bufferSize);
+  }
+
+} // namespace vke

@@ -144,7 +144,11 @@ namespace ge {
 
     createGraphicsPipeline(PipelineType::font3D,
                            PipelineConfig::createFont3DPipelineOptions(m_logicalDevice,
-                           renderPass, AAssetManager, m_assetManager->getFontDescriptorSetLayout()));
+                           renderPass, AAssetManager, m_assetManager->getFontDescriptorSetLayout(),
+                           m_assetManager->getGlyph3DDescriptorSetLayout()));
+
+    createGraphicsPipeline(PipelineType::mousePicking,
+                           PipelineConfig::createMousePickingPipelineOptions(m_renderer->getMousePickingRenderPass(), AAssetManager));
   }
 
   void PipelineManager::createGraphicsPipeline(PipelineType pipelineType,

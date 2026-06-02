@@ -1,10 +1,12 @@
 package edu.osu.t22.planear.scenes.pages
 
 import android.hardware.HardwareBuffer
+import android.util.Log
 import edu.osu.t22.planear.AppColors
 import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.achievements.ALL_ACHIEVEMENTS
 import edu.osu.t22.planear.achievements.AchievementStore
+import edu.osu.t22.planear.adsb.AdsbRepository
 import edu.osu.t22.planear.geo.GeoPoint
 import edu.osu.t22.planear.geo.GeoUtils
 import edu.osu.t22.planear.geo.Planeprojector
@@ -26,6 +28,7 @@ class ArPage : Page {
 
     private var lastHb: HardwareBuffer? = null
 
+    // Achievement popup state
     private var showingAchievementId: String? = null
     private var achievementAnimProgress: Float = 0.0f
     private var achievementClosing: Boolean = false
@@ -33,16 +36,22 @@ class ArPage : Page {
     private val initialDisplayRadius = 3000.0f
     private val layerStep = 250.0f
 
+
+    private var waitingOnMousePickingResult: Boolean = false
+    private var selectedId: Long = 0
+    private var lastConsumedTapPos: Pair<Float, Float>? = null
+
     val c = AppColors.current
 
-
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
-        val width  = sceneInfo.screenWidth
+        val width = sceneInfo.screenWidth
         val height = sceneInfo.screenHeight - navHeight
 
+        // Mark that we are on the AR page that enables achievement tracking
         AchievementStore.isOnArPage = true
 
-        val hb          = AppSettings.hb
+        val hb = AppSettings.hb
+
         val orientation = OrientationStore.data
 
         val phoneLat: Double = orientation.x.toDouble()
@@ -61,9 +70,34 @@ class ArPage : Page {
         val camPitch   = orientation.pitchDeg.toDouble()
         val camRoll    = orientation.rollDeg.toDouble()
 
+        val tapPos = sceneInfo.gestures.touchDownPosition
+
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 
-            // ── Camera feed / sky background ────────────────────────────────
+            tapPos?.let { (tx, ty) ->
+                if (tapPos != lastConsumedTapPos &&
+                    tx > 0 && tx < width &&
+                    ty > 0 && ty < height &&
+                    !waitingOnMousePickingResult) {
+
+                    requestMousePicking(tx, ty);
+
+                    waitingOnMousePickingResult = true
+
+                    lastConsumedTapPos = tapPos
+
+                    sceneInfo.gestures.markTouchDownConsumed()
+                }
+            }
+
+            if (waitingOnMousePickingResult && hasNewMousePickingResult()) {
+                selectedId = getMousePickingResult()
+
+                lastConsumedTapPos = null
+
+                waitingOnMousePickingResult = false
+            }
+
             if (hb != null && hb != lastHb) {
                 updateCameraBuffer(hb)
                 lastHb = hb
@@ -89,26 +123,28 @@ class ArPage : Page {
                 height
             )
 
+            // Sort aircraft nearest-first so closer planes draw on top
             val aircraftRepository = SceneSwitcher.adsbManager.getRepository()
 
             val sorted = aircraftRepository.getAircraft().sortedBy { p ->
                 GeoUtils.distanceMeters(phoneGeo, p.getPosition())
             }
 
-            val yaw   = Math.toRadians(orientation.azimuthDeg - 90)
+            val yaw = Math.toRadians((orientation.azimuthDeg - 90))
             val pitch = Math.toRadians(orientation.pitchDeg)
 
             val fx = cos(pitch) * cos(yaw)
             val fy = sin(pitch)
             val fz = cos(pitch) * sin(yaw)
-            val flen = sqrt(fx * fx + fy * fy + fz * fz).toFloat()
+
+            val flen = sqrt(fx*fx + fy*fy + fz*fz).toFloat()
 
             val cx = (fx / flen).toFloat()
             val cy = (fy / flen).toFloat()
             val cz = (fz / flen).toFloat()
 
             var bestIndex = -1
-            var bestDot   = -1f
+            var bestDot = -1f
 
             sorted.forEachIndexed { index, p ->
                 val position = p.getPosition()
@@ -120,7 +156,7 @@ class ArPage : Page {
                 if (len > 0.01f) {
                     val dot = (rawX / len) * cx + (rawY / len) * cy + (rawZ / len) * cz
                     if (dot > bestDot) {
-                        bestDot   = dot
+                        bestDot = dot
                         bestIndex = index
                     }
                 }
@@ -151,14 +187,17 @@ class ArPage : Page {
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
 
             val renderData = reordered.mapIndexed { index, p ->
+                // Raw direction vector from phone to aircraft (East / Up / North in meters)
                 val position = p.getPosition()
 
                 val rawX = ((position.lonDeg - phoneLon) * metersPerDegLon).toFloat()
                 val rawY = (position.altM - phoneAlt).toFloat()
                 val rawZ = -((position.latDeg - phoneLat) * metersPerDegLat).toFloat()
 
+                // Distance in the XZ plane + full 3-D magnitude
                 val rawLen = sqrt((rawX * rawX + rawY * rawY + rawZ * rawZ).toDouble()).toFloat()
 
+                // Avoid division by zero for aircraft exactly at phone position
                 val displayRadius = initialDisplayRadius + index * layerStep
 
                 val (nx, ny, nz) = if (rawLen > 0.01f) {
@@ -168,14 +207,14 @@ class ArPage : Page {
                         rawZ / rawLen * displayRadius
                     )
                 } else {
+                    // Fallback: place directly in front of the camera
                     Triple(0f, 0f, -displayRadius)
                 }
 
                 val distKm  = rawLen / 1000.0
                 val distStr = if (distKm < 1.0) "${"%.0f".format(rawLen)} m"
-                else              "${"%.1f".format(distKm)} km"
+                else "${"%.1f".format(distKm)} km"
 
-                // Back dot (shadow)
                 val dotBackRadius  = displayRadius
                 val dotFrontRadius = displayRadius - layerStep * 0.4f
 
@@ -193,7 +232,15 @@ class ArPage : Page {
                 fill(0)
                 point(bx, by, bz, 270)
 
-                fill(245)
+                // TODO: only send if mouse picking queried
+                val id = p.id.toLongOrNull(16) ?: 0L
+                mousePickingPoint(bx, by, bz, 270, id)
+
+                if (id == selectedId) {
+                    fill(150, 245, 150)
+                } else {
+                    fill(245)
+                }
                 point(frontX, frontY, frontZ, 250)
 
                 val textRadius = displayRadius - layerStep * 0.7f
@@ -243,10 +290,10 @@ class ArPage : Page {
                 AircraftProjection(rd.label, spVec, spGeo)
             }
 
-            var totalError  = 0f
-            var errorCount  = 0
-            var visibleCount    = 0
-            var offscreenCount  = 0
+            var totalError = 0f
+            var errorCount = 0
+            var visibleCount = 0
+            var offscreenCount = 0
 
             projections.forEach { ap ->
                 if (ap.spVec.visible) visibleCount++ else offscreenCount++
@@ -315,8 +362,8 @@ class ArPage : Page {
 
             fill(0)
             text("Yaw: ${orientation.azimuthDeg.toInt()}° ($cardinal)", 50, 300)
-            text("Pitch: ${orientation.pitchDeg.toInt()}°",             50, 400)
-            text("Roll: ${orientation.rollDeg.toInt()}°",               50, 500)
+            text("Pitch: ${orientation.pitchDeg.toInt()}°", 50, 400)
+            text("Roll: ${orientation.rollDeg.toInt()}°", 50, 500)
 
             // Error metric display
             fill(255, 255, 0)
@@ -324,15 +371,17 @@ class ArPage : Page {
             text("Offscreen Targets: $offscreenCount",                 50, 700)
         }
 
+        // Check for new achievement notifications
         if (showingAchievementId == null) {
             val nextId = AchievementStore.popNotification()
             if (nextId != null) {
-                showingAchievementId    = nextId
+                showingAchievementId   = nextId
                 achievementAnimProgress = 0.0f
                 achievementClosing      = false
             }
         }
 
+        // Draw achievement popup if active
         if (showingAchievementId != null) {
             drawAchievementPopup(sceneInfo)
         }
@@ -340,6 +389,11 @@ class ArPage : Page {
         postRender(sceneInfo, sceneSwitcher)
     }
 
+    /**
+     * Draw the achievement unlocked popup card, centered on screen.
+     * Shows the achievement emoji, name, and a dismiss button.
+     * Slides in from top with eased animation.
+     */
     private fun drawAchievementPopup(sceneInfo: SceneInfo) {
         val screenW  = sceneInfo.screenWidth
         val screenH  = sceneInfo.screenHeight - navHeight
@@ -353,6 +407,7 @@ class ArPage : Page {
             return
         }
 
+        // Animate
         if (achievementClosing) {
             achievementAnimProgress = (achievementAnimProgress - step).coerceAtLeast(0f)
             if (achievementAnimProgress == 0f) {
@@ -366,11 +421,13 @@ class ArPage : Page {
 
         val eased = 1f - (1f - achievementAnimProgress) * (1f - achievementAnimProgress)
 
+        // Card dimensions
         val cardW = screenW * 0.75f
         val cardH = cardW * 1.2f
         val cardX = (screenW - cardW) / 2f
         val cardR = 28f
 
+        // Slide down from top
         val targetY = (screenH - cardH) / 2f
         val startY  = -cardH - 50f
         val cardY   = startY + (targetY - startY) * eased
@@ -378,31 +435,31 @@ class ArPage : Page {
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
             rectMode(RectMode.CORNER)
 
-            // Backdrop
+            // Semi-transparent backdrop
             fill(c.overlay, (120 * eased).toInt())
             rect(0, 0, screenW, screenH)
 
-            // Card
+            // Card background
             fill(c.backgroundCard)
             rect(cardX, cardY, cardW, cardH, cardR)
 
-            // Accent top stripe
+            // Accent top border
             fill(c.accent)
             rect(cardX + cardR, cardY, cardW - 2f * cardR, 4f)
 
-            // Header
+            // "Achievement Unlocked!" label
             fill(c.accent)
             textFont("roboto", 12)
             textAlign(TextAlignH.CENTER, TextAlignV.BASELINE)
             text("🎉  ACHIEVEMENT UNLOCKED  🎉", screenW / 2f, cardY + 50f)
 
-            // Emoji
+            // Large emoji
             textFont("emoji", 48)
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
             fill(c.textPrimary)
             text(ach.emoji, screenW / 2f, cardY + cardH * 0.35f)
 
-            // Name
+            // Achievement name
             fill(c.textPrimary)
             textFont("roboto", 18)
             textAlign(TextAlignH.CENTER, TextAlignV.BASELINE)
@@ -420,7 +477,7 @@ class ArPage : Page {
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
             text(ach.requirement, screenW / 2f, cardY + cardH * 0.73f)
 
-            // Dismiss button
+            // Close button
             val btnW = cardW * 0.55f
             val btnH = 70f
             val btnX = (screenW - btnW) / 2f
@@ -429,18 +486,19 @@ class ArPage : Page {
 
             fill(c.accent)
             rect(btnX, btnY, btnW, btnH, btnR)
-
             fill(c.textOnAccent)
             textFont("roboto", 14)
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
             text("Awesome!", screenW / 2f, btnY + btnH / 2f)
 
-            // Touch handling – only active once animation is complete
+            // Handle close tap
             if (!achievementClosing && achievementAnimProgress >= 1f) {
                 gestures.singleTapUpPosition?.let { (tx, ty) ->
+                    // Tap on button
                     if (tx >= btnX && tx <= btnX + btnW && ty >= btnY && ty <= btnY + btnH) {
                         achievementClosing = true
                     }
+                    // Tap outside card (backdrop dismiss)
                     if (tx < cardX || tx > cardX + cardW || ty < cardY || ty > cardY + cardH) {
                         achievementClosing = true
                     }

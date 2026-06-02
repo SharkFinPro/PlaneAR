@@ -47,11 +47,19 @@ namespace ge {
 
     std::shared_ptr<CommandBuffer> m_swapchainCommandBuffer;
 
+    std::shared_ptr<CommandBuffer> m_mousePickingCommandBuffer;
+
     std::shared_ptr<Renderer2D> m_renderer2D;
 
     void recordSwapchainCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
                                       uint32_t currentFrame,
                                       uint32_t imageIndex) const;
+
+    void recordMousePickingCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                         uint32_t currentFrame) const;
+
+    void doMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,
+                        uint32_t currentFrame) const;
   };
 
 } // ge
