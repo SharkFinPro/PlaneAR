@@ -72,6 +72,7 @@ class ArPage : Page {
 
         val tapPos = sceneInfo.gestures.touchDownPosition
 
+
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 
             tapPos?.let { (tx, ty) ->
@@ -80,7 +81,7 @@ class ArPage : Page {
                     ty > 0 && ty < height &&
                     !waitingOnMousePickingResult) {
 
-                    requestMousePicking(tx, ty);
+                    requestMousePicking(tx, ty)
 
                     waitingOnMousePickingResult = true
 
@@ -89,9 +90,25 @@ class ArPage : Page {
                     sceneInfo.gestures.markTouchDownConsumed()
                 }
             }
+            // Sort aircraft nearest-first so closer planes draw on top
+            val aircraftRepository = SceneSwitcher.adsbManager.getRepository()
+
+            val sorted = aircraftRepository.getAircraft().sortedBy { p ->
+                GeoUtils.distanceMeters(phoneGeo, p.getPosition())
+            }
 
             if (waitingOnMousePickingResult && hasNewMousePickingResult()) {
                 selectedId = getMousePickingResult()
+
+                if (selectedId != 0L) {
+                    val selectedAircraft = aircraftRepository.getAircraft().find {
+                        (it.id.toLongOrNull(16) ?: 0L) == selectedId
+                    }
+
+                    selectedAircraft?.let {
+                        FlightDetailSheet.open(it)
+                    }
+                }
 
                 lastConsumedTapPos = null
 
@@ -123,12 +140,10 @@ class ArPage : Page {
                 height
             )
 
-            // Sort aircraft nearest-first so closer planes draw on top
-            val aircraftRepository = SceneSwitcher.adsbManager.getRepository()
+            val metersPerDegLat = 111_320.0
+            val metersPerDegLon = 111_320.0 * cos(Math.toRadians(phoneLat))
 
-            val sorted = aircraftRepository.getAircraft().sortedBy { p ->
-                GeoUtils.distanceMeters(phoneGeo, p.getPosition())
-            }
+
 
             val yaw = Math.toRadians((orientation.azimuthDeg - 90))
             val pitch = Math.toRadians(orientation.pitchDeg)

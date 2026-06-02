@@ -10,6 +10,7 @@ import edu.osu.t22.planear.graphicsEngine.TextAlignH
 import edu.osu.t22.planear.graphicsEngine.TextAlignV
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
+import edu.osu.t22.planear.adsb.Aircraft
 import kotlin.math.max
 import kotlin.math.min
 
@@ -17,11 +18,9 @@ class FavoritesPage : Page {
     override val sceneId = SceneId.Favorites
 
     private var currentPage = 0
-    private var selectedIndex = -1
 
     private var showingOverview = false
     private var rvScrollOffset = 0f
-    private var overviewSelectedFlight = -1
     private var ovFavScrollOffset = 0f
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
@@ -63,7 +62,7 @@ class FavoritesPage : Page {
         val canGoBack = currentPage > 0
         val canGoNext = currentPage < totalPages - 1
 
-        if (gestures.flung && selectedIndex < 0) {
+        if (gestures.flung && !FlightDetailSheet.isOpen) {
             when (gestures.flingDirection) {
                 FlingDirection.LEFT  -> if (canGoNext) currentPage++
                 FlingDirection.RIGHT -> if (canGoBack) currentPage--
@@ -111,7 +110,7 @@ class FavoritesPage : Page {
             textAlign(TextAlignH.RIGHT, TextAlignV.BASELINE)
             text("Overview", screenW - margin, linksY)
 
-            val widgetShown = selectedIndex >= 0
+            val widgetShown = FlightDetailSheet.isOpen
 
             if (tapPos != null && !widgetShown) {
                 val (tx, ty) = tapPos
@@ -139,13 +138,13 @@ class FavoritesPage : Page {
             val pageEnd   = min(pageStart + FlightHistoryPage.FLIGHTS_PER_PAGE, totalFavs)
 
             for (fi in pageStart until pageEnd) {
-                val i         = favIndices[fi] // actual flight index
-                val rowIdx    = fi - pageStart
-                val rowY      = listStartY + rowIdx * rowHeight
-                val textY     = rowY + rowHeight * 0.65f
+                val i = favIndices[fi] // actual flight index
+                val rowIdx = fi - pageStart
+                val rowY = listStartY + rowIdx * rowHeight
+                val textY = rowY + rowHeight * 0.65f
                 val rightEdge = screenW - margin
                 val dotRadius = 16.0f
-                val starX     = margin + 240.0f
+                val starX = margin + 240.0f
 
                 fill(c.divider)
                 rect(margin, rowY, screenW - 2.0f * margin, 2.0f)
@@ -171,7 +170,12 @@ class FavoritesPage : Page {
                 // Green dot
                 fill(c.accent)
                 ellipseMode(EllipseMode.CENTER)
-                ellipse(rightEdge - dotRadius, rowY + rowHeight / 2.0f, dotRadius * 2.0f, dotRadius * 2.0f)
+                ellipse(
+                    rightEdge - dotRadius,
+                    rowY + rowHeight / 2.0f,
+                    dotRadius * 2.0f,
+                    dotRadius * 2.0f
+                )
 
                 if (tapPos != null && !tapConsumed && !widgetShown) {
                     val (tx, ty) = tapPos
@@ -184,19 +188,9 @@ class FavoritesPage : Page {
 
                     // Tap on row to show detail widget
                     if (!tapConsumed && tx >= margin && tx <= rightEdge && ty >= rowY && ty <= rowY + rowHeight) {
-                        selectedIndex          = i
-                        Page.sheetAnimProgress = 0.0f
-                        Page.sheetClosing      = false
-                        tapConsumed            = true
+                        FlightDetailSheet.open(flightData[i])
+                        tapConsumed = true
                     }
-                }
-            }
-
-            if (selectedIndex >= 0 && selectedIndex < flightData.size) {
-                val result = drawFlightDetailWidget(sceneInfo, flightData[selectedIndex], tapConsumed)
-                if (result == SheetResult.DISMISSED) {
-                    selectedIndex = -1
-                    tapConsumed   = true
                 }
             }
         }
@@ -282,7 +276,7 @@ class FavoritesPage : Page {
             val rvZoneTop    = rvTop - 10f
             val rvZoneBottom = rvTop + rvImgH + 80f
 
-            if (gestures.isScrolling && overviewSelectedFlight < 0) {
+            if (gestures.isScrolling && !FlightDetailSheet.isOpen) {
                 val pos = gestures.scrollPosition
                 val inZone = pos != null &&
                         pos.second >= rvZoneTop && pos.second <= rvZoneBottom &&
@@ -316,15 +310,13 @@ class FavoritesPage : Page {
                 text(flightData[i].date, rawX, textY + 36f)
             }
 
-            if (overviewSelectedFlight < 0) {
+            if (!FlightDetailSheet.isOpen) {
                 gestures.singleTapUpPosition?.let { (tx, ty) ->
                     if (ty >= rvTop && ty <= rvTop + rvImgH + 70f) {
                         for (i in 0 until rvCount) {
                             val rawX = margin + i * (rvCardW + rvCardGap) - rvScrollOffset
                             if (tx >= rawX && tx <= rawX + rvCardW) {
-                                overviewSelectedFlight = i
-                                Page.sheetAnimProgress = 0.0f
-                                Page.sheetClosing      = false
+                                FlightDetailSheet.open(flightData[i])
                                 overviewTapConsumed    = true
                                 break
                             }
@@ -348,7 +340,7 @@ class FavoritesPage : Page {
 
             val favZoneTop    = favTop - 10f
             val favZoneBottom = favTop + rvImgH + 80f
-            if (gestures.isScrolling && overviewSelectedFlight < 0) {
+            if (gestures.isScrolling && !FlightDetailSheet.isOpen) {
                 val pos = gestures.scrollPosition
                 val inFavZone = pos != null &&
                         pos.second >= favZoneTop  && pos.second <= favZoneBottom &&
@@ -383,16 +375,14 @@ class FavoritesPage : Page {
                 text(flightData[idx].date, rawX, ftextY + 36f)
             }
 
-            if (overviewSelectedFlight < 0) {
+            if (!FlightDetailSheet.isOpen) {
                 gestures.singleTapUpPosition?.let { (tx, ty) ->
                     if (ty >= favTop && ty <= favTop + rvImgH + 70f) {
                         for (fi in 0 until favCount) {
                             val idx  = ovFavIndices[fi]
                             val rawX = margin + fi * (rvCardW + rvCardGap) - ovFavScrollOffset
                             if (tx >= rawX && tx <= rawX + rvCardW) {
-                                overviewSelectedFlight = idx
-                                Page.sheetAnimProgress = 0.0f
-                                Page.sheetClosing      = false
+                                FlightDetailSheet.open(flightData[idx])
                                 overviewTapConsumed    = true
                                 break
                             }
@@ -401,16 +391,9 @@ class FavoritesPage : Page {
                 }
             }
 
-            if (overviewSelectedFlight >= 0 && overviewSelectedFlight < flightData.size) {
-                val result = drawFlightDetailWidget(sceneInfo, flightData[overviewSelectedFlight], overviewTapConsumed)
-                if (result == SheetResult.DISMISSED) {
-                    overviewSelectedFlight = -1
-                    overviewTapConsumed    = true
-                }
-            }
 
             // "Back to list" link tap
-            if (overviewSelectedFlight < 0) {
+            if (!FlightDetailSheet.isOpen) {
                 gestures.singleTapUpPosition?.let { (tx, ty) ->
                     if (tx >= margin && tx <= margin + 300f &&
                         ty >= cardTop - 40f && ty <= cardTop) {
@@ -420,7 +403,7 @@ class FavoritesPage : Page {
             }
 
             // "Flights in Air" button tap -> go to AR
-            if (overviewSelectedFlight < 0) {
+            if (!FlightDetailSheet.isOpen) {
                 gestures.singleTapUpPosition?.let { (tx, ty) ->
                     if (tx >= btnX && tx <= btnX + btnW && ty >= btnY && ty <= btnY + btnH) {
                         sceneSwitcher.setCurrentScene(SceneId.AR.id)

@@ -19,7 +19,7 @@ class FlightHistoryPage : Page {
     }
 
     private var currentPage = 0
-    private var selectedIndex = -1 // -1 = no selection, widget hidden
+
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val screenW  = sceneInfo.screenWidth
@@ -51,7 +51,7 @@ class FlightHistoryPage : Page {
         val canGoBack = currentPage > 0
         val canGoNext = currentPage < totalPages - 1
 
-        if (gestures.flung && selectedIndex < 0) {
+        if (gestures.flung && !FlightDetailSheet.isOpen) {
             when (gestures.flingDirection) {
                 FlingDirection.LEFT  -> if (canGoNext) currentPage++
                 FlingDirection.RIGHT -> if (canGoBack) currentPage--
@@ -97,7 +97,7 @@ class FlightHistoryPage : Page {
             textAlign(TextAlignH.CENTER, TextAlignV.BASELINE)
             text("Favorites", screenW / 2.0f, favLinkY)
 
-            val widgetShown = selectedIndex >= 0
+            val widgetShown = FlightDetailSheet.isOpen
 
             // Header tap handling: Back / Next pagination + Favorites link
             if (tapPos != null && !widgetShown) {
@@ -171,20 +171,9 @@ class FlightHistoryPage : Page {
 
                     // Tap on row (excluding star) to open detail widget
                     if (!tapConsumed && tx >= margin && tx <= rightEdge && ty >= rowY && ty <= rowY + rowHeight) {
-                        selectedIndex          = i
-                        Page.sheetAnimProgress = 0.0f
-                        Page.sheetClosing      = false
+                        FlightDetailSheet.open(flightData[i])
                         tapConsumed            = true
                     }
-                }
-            }
-
-            // Detail widget overlay
-            if (selectedIndex >= 0 && selectedIndex < totalFlights) {
-                val result = drawFlightDetailWidget(sceneInfo, flightData[selectedIndex], tapConsumed)
-                if (result == SheetResult.DISMISSED) {
-                    selectedIndex = -1
-                    tapConsumed   = true
                 }
             }
         }
