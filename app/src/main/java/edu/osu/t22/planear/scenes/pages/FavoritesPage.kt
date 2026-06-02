@@ -188,12 +188,7 @@ class FavoritesPage : Page {
 
                     // Tap on row to show detail widget
                     if (!tapConsumed && tx >= margin && tx <= rightEdge && ty >= rowY && ty <= rowY + rowHeight) {
-                        FlightDetailSheet.open(
-                            Aircraft(
-                                id = flightData[i].callsign,
-                                callsign = flightData[i].callsign
-                            )
-                        )
+                        FlightDetailSheet.open(flightData[i])
                         tapConsumed = true
                     }
                 }
@@ -321,10 +316,7 @@ class FavoritesPage : Page {
                         for (i in 0 until rvCount) {
                             val rawX = margin + i * (rvCardW + rvCardGap) - rvScrollOffset
                             if (tx >= rawX && tx <= rawX + rvCardW) {
-                                FlightDetailSheet.open(Aircraft(
-                                    id       = flightData[i].callsign,
-                                    callsign = flightData[i].callsign
-                                ))
+                                FlightDetailSheet.open(flightData[i])
                                 overviewTapConsumed    = true
                                 break
                             }
@@ -390,10 +382,7 @@ class FavoritesPage : Page {
                             val idx  = ovFavIndices[fi]
                             val rawX = margin + fi * (rvCardW + rvCardGap) - ovFavScrollOffset
                             if (tx >= rawX && tx <= rawX + rvCardW) {
-                                FlightDetailSheet.open(Aircraft(
-                                    id       = flightData[fi].callsign,
-                                    callsign = flightData[fi].callsign
-                                ))
+                                FlightDetailSheet.open(flightData[idx])
                                 overviewTapConsumed    = true
                                 break
                             }

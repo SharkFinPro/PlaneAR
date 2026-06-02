@@ -171,10 +171,7 @@ class FlightHistoryPage : Page {
 
                     // Tap on row (excluding star) to open detail widget
                     if (!tapConsumed && tx >= margin && tx <= rightEdge && ty >= rowY && ty <= rowY + rowHeight) {
-                        FlightDetailSheet.open(Aircraft(
-                            id       = flightData[i].callsign,
-                            callsign = flightData[i].callsign
-                        ))
+                        FlightDetailSheet.open(flightData[i])
                         tapConsumed            = true
                     }
                 }

@@ -9,12 +9,14 @@ import edu.osu.t22.planear.adsb.Aircraft
 
 // Shared flight data
 data class FlightEntry(
-    val callsign: String,
-    val takeoffTime: String,
-    val landingTime: String,
-    val planeType: String,
-    val airspeed: Int,
-    val date: String
+    val callsign:     String,
+    val takeoffTime:  String,
+    val landingTime:  String,
+    val planeType:    String,
+    val airspeed:     Int,
+    val verticalRate: Int,       // ft/min
+    val date:         String,
+    val registration: String = ""
 )
 
 val flightData: MutableList<FlightEntry> = mutableListOf()
@@ -32,14 +34,13 @@ object FlightHistoryStore {
 
     private fun load() {
         val encodedSet = prefs.getStringSet(KEY_ENCODED_FLIGHTS, emptySet()) ?: emptySet()
-
         flightData.clear()
         Page.flightFavorites.clear()
 
-        // Decode each string: "index|callsign|takeoffTime|landingTime|planeType|airspeed|date|isFavorite"
+        // Format: "index|callsign|takeoffTime|landingTime|planeType|airspeed|verticalRate|registration|date|isFavorite"
         val parsedList = encodedSet.mapNotNull { str ->
-            val parts = str.split("|", limit = 8)
-            if (parts.size == 8) {
+            val parts = str.split("|", limit = 10)
+            if (parts.size == 10) {
                 val index = parts[0].toIntOrNull() ?: 0
                 val entry = FlightEntry(
                     callsign = parts[1],
@@ -47,9 +48,11 @@ object FlightHistoryStore {
                     landingTime = parts[3],
                     planeType = parts[4],
                     airspeed = parts[5].toIntOrNull() ?: 0,
-                    date = parts[6]
+                    verticalRate = parts[6].toIntOrNull() ?: 0,
+                    registration = parts[7],
+                    date = parts[8]
                 )
-                val isFav = parts[7] == "true"
+                val isFav = parts[9] == "true"
                 Triple(index, entry, isFav)
             } else null
         }.sortedBy { it.first }
@@ -58,7 +61,6 @@ object FlightHistoryStore {
             flightData.add(item.second)
             Page.flightFavorites.add(item.third)
         }
-
         while (Page.flightFavorites.size < flightData.size) {
             Page.flightFavorites.add(false)
         }
@@ -69,35 +71,35 @@ object FlightHistoryStore {
         for (i in 0 until flightData.size) {
             val f = flightData[i]
             val isFav = if (i < Page.flightFavorites.size) Page.flightFavorites[i] else false
-            val encoded = "$i|${f.callsign}|${f.takeoffTime}|${f.landingTime}|${f.planeType}|${f.airspeed}|${f.date}|$isFav"
+            val encoded = "$i|${f.callsign}|${f.takeoffTime}|${f.landingTime}|" +
+                    "${f.planeType}|${f.airspeed}|${f.verticalRate}|" +
+                    "${f.registration}|${f.date}|$isFav"
             encodedSet.add(encoded)
         }
 
-        prefs.edit()
-            .putStringSet(KEY_ENCODED_FLIGHTS, encodedSet)
-            .apply()
+        prefs.edit().putStringSet(KEY_ENCODED_FLIGHTS, encodedSet).apply()
     }
+
 }
 
 fun logFlightHistory(plane: Aircraft) {
     if (flightData.none { it.callsign == plane.label }) {
         val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.US)
         val timeFormat = SimpleDateFormat("hh:mm a", Locale.US)
-        val dateStr = dateFormat.format(Date())
-        val timeStr = timeFormat.format(Date())
 
-        val speed = plane.groundSpeed?.toInt() ?: 0
-        val type = plane.type ?: "Unknown"
-
-        flightData.add(0, FlightEntry(
-            callsign = plane.label,
-            takeoffTime = timeStr,
+        flightData.add(
+            0, FlightEntry(
+                callsign = plane.label,
+            takeoffTime = timeFormat.format(Date()),
             landingTime = "Unknown",
-            planeType = type,
-            airspeed = speed,
-            date = dateStr
+            planeType = plane.type?.takeIf { it.isNotBlank() } ?: "Unknown",
+            airspeed = plane.groundSpeed?.toInt() ?: 0,
+            verticalRate = plane.verticalRate,
+            registration = plane.registration?.takeIf { it.isNotBlank() } ?: "",
+            date = dateFormat.format(Date())
         ))
         Page.flightFavorites.add(0, false)
         FlightHistoryStore.save()
     }
 }
+
