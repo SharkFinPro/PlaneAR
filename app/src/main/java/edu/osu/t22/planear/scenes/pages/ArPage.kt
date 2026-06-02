@@ -82,9 +82,23 @@ class ArPage : Page {
                     sceneInfo.gestures.markTouchDownConsumed()
                 }
             }
+            // Sort aircraft nearest-first so closer planes draw on top
+            val aircraftRepository = SceneSwitcher.adsbManager.getRepository()
+
+            val sorted = aircraftRepository.getAircraft().sortedBy { p ->
+                GeoUtils.distanceMeters(phoneGeo, p.getPosition())
+            }
 
             if (waitingOnMousePickingResult && hasNewMousePickingResult()) {
                 selectedId = getMousePickingResult()
+
+                val selectedAircraft = aircraftRepository.getAircraft().find {
+                    (it.id.toLongOrNull(16) ?: 0L) == selectedId
+                }
+
+                selectedAircraft?.let {
+                    FlightDetailSheet.open(it)
+                }
 
                 lastConsumedTapPos = null
 
@@ -119,12 +133,7 @@ class ArPage : Page {
             val metersPerDegLat = 111_320.0
             val metersPerDegLon = 111_320.0 * cos(Math.toRadians(phoneLat))
 
-            // Sort aircraft nearest-first so closer planes draw on top
-            val aircraftRepository = SceneSwitcher.adsbManager.getRepository()
 
-            val sorted = aircraftRepository.getAircraft().sortedBy { p ->
-                GeoUtils.distanceMeters(phoneGeo, p.getPosition())
-            }
 
             val yaw = Math.toRadians((orientation.azimuthDeg - 90))
             val pitch = Math.toRadians(orientation.pitchDeg)
@@ -230,7 +239,6 @@ class ArPage : Page {
 
                 if (id == selectedId) {
                     fill(150, 245, 150)
-                    FlightDetailSheet.open(p)
                 } else {
                     fill(245)
                 }
