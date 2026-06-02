@@ -64,11 +64,6 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
     fun getRepository(): AdsbRepository {
         return repository
     }
-
-    /**
-     * Project stored aircraft positions to screen coordinates using current orientation.
-     * Call this at high frequency (e.g., every frame).
-     */
     fun projectToScreen(
         location: Location?,
         azimuthDeg: Double,
@@ -96,8 +91,6 @@ class AdsbManager(private val appLocationManager: AppLocationManager) {
             azimuthDeg = azimuthDeg,
             pitchDeg = pitchDeg,
             rollDeg = rollDeg,
-            hFovDeg = H_FOV_DEG,
-            vFovDeg = V_FOV_DEG,
             screenWidth = screenW,
             screenHeight = screenH
         )

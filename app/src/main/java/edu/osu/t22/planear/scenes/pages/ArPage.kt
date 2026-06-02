@@ -2,9 +2,15 @@ package edu.osu.t22.planear.scenes.pages
 
 import android.hardware.HardwareBuffer
 import android.util.Log
+import edu.osu.t22.planear.AppColors
 import edu.osu.t22.planear.AppSettings
+import edu.osu.t22.planear.achievements.ALL_ACHIEVEMENTS
+import edu.osu.t22.planear.achievements.AchievementStore
+import edu.osu.t22.planear.adsb.AdsbRepository
 import edu.osu.t22.planear.geo.GeoPoint
 import edu.osu.t22.planear.geo.GeoUtils
+import edu.osu.t22.planear.geo.Planeprojector
+import edu.osu.t22.planear.geo.ScreenPoint
 import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
 import edu.osu.t22.planear.graphicsEngine.ImageMode
 import edu.osu.t22.planear.graphicsEngine.RectMode
@@ -14,12 +20,8 @@ import edu.osu.t22.planear.orientation.OrientationStore
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
 import kotlin.math.cos
-import kotlin.math.sqrt
-import edu.osu.t22.planear.AppColors
-import edu.osu.t22.planear.achievements.ALL_ACHIEVEMENTS
-import edu.osu.t22.planear.achievements.AchievementStore
-import edu.osu.t22.planear.adsb.AdsbRepository
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 class ArPage : Page {
     override val sceneId = SceneId.AR
@@ -30,14 +32,14 @@ class ArPage : Page {
     private var achievementClosing: Boolean = false
 
     private val initialDisplayRadius = 3000.0f
-
     private val layerStep = 250.0f
 
+
     private var waitingOnMousePickingResult: Boolean = false
-
     private var selectedId: Long = 0
-
     private var lastConsumedTapPos: Pair<Float, Float>? = null
+
+    val c = AppColors.current
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val width = sceneInfo.screenWidth
@@ -49,15 +51,23 @@ class ArPage : Page {
         val orientation = OrientationStore.data
 
         val phoneLat: Double = orientation.x.toDouble()
-        val phoneLon = orientation.z.toDouble()
-        val phoneAlt = orientation.y.toDouble()
+        val phoneLon: Double = orientation.z.toDouble()
+        val phoneAlt: Double = orientation.y.toDouble()
         val phoneGeo = GeoPoint(phoneLat, phoneLon, phoneAlt)
 
         if (!AppSettings.cameraIsEnabled && AppSettings.canEnableCamera && AppSettings.hasCameraPermissions) {
             AppSettings.cameraIsEnabled = true
         }
 
+        val metersPerDegLat = 111_320.0
+        val metersPerDegLon = 111_320.0 * cos(Math.toRadians(phoneLat))
+
+        val camAzimuth = orientation.azimuthDeg - 90.0
+        val camPitch   = orientation.pitchDeg.toDouble()
+        val camRoll    = orientation.rollDeg.toDouble()
+
         val tapPos = sceneInfo.gestures.touchDownPosition
+
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
             tapPos?.let { (tx, ty) ->
@@ -66,7 +76,7 @@ class ArPage : Page {
                     ty > 0 && ty < height &&
                     !waitingOnMousePickingResult) {
 
-                    requestMousePicking(tx, ty);
+                    requestMousePicking(tx, ty)
 
                     waitingOnMousePickingResult = true
 
@@ -75,9 +85,25 @@ class ArPage : Page {
                     sceneInfo.gestures.markTouchDownConsumed()
                 }
             }
+            // Sort aircraft nearest-first so closer planes draw on top
+            val aircraftRepository = SceneSwitcher.adsbManager.getRepository()
+
+            val sorted = aircraftRepository.getAircraft().sortedBy { p ->
+                GeoUtils.distanceMeters(phoneGeo, p.getPosition())
+            }
 
             if (waitingOnMousePickingResult && hasNewMousePickingResult()) {
                 selectedId = getMousePickingResult()
+
+                if (selectedId != 0L) {
+                    val selectedAircraft = aircraftRepository.getAircraft().find {
+                        (it.id.toLongOrNull(16) ?: 0L) == selectedId
+                    }
+
+                    selectedAircraft?.let {
+                        FlightDetailSheet.open(it)
+                    }
+                }
 
                 lastConsumedTapPos = null
 
@@ -109,12 +135,7 @@ class ArPage : Page {
             val metersPerDegLat = 111_320.0
             val metersPerDegLon = 111_320.0 * cos(Math.toRadians(phoneLat))
 
-            // Sort aircraft nearest-first so closer planes draw on top
-            val aircraftRepository = SceneSwitcher.adsbManager.getRepository()
 
-            val sorted = aircraftRepository.getAircraft().sortedBy { p ->
-                GeoUtils.distanceMeters(phoneGeo, p.getPosition())
-            }
 
             val yaw = Math.toRadians((orientation.azimuthDeg - 90))
             val pitch = Math.toRadians(orientation.pitchDeg)
@@ -134,22 +155,13 @@ class ArPage : Page {
 
             sorted.forEachIndexed { index, p ->
                 val position = p.getPosition()
-                val dLat = position.latDeg - phoneLat
-                val dLon = position.lonDeg - phoneLon
-                val dAlt = (position.altM - phoneAlt).toFloat()
-
-                val rawX = (dLon * metersPerDegLon).toFloat()
-                val rawY = dAlt
-                val rawZ = -(dLat * metersPerDegLat).toFloat()
+                val rawX = ((position.lonDeg - phoneLon) * metersPerDegLon).toFloat()
+                val rawY = (position.altM - phoneAlt).toFloat()
+                val rawZ = -((position.latDeg - phoneLat) * metersPerDegLat).toFloat()
 
                 val len = sqrt(rawX * rawX + rawY * rawY + rawZ * rawZ)
                 if (len > 0.01f) {
-                    val ax = rawX / len
-                    val ay = rawY / len
-                    val az = rawZ / len
-
-                    val dot = ax * cx + ay * cy + az * cz
-
+                    val dot = (rawX / len) * cx + (rawY / len) * cy + (rawZ / len) * cz
                     if (dot > bestDot) {
                         bestDot = dot
                         bestIndex = index
@@ -170,18 +182,24 @@ class ArPage : Page {
                 sorted
             }
 
+            data class AircraftRenderData(
+                val label:         String,
+                val rawLen:        Float,
+                val displayRadius: Float,
+                val nx: Float,
+                val ny: Float,
+                val nz: Float
+            )
+
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
 
-            reordered.forEachIndexed { index, p ->
+            val renderData = reordered.mapIndexed { index, p ->
                 // Raw direction vector from phone to aircraft (East / Up / North in meters)
                 val position = p.getPosition()
-                val dLat = position.latDeg - phoneLat
-                val dLon = position.lonDeg - phoneLon
-                val dAlt = (position.altM - phoneAlt).toFloat()
 
-                val rawX = (dLon * metersPerDegLon).toFloat()   // East
-                val rawY = dAlt                                 // Up
-                val rawZ = -(dLat * metersPerDegLat).toFloat()  // North (camera is -Z forward)
+                val rawX = ((position.lonDeg - phoneLon) * metersPerDegLon).toFloat()
+                val rawY = (position.altM - phoneAlt).toFloat()
+                val rawZ = -((position.latDeg - phoneLat) * metersPerDegLat).toFloat()
 
                 // Distance in the XZ plane + full 3-D magnitude
                 val rawLen = sqrt((rawX * rawX + rawY * rawY + rawZ * rawZ).toDouble()).toFloat()
@@ -200,18 +218,25 @@ class ArPage : Page {
                     Triple(0f, 0f, -displayRadius)
                 }
 
-                // Distance in km for the label
-                val distKm = (rawLen / 1000.0)
+                val distKm  = rawLen / 1000.0
                 val distStr = if (distKm < 1.0) "${"%.0f".format(rawLen)} m"
                 else "${"%.1f".format(distKm)} km"
 
                 val dotBackRadius  = displayRadius
                 val dotFrontRadius = displayRadius - layerStep * 0.4f
 
-                val (bx, by, bz) = Triple(nx / displayRadius * dotBackRadius,  ny / displayRadius * dotBackRadius,  nz / displayRadius * dotBackRadius)
-                val (fx, fy, fz) = Triple(nx / displayRadius * dotFrontRadius, ny / displayRadius * dotFrontRadius, nz / displayRadius * dotFrontRadius)
+                val (bx, by, bz) = Triple(
+                    nx / displayRadius * dotBackRadius,
+                    ny / displayRadius * dotBackRadius,
+                    nz / displayRadius * dotBackRadius
+                )
+                val (frontX, frontY, frontZ) = Triple(
+                    nx / displayRadius * dotFrontRadius,
+                    ny / displayRadius * dotFrontRadius,
+                    nz / displayRadius * dotFrontRadius
+                )
 
-                fill(0);
+                fill(0)
                 point(bx, by, bz, 270)
 
                 // TODO: only send if mouse picking queried
@@ -223,27 +248,108 @@ class ArPage : Page {
                 } else {
                     fill(245)
                 }
-                point(fx, fy, fz, 250)
+                point(frontX, frontY, frontZ, 250)
 
                 val textRadius = displayRadius - layerStep * 0.7f
                 val tx = nx / displayRadius * textRadius
                 val ty = ny / displayRadius * textRadius
                 val tz = nz / displayRadius * textRadius
 
-                textFont("roboto", 30); fill(42, 42, 42)
-                text3D(p.label,  tx, ty + 50, tz)
-                text3D(distStr,  tx, ty - 50, tz)
+                textFont("roboto", 30)
+                fill(42, 42, 42)
+                text3D(p.label, tx, ty + 50, tz)
+                text3D(distStr, tx, ty - 50, tz)
+
+                AircraftRenderData(p.label, rawLen, displayRadius, nx, ny, nz)
             }
 
-            // HUD overlays (always 2-D, drawn after 3-D content)
+            data class AircraftProjection(
+                val label:  String,
+                val spVec:  ScreenPoint,
+                val spGeo:  ScreenPoint
+            )
+
+            val projections = reordered.mapIndexed { index, aircraft ->
+                val rd = renderData[index]
+
+                val spVec = Planeprojector.projectFromArVector(
+                    rawX       = rd.nx,
+                    rawY       = rd.ny,
+                    rawZ       = rd.nz,
+                    distance   = rd.rawLen,
+                    azimuthDeg = camAzimuth,
+                    pitchDeg   = camPitch,
+                    rollDeg    = camRoll,
+                    screenWidth  = width.toInt(),
+                    screenHeight = height.toInt()
+                )
+
+                val spGeo = Planeprojector.project(
+                    user       = phoneGeo,
+                    aircraft   = aircraft.getPosition(),
+                    azimuthDeg = camAzimuth,
+                    pitchDeg   = camPitch,
+                    rollDeg    = camRoll,
+                    screenWidth  = width.toInt(),
+                    screenHeight = height.toInt()
+                )
+
+                AircraftProjection(rd.label, spVec, spGeo)
+            }
+
+            var totalError = 0f
+            var errorCount = 0
+            var visibleCount = 0
+            var offscreenCount = 0
+
+            projections.forEach { ap ->
+                if (ap.spVec.visible) visibleCount++ else offscreenCount++
+
+                if (!ap.spVec.visible) {
+                    val dx = ap.spGeo.x - ap.spVec.x
+                    val dy = ap.spGeo.y - ap.spVec.y
+                    totalError += sqrt(dx * dx + dy * dy)
+                    errorCount++
+                }
+            }
+
+            val avgError = if (errorCount > 0) totalError / errorCount else 0f
+
+            projections.forEach { (label, spVec, _) ->
+                if (!spVec.visible) {
+                    if (spVec.camZ <= 0f) return@forEach
+
+                    val edge = Planeprojector.getEdgeIndicator(
+                        spVec,
+                        width.toInt(),
+                        height.toInt()
+                    )
+
+                    pushMatrix()
+                    translate(edge.x, edge.y)
+                    rotate(edge.angleDeg)
+
+                    val s = 24f
+                    val h = (kotlin.math.sqrt(3.0) / 2.0 * s).toFloat()
+
+                    fill(c.navActive)
+                    triangle(s / 2f, 0f, -s / 2f, -h / 2f, -s / 2f, h / 2f)
+
+                    popMatrix()
+                }
+            }
+
             fill(0)
             textFont("roboto", 18)
             textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
             text("AR Scene", width / 2, 40)
 
+            val cardinal = orientation.getCardinalDirection()
+
             textAlign(TextAlignH.LEFT, TextAlignV.TOP)
             textFont("roboto", 30)
-            val cardinal = orientation.getCardinalDirection()
+
+            fill(0)
             text("Yaw: ${orientation.azimuthDeg.toInt()}° ($cardinal)", 50, 300)
             text("Pitch: ${orientation.pitchDeg.toInt()}°", 50, 400)
             text("Roll: ${orientation.rollDeg.toInt()}°", 50, 500)
