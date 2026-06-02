@@ -33,6 +33,9 @@ class ArPage : Page {
     private val initialDisplayRadius = 3000.0f
     private val layerStep = 250.0f
 
+    val c = AppColors.current
+
+
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val width  = sceneInfo.screenWidth
         val height = sceneInfo.screenHeight - navHeight
@@ -284,7 +287,7 @@ class ArPage : Page {
                     val s = 24f
                     val h = (kotlin.math.sqrt(3.0) / 2.0 * s).toFloat()
 
-                    fill(255, 200, 0)
+                    fill(c.navActive)
                     triangle(s / 2f, 0f, -s / 2f, -h / 2f, -s / 2f, h / 2f)
 
                     popMatrix()
