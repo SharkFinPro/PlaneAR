@@ -14,6 +14,7 @@ import edu.osu.t22.planear.scenes.Scene
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
 import edu.osu.t22.planear.adsb.Aircraft
+import edu.osu.t22.planear.scenes.pages.FlightSheetData
 
 enum class SceneId(val id: Int) {
     AR(2), FlightHistory(3), Settings(4), Favorites(5), Achievements(6)
@@ -29,7 +30,7 @@ object FlightDetailSheet {
 
     private const val ANIM_STEP = 0.06f
 
-    var pendingFlight: Aircraft? = null
+    var pendingData: FlightSheetData? = null
         private set
 
     var isOpen: Boolean = false
@@ -38,9 +39,17 @@ object FlightDetailSheet {
     private var animProgress: Float = 0f
     private var closing: Boolean = false
 
-    /** Open the sheet for the given flight. Safe to call from any page. */
-    fun open(flight: Aircraft) {
-        pendingFlight = flight
+
+
+    // Opens the sheet for the given flight. Safe to call from any page.
+    fun open(aircraft: Aircraft) = open(FlightSheetData.fromAircraft(aircraft))
+
+    // Called from History/Favorites with a FlightEntry
+    fun open(entry: FlightEntry)  = open(FlightSheetData.fromEntry(entry))
+
+
+    fun open(data: FlightSheetData) {
+        pendingData = data
         animProgress = 0f
         closing = false
         isOpen = true
@@ -53,7 +62,7 @@ object FlightDetailSheet {
 
     /** Reset all state (called internally after dismiss animation completes). */
     private fun reset() {
-        pendingFlight = null
+        pendingData = null
         animProgress = 0f
         closing = false
         isOpen = false
@@ -72,7 +81,7 @@ object FlightDetailSheet {
         sceneInfo: SceneInfo,
         tapConsumed: Boolean = false
     ): SheetResult {
-        val flight = pendingFlight ?: return SheetResult.DISMISSED
+        val flight = pendingData ?: return SheetResult.DISMISSED
 
         val screenW = sceneInfo.screenWidth
         val screenH = sceneInfo.screenHeight
@@ -106,11 +115,11 @@ object FlightDetailSheet {
         val padX = screenW * 0.08f
         val rightEdge = screenW - padX
 
-        // Favourite state
-        val flightIndex = Page.flightFavorites.indices.firstOrNull {
-            flightData.getOrNull(it)?.callsign == flight.callsign
-        } ?: -1
-        val isFavorited = flightIndex >= 0 && Page.flightFavorites[flightIndex]
+        // Favourite lookup — match by callsign against flightData
+        val flightIndex = flightData.indexOfFirst { it.callsign == flight.callsign }
+        val isFavorited = flightIndex >= 0 &&
+                flightIndex < Page.flightFavorites.size &&
+                Page.flightFavorites[flightIndex]
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
             rectMode(RectMode.CORNER)
@@ -133,11 +142,28 @@ object FlightDetailSheet {
             ellipseMode(EllipseMode.CENTER)
             ellipse(screenW / 2f, sheetY + 22f, 60f, 10f)
 
+            // "LIVE" badge or date pill
+            if (flight.isLive) {
+                fill(c.accent)
+                rect(padX, sheetY + 60f, 70f, 28f, 14f)
+                fill(c.textOnAccent)
+                textFont("roboto", 11)
+                textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+                text("● LIVE", padX + 35f, sheetY + 74f)
+            } else if (flight.date != "N/A") {
+                fill(c.divider)
+                rect(padX, sheetY + 60f, 130f, 28f, 14f)
+                fill(c.textSecondary)
+                textFont("roboto", 11)
+                textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+                text(flight.date, padX + 65f, sheetY + 74f)
+            }
+
             // Callsign
             fill(c.textPrimary)
             textFont("roboto", 26)
             textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
-            text(flight.label, padX, sheetY + 100f)
+            text(flight.callsign, padX, sheetY + 100f)
 
             // Accent underline
             fill(c.accent)
@@ -180,14 +206,14 @@ object FlightDetailSheet {
             }
 
             // draw data fields
-            drawField("CALLSIGN",  flight.label,                                fieldStartY)
-            drawField("ALTITUDE",  "${"%.0f".format(flight.altitudeSeaLevel)} ft", fieldStartY + fieldGap)
-            drawField("SPEED",     "${flight.groundSpeed?.toInt() ?: "N/A"} kts", fieldStartY + fieldGap * 2)
-            drawField("TYPE",      flight.type ?: "Unknown",                    fieldStartY + fieldGap * 3)
-            drawField("HEADING",   "${flight.headingDegrees?.toInt() ?: "N/A"}°", fieldStartY + fieldGap * 4)
+            drawField("CALLSIGN",  flight.callsign,                                  fieldStartY)
+            drawField("ALTITUDE",  "${"%.0f".format(flight.altitudeFt)} ft", fieldStartY + fieldGap)
+            drawField("SPEED",     "${flight.speedKts?.toInt() ?: "N/A"} kts",       fieldStartY + fieldGap * 2)
+            drawField("TYPE",      flight.type ?: "Unknown",                         fieldStartY + fieldGap * 3)
+            drawField("HEADING",   "${flight.headingDeg?.toInt() ?: "N/A"}°",        fieldStartY + fieldGap * 4)
 
 
-            // draw buttons
+            // close button
             fill(c.accent)
             rect(btnX, btnY, btnW, btnH, btnH / 2f)
             fill(c.textOnAccent)
@@ -208,6 +234,7 @@ object FlightDetailSheet {
                         adjY >= starY - 60f && adjY <= starY + 10f
                     ) {
                         Page.flightFavorites[flightIndex] = !Page.flightFavorites[flightIndex]
+                        FlightHistoryStore.save()
                     }
 
                     // Close taps
