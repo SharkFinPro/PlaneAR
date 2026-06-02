@@ -332,8 +332,6 @@ namespace ge {
   };
 
   struct Glyph3D {
-    glm::mat4 viewMatrix;
-    glm::mat4 projMatrix;
     float x;
     float y;
     float z;
@@ -356,13 +354,10 @@ namespace ge {
       float r, g, b, a;
     };
 
-    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent) const
+    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent,
+                                                  glm::vec3 camRight,
+                                                  glm::vec3 camUp) const
     {
-      const glm::mat4 invView = glm::inverse(viewMatrix);
-
-      const glm::vec3 camRight = glm::vec3(invView[0]);
-      const glm::vec3 camUp = glm::vec3(invView[1]);
-
       return {
         .worldPos = { x, y, z },
         .width = width,

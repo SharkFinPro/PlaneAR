@@ -669,8 +669,6 @@ namespace ge {
         m_drawList.push_back({
           Glyph3DCommand{
             .glyph = {
-              .viewMatrix = m_viewMatrix,
-              .projMatrix = m_projectionMatrix,
               .x = x,
               .y = y,
               .z = z,
@@ -734,6 +732,11 @@ namespace ge {
     );
 
     m_projectionMatrix[1][1] *= -1;
+
+    const glm::mat4 invView = glm::inverse(m_viewMatrix);
+
+    m_camRight = glm::vec3(invView[0]);
+    m_camUp = glm::vec3(invView[1]);
   }
 
   void Renderer2D::createCommandPool()
@@ -1053,7 +1056,11 @@ namespace ge {
       currentGlyph3DFontSet = fontSet;
     }
 
-    const auto glyphPC = glyphCmd.glyph.createPushConstant(renderInfo->extent);
+    const auto glyphPC = glyphCmd.glyph.createPushConstant(
+      renderInfo->extent,
+      m_camRight,
+      m_camUp
+    );
 
     pipelineManager->pushGraphicsPipelineConstants(
       renderInfo->commandBuffer,

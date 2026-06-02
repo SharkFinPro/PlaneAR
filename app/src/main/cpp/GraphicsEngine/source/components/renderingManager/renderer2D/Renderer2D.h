@@ -251,6 +251,9 @@ namespace ge {
 
     VkDescriptorSet currentGlyphFontSet = VK_NULL_HANDLE;
 
+    glm::vec3 m_camRight = glm::vec3(0.0f);
+    glm::vec3 m_camUp = glm::vec3(0.0f);
+
     void createCommandPool();
 
     [[nodiscard]] glm::vec4 resolveRectBounds(float a,
