@@ -140,23 +140,23 @@ object FlightDetailSheet {
             // Drag handle pill
             fill(c.divider)
             ellipseMode(EllipseMode.CENTER)
-            ellipse(screenW / 2f, sheetY + 22f, 60f, 10f)
+            ellipse(screenW / 2f, sheetY + 22f, 100f, 10f)
 
             // "LIVE" badge or date pill
             if (flight.isLive) {
                 fill(c.accent)
-                rect(padX, sheetY + 60f, 80f, 28f, 14f)
+                rect(padX, sheetY + 16f, 80f, 28f, 14f)
                 fill(c.textOnAccent)
                 textFont("roboto", 11)
                 textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-                text("● LIVE", padX + 35f, sheetY + 30f)
+                text("● LIVE", padX + 40f, sheetY + 30f)
             } else if (flight.date != "N/A") {
                 fill(c.divider)
-                rect(padX, sheetY + 60f, 180f, 28f, 14f)
+                rect(padX, sheetY + 16f, 180f, 28f, 14f)
                 fill(c.textSecondary)
                 textFont("roboto", 11)
                 textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-                text(flight.date, padX + 65f, sheetY + 74f)
+                text(flight.date, padX + 90f, sheetY + 30f)
             }
 
             // Callsign
