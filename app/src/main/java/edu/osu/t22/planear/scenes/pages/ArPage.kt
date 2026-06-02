@@ -73,7 +73,7 @@ class ArPage : Page {
                     ty > 0 && ty < height &&
                     !waitingOnMousePickingResult) {
 
-                    requestMousePicking(tx, ty);
+                    requestMousePicking(tx, ty)
 
                     waitingOnMousePickingResult = true
 
@@ -221,7 +221,7 @@ class ArPage : Page {
                 val (bx, by, bz) = Triple(nx / displayRadius * dotBackRadius,  ny / displayRadius * dotBackRadius,  nz / displayRadius * dotBackRadius)
                 val (fx, fy, fz) = Triple(nx / displayRadius * dotFrontRadius, ny / displayRadius * dotFrontRadius, nz / displayRadius * dotFrontRadius)
 
-                fill(0);
+                fill(0)
                 point(bx, by, bz, 270)
 
                 // TODO: only send if mouse picking queried
@@ -230,6 +230,7 @@ class ArPage : Page {
 
                 if (id == selectedId) {
                     fill(150, 245, 150)
+                    FlightDetailSheet.open(p)
                 } else {
                     fill(245)
                 }
