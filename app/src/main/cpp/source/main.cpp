@@ -5,6 +5,8 @@
 #include <source/components/assets/AssetManager.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 #include <memory>
+#include "../GraphicsEngine/Logger.h"
+#include <chrono>
 
 void preloadAssets(const std::unique_ptr<ge::GraphicsEngine>& engine);
 
@@ -21,6 +23,11 @@ void android_main(struct android_app* pApp)
 
   float mouseX = 0;
   float mouseY = 0;
+
+  using Clock = std::chrono::steady_clock;
+
+  auto fpsStartTime = Clock::now();
+  uint64_t frameCount = 0;
 
   while (true)
   {
@@ -55,6 +62,24 @@ void android_main(struct android_app* pApp)
     {
       SceneInfo info{engine, pApp};
       switcher.renderCurrentScene(info);
+
+      ++frameCount;
+
+      auto now = Clock::now();
+      auto elapsedMs =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+          now - fpsStartTime).count();
+
+      if (elapsedMs >= 5000)
+      {
+        double seconds = elapsedMs / 1000.0;
+        double avgFps = static_cast<double>(frameCount) / seconds;
+
+        LOGI("Average FPS: %.2f", avgFps);
+
+        fpsStartTime = now;
+        frameCount = 0;
+      }
     }
   }
 }
