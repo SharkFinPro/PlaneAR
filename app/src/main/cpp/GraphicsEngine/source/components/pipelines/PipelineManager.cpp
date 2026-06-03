@@ -142,7 +142,7 @@ namespace ge {
 
     createGraphicsPipeline(PipelineType::point,
                            PipelineConfig::createPointPipelineOptions(m_logicalDevice,
-                           renderPass, AAssetManager));
+                           renderPass, AAssetManager, m_assetManager->getGlyph3DDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::font3D,
                            PipelineConfig::createFont3DPipelineOptions(m_logicalDevice,
