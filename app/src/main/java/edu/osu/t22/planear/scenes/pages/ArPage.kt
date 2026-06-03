@@ -137,9 +137,11 @@ class ArPage : Page {
                     ty > 0 && ty < height &&
                     !waitingOnMousePickingResult) {
 
-                    requestMousePicking(tx, ty)
+                    if (!FlightDetailSheet.isOpen) {
+                        requestMousePicking(tx, ty)
 
-                    waitingOnMousePickingResult = true
+                        waitingOnMousePickingResult = true
+                    }
 
                     lastConsumedTapPos = tapPos
 
