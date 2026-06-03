@@ -102,9 +102,6 @@ namespace ge {
   void Renderer2D::render(const std::shared_ptr<PipelineManager>& pipelineManager,
                           const RenderInfo* renderInfo)
   {
-    std::stable_sort(m_drawList.begin(), m_drawList.end(), [](const DrawEntry& a, const DrawEntry& b) {
-      return a.z < b.z;
-    });
     normalizeZValues();
 
     const Camera3DUBO cameraUBO {
