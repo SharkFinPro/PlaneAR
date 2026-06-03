@@ -197,12 +197,28 @@ namespace ge {
     };
 
     struct Glyph3DCommand {
-      Glyph3D glyph;
+      Glyph3DInstance instance;
       std::string fontName;
       uint32_t fontSize;
     };
 
-    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image, Point, Glyph3DCommand, Camera>;
+    // Marks the draw list position of a point instanced batch flush.
+    // firstInstance/instanceCount index into m_pointInstances.
+    struct PointBatchMarker {
+      uint32_t firstInstance;
+      uint32_t instanceCount;
+    };
+
+    // Marks the draw list position of a glyph3D instanced batch flush.
+    // firstInstance/instanceCount index into m_glyph3DInstances.
+    struct Glyph3DBatchMarker {
+      uint32_t firstInstance;
+      uint32_t instanceCount;
+      std::string fontName;
+      uint32_t fontSize;
+    };
+
+    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image, PointBatchMarker, Glyph3DBatchMarker, Camera>;
 
     struct DrawEntry {
       DrawCommand command;
@@ -228,6 +244,18 @@ namespace ge {
     TextAlignV m_textAlignV = TextAlignV::BASELINE;
 
     std::vector<DrawEntry> m_drawList;
+
+    // Flat instance data arrays filled each frame; markers in m_drawList index into these.
+    std::vector<PointInstance> m_pointInstances;
+    std::vector<Glyph3DInstance> m_glyph3DInstances;
+
+    std::vector<VkBuffer> m_pointInstanceBuffers;
+    std::vector<VkDeviceMemory> m_pointInstanceMemory;
+    VkDeviceSize m_pointInstanceBufferCapacity = 0;
+
+    std::vector<VkBuffer> m_glyph3DInstanceBuffers;
+    std::vector<VkDeviceMemory> m_glyph3DInstanceMemory;
+    VkDeviceSize m_glyph3DInstanceBufferCapacity = 0;
 
     glm::mat4 m_viewMatrix = glm::mat4(1.0f);
     glm::mat4 m_projectionMatrix = glm::mat4(1.0f);
@@ -257,6 +285,14 @@ namespace ge {
     glm::vec3 m_camUp = glm::vec3(0.0f);
 
     void createCommandPool();
+
+    void ensureInstanceBuffer(std::vector<VkBuffer>& buffers,
+                              std::vector<VkDeviceMemory>& memory,
+                              VkDeviceSize& capacity,
+                              VkDeviceSize requiredBytes);
+
+    void destroyInstanceBuffers(std::vector<VkBuffer>& buffers,
+                                std::vector<VkDeviceMemory>& memory);
 
     [[nodiscard]] glm::vec4 resolveRectBounds(float a,
                                               float b,
@@ -299,13 +335,13 @@ namespace ge {
                      const RenderInfo* renderInfo,
                      const Image& image) const;
 
-    void renderPoint(const std::shared_ptr<PipelineManager>& pipelineManager,
-                     const RenderInfo* renderInfo,
-                     const Point& point);
+    void renderPointBatch(const std::shared_ptr<PipelineManager>& pipelineManager,
+                          const RenderInfo* renderInfo,
+                          const PointBatchMarker& marker);
 
-    void renderGlyph3D(const std::shared_ptr<PipelineManager>& pipelineManager,
-                       const RenderInfo* renderInfo,
-                       const Glyph3DCommand& glyphCmd);
+    void renderGlyph3DBatch(const std::shared_ptr<PipelineManager>& pipelineManager,
+                            const RenderInfo* renderInfo,
+                            const Glyph3DBatchMarker& marker);
 
     void renderCamera(const std::shared_ptr<PipelineManager>& pipelineManager,
                       const RenderInfo* renderInfo,

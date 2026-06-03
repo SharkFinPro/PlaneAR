@@ -245,43 +245,37 @@ namespace ge {
     }
   };
 
+  struct PointInstance {
+    glm::vec3 worldPos;
+    float size;
+    glm::vec4 color;
+  };
+
+  struct Glyph3DInstance {
+    glm::vec3 worldPos;
+    float width;
+    float glyphOffsetX;
+    float glyphOffsetY;
+    float height;
+    float _pad;
+    glm::vec4 uv;
+    glm::vec4 color;
+  };
+
+  struct Camera3DUBO {
+    glm::mat4 mvp;
+    glm::vec3 camRight;
+    float _pad0;
+    glm::vec3 camUp;
+    float _pad1;
+  };
+
   struct Point {
     float x;
     float y;
     float z;
     float size;
     glm::vec4 color;
-
-    struct PushConstant {
-      glm::vec3 worldPos;
-      float size;
-      glm::vec3 camRight;
-      float _pad0;
-      glm::vec3 camUp;
-      float _pad1;
-      float r;
-      float g;
-      float b;
-      float a;
-    };
-
-    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent,
-                                                  glm::vec3 camRight,
-                                                  glm::vec3 camUp) const
-    {
-      return {
-        .worldPos = { x, y, z },
-        .size     = size,
-        .camRight = camRight,
-        ._pad0    = 0.f,
-        .camUp    = camUp,
-        ._pad1    = 0.f,
-        .r = color.r,
-        .g = color.g,
-        .b = color.b,
-        .a = color.a
-      };
-    }
   };
 
   struct MousePickingPoint {
@@ -333,42 +327,6 @@ namespace ge {
     float height;
     glm::vec4 uv;
     glm::vec4 color;
-
-    struct PushConstant {
-      glm::vec3 worldPos;
-      float width;
-      glm::vec3 camRight;
-      float glyphOffsetX;
-      glm::vec3 camUp;
-      float glyphOffsetY;
-      float height;
-      float u0, v0;
-      float u1, v1;
-      float r, g, b, a;
-    };
-
-    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent,
-                                                  glm::vec3 camRight,
-                                                  glm::vec3 camUp) const
-    {
-      return {
-        .worldPos = { x, y, z },
-        .width = width,
-        .camRight = camRight,
-        .glyphOffsetX = glyphOffset.x,
-        .camUp = camUp,
-        .glyphOffsetY = glyphOffset.y,
-        .height = height,
-        .u0 = uv.x,
-        .v0 = uv.y,
-        .u1 = uv.z,
-        .v1 = uv.w,
-        .r = color.r,
-        .g = color.g,
-        .b = color.b,
-        .a = color.a
-      };
-    }
   };
 
 }

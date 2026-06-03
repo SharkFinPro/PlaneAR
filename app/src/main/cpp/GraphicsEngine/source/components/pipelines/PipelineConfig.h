@@ -175,6 +175,26 @@ namespace ge::PipelineConfig {
                                                             AAssetManager* assetManager,
                                                             VkDescriptorSetLayout glyph3DDescriptorSetLayout)
   {
+    static std::vector<VkVertexInputBindingDescription> sBindings {{
+      .binding = 0,
+      .stride = sizeof(PointInstance),
+      .inputRate = VK_VERTEX_INPUT_RATE_INSTANCE
+    }};
+
+    static std::vector<VkVertexInputAttributeDescription> sAttributes {
+      { .location = 0, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT,    .offset = offsetof(PointInstance, worldPos) },
+      { .location = 1, .binding = 0, .format = VK_FORMAT_R32_SFLOAT,          .offset = offsetof(PointInstance, size)     },
+      { .location = 2, .binding = 0, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = offsetof(PointInstance, color)    }
+    };
+
+    static const VkPipelineVertexInputStateCreateInfo sVertexInputState {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+      .vertexBindingDescriptionCount = static_cast<uint32_t>(sBindings.size()),
+      .pVertexBindingDescriptions = sBindings.data(),
+      .vertexAttributeDescriptionCount = static_cast<uint32_t>(sAttributes.size()),
+      .pVertexAttributeDescriptions = sAttributes.data()
+    };
+
     return {
       .shaders {
         .assetManager = assetManager,
@@ -188,15 +208,8 @@ namespace ge::PipelineConfig {
         .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
         .multisampleState = gps::getMultsampleState(logicalDevice),
         .rasterizationState = gps::rasterizationStateNoCull,
-        .vertexInputState = gps::vertexInputStateRaw,
+        .vertexInputState = sVertexInputState,
         .viewportState = gps::viewportState
-      },
-      .pushConstantRanges {
-        {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-          .offset = 0,
-          .size = sizeof(Point::PushConstant)
-        }
       },
       .descriptorSetLayouts {
         glyph3DDescriptorSetLayout
@@ -211,6 +224,34 @@ namespace ge::PipelineConfig {
                                                              VkDescriptorSetLayout fontDescriptorSetLayout,
                                                              VkDescriptorSetLayout glyph3DDescriptorSetLayout)
   {
+    static std::vector<VkVertexInputBindingDescription> sBindings {{
+      .binding = 0,
+      .stride = sizeof(Glyph3DInstance),
+      .inputRate = VK_VERTEX_INPUT_RATE_INSTANCE
+    }};
+
+    static std::vector<VkVertexInputAttributeDescription> sAttributes {
+      { .location = 0,  .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT,    .offset = offsetof(Glyph3DInstance, worldPos)     },
+      { .location = 1,  .binding = 0, .format = VK_FORMAT_R32_SFLOAT,          .offset = offsetof(Glyph3DInstance, width)        },
+      { .location = 2,  .binding = 0, .format = VK_FORMAT_R32_SFLOAT,          .offset = offsetof(Glyph3DInstance, glyphOffsetX) },
+      { .location = 3,  .binding = 0, .format = VK_FORMAT_R32_SFLOAT,          .offset = offsetof(Glyph3DInstance, glyphOffsetY) },
+      { .location = 4,  .binding = 0, .format = VK_FORMAT_R32_SFLOAT,          .offset = offsetof(Glyph3DInstance, height)       },
+      { .location = 5,  .binding = 0, .format = VK_FORMAT_R32_SFLOAT,          .offset = offsetof(Glyph3DInstance, _pad)         },
+      { .location = 6,  .binding = 0, .format = VK_FORMAT_R32_SFLOAT,          .offset = offsetof(Glyph3DInstance, uv) + 0       },
+      { .location = 7,  .binding = 0, .format = VK_FORMAT_R32_SFLOAT,          .offset = offsetof(Glyph3DInstance, uv) + 4       },
+      { .location = 8,  .binding = 0, .format = VK_FORMAT_R32_SFLOAT,          .offset = offsetof(Glyph3DInstance, uv) + 8       },
+      { .location = 9,  .binding = 0, .format = VK_FORMAT_R32_SFLOAT,          .offset = offsetof(Glyph3DInstance, uv) + 12      },
+      { .location = 10, .binding = 0, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = offsetof(Glyph3DInstance, color)        }
+    };
+
+    static const VkPipelineVertexInputStateCreateInfo sVertexInputState {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+      .vertexBindingDescriptionCount = static_cast<uint32_t>(sBindings.size()),
+      .pVertexBindingDescriptions = sBindings.data(),
+      .vertexAttributeDescriptionCount = static_cast<uint32_t>(sAttributes.size()),
+      .pVertexAttributeDescriptions = sAttributes.data()
+    };
+
     return {
       .shaders {
         .assetManager = assetManager,
@@ -224,15 +265,8 @@ namespace ge::PipelineConfig {
         .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
         .multisampleState = gps::getMultsampleState(logicalDevice),
         .rasterizationState = gps::rasterizationStateNoCull,
-        .vertexInputState = gps::vertexInputStateRaw,
+        .vertexInputState = sVertexInputState,
         .viewportState = gps::viewportState
-      },
-      .pushConstantRanges {
-        {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-          .offset = 0,
-          .size = sizeof(Glyph3D::PushConstant)
-        }
       },
       .descriptorSetLayouts {
         fontDescriptorSetLayout,
