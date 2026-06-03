@@ -333,12 +333,6 @@ class ArPage : Page {
                 val ty = ny / displayRadius * textRadius
                 val tz = nz / displayRadius * textRadius
 
-                textFont("roboto", 30)
-                fill(42, 42, 42)
-                text3D(p.label, tx, ty + 50, tz)
-                text3D(distStr, tx, ty - 50, tz)
-
-                AircraftRenderData(p.label, rawLen, displayRadius, nx, ny, nz)
                 // Shift text to the right half of the card (compass occupies left).
                 // cardHalfH * 0.7 ≈ comfortable inset from left edge.
                 val textRightShift = cardHalfH * 0.5f
@@ -363,6 +357,8 @@ class ArPage : Page {
                     ty - cardHalfH * 0.25f,
                     tz - rz * textRightShift * 1.2f
                 )
+
+                AircraftRenderData(p.label, rawLen, displayRadius, nx, ny, nz)
             }
 
             data class AircraftProjection(
