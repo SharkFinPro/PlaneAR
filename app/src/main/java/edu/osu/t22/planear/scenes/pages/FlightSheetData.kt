@@ -7,6 +7,8 @@ data class FlightSheetData(
     val callsign:       String,
     val callsignLabel:  String,   // "CALLSIGN", "REGISTRATION", or "ID"
     val registration:   String,
+    val origin:         String,
+    val destination:    String,
     val type:           String,
     val altitudeFt:     String,
     val speedKts:       String,
@@ -54,6 +56,8 @@ data class FlightSheetData(
                 callsign      = csValue,
                 callsignLabel = csLabel,
                 registration  = aircraft.registration?.takeIf { it.isNotBlank() } ?: NA,
+                origin      = aircraft.origin?.takeIf { it.isNotBlank() } ?: NA,
+                destination = aircraft.destination?.takeIf { it.isNotBlank() } ?: NA,
                 type          = aircraft.type?.takeIf { it.isNotBlank() } ?: NA,
                 altitudeFt    = "%.0f ft".format(aircraft.altitudeSeaLevel),
                 speedKts      = "${aircraft.groundSpeed?.toInt() ?: NA} kts",
@@ -83,6 +87,8 @@ data class FlightSheetData(
                 registration  = live?.registration?.takeIf { it.isNotBlank() }
                     ?: entry.registration.takeIf { it.isNotBlank() }
                     ?: NA,
+                origin      = live?.origin?.takeIf { it.isNotBlank() } ?: NA,
+                destination = live?.destination?.takeIf { it.isNotBlank() } ?: NA,
                 type          = live?.type?.takeIf { it.isNotBlank() }
                     ?: entry.planeType.takeIf { it.isNotBlank() }
                     ?: NA,
