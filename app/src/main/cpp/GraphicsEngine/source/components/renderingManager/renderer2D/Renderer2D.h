@@ -160,6 +160,12 @@ namespace ge {
                float z,
                float size);
 
+    // Set the aspect-ratio multipliers for the next point() draw.
+    // aspectX > 1 makes the billboard wider than it is tall (e.g. 2.2 for a
+    // wide info card).  Resets to 1.0/1.0 each frame via createNewFrame().
+    void pointAspect(float aspectX,
+                     float aspectY);
+
     void mousePickingPoint(float x,
                            float y,
                            float z,
@@ -259,6 +265,11 @@ namespace ge {
     uint32_t m_currentFontSize = 12;
 
     float m_currentZ = 0.01f;
+
+    // Per-draw aspect-ratio multipliers for point() billboard quads.
+    // Reset to 1.0 each frame; set via pointAspect() before a point() call.
+    float m_pointAspectX = 1.0f;
+    float m_pointAspectY = 1.0f;
 
     std::shared_ptr<MousePicker> m_mousePicker;
 

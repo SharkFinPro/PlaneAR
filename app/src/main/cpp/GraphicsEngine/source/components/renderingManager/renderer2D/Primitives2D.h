@@ -253,15 +253,20 @@ namespace ge {
     float z;
     float size;
     glm::vec4 color;
+    // Aspect multipliers for the billboard quad.  aspectX > 1 makes the card
+    // wider than it is tall.  Default 1.0 keeps square behaviour for any other
+    // call sites that don't set these explicitly.
+    float aspectX = 1.0f;
+    float aspectY = 1.0f;
 
     struct PushConstant {
       glm::mat4 mvp;
       glm::vec3 worldPos;
-      float size;
+      float     size;
       glm::vec3 camRight;
-      float _pad0;
+      float     aspectX;   // was _pad0
       glm::vec3 camUp;
-      float _pad1;
+      float     aspectY;   // was _pad1
       float r;
       float g;
       float b;
@@ -280,9 +285,9 @@ namespace ge {
         .worldPos = { x, y, z },
         .size     = size,
         .camRight = camRight,
-        ._pad0    = 0.f,
+        .aspectX  = aspectX,
         .camUp    = camUp,
-        ._pad1    = 0.f,
+        .aspectY  = aspectY,
         .r = color.r,
         .g = color.g,
         .b = color.b,
@@ -406,9 +411,6 @@ namespace ge {
     float alpha;      // overall opacity (0–1)
 
     // Push constant layout — must match compass.vert / compass.frag exactly.
-    // Total size: 4*4 (mvp) + 3+1+3+1+3+1+3+1 (vec3/float pairs) + 2 floats
-    //           = 64 + 32 + 8 = 128 bytes — well within the 128-byte minimum
-    //           Vulkan push-constant guarantee.
     struct PushConstant {
       glm::mat4 mvp;        // offset   0
       glm::vec3 worldPos;   // offset  64

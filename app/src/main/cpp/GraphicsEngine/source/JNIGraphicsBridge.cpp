@@ -526,6 +526,20 @@ namespace {
     renderer->compass(x, y, z, size, offsetX, offsetY, headingRad, alpha);
   }
 
+  void nativePointAspect(JNIEnv* env,
+                   jobject thiz,
+                   jfloat aspectX,
+                   jfloat aspectY)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+    renderer->pointAspect(aspectX, aspectY);
+  }
+
   const JNINativeMethod renderer2DMethods[] = {
     // Color / Style
     { "fill", "(IIII)V", (void*)nativeFill },
@@ -564,6 +578,7 @@ namespace {
     { "set3DView",         "(FFFFFFFF)V",              (void*)nativeSet3DView },
     { "text3D",            "(Ljava/lang/String;FFF)V", (void*)nativeText3D },
     { "camera",            "(FFFF)V",                  (void*)nativeCamera },
+    { "pointAspect",       "(FF)V",                    (void*)nativePointAspect },
 
     // Mouse Picking
     { "mousePickingPoint",        "(FFFFJ)V", (void*)nativeMousePickingPoint },

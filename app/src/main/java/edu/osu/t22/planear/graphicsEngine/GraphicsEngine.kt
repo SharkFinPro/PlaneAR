@@ -167,6 +167,10 @@ class Renderer2D(private val ptr: Long) {
         headingRad: Float,
         alpha: Float
     )
+
+    fun pointAspect(aspectX: Number, aspectY: Number) = pointAspect(aspectX.toFloat(), aspectY.toFloat())
+
+    private external fun pointAspect(aspectX: Float, aspectY: Float)
 }
 
 class GraphicsEngineWrapper(private val ptr: Long) {

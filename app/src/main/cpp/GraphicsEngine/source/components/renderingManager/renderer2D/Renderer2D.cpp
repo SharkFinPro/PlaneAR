@@ -73,6 +73,9 @@ namespace ge {
 
     textAlign(TextAlignH::LEFT, TextAlignV::BASELINE);
 
+    m_pointAspectX = 1.0f;
+    m_pointAspectY = 1.0f;
+
     m_drawList.clear();
 
     m_mousePicker->clearObjectsToMousePick();
@@ -568,6 +571,12 @@ namespace ge {
     increaseCurrentZ();
   }
 
+  void Renderer2D::pointAspect(const float aspectX, const float aspectY)
+  {
+    m_pointAspectX = aspectX;
+    m_pointAspectY = aspectY;
+  }
+
   void Renderer2D::point(float x,
                          float y,
                          float z,
@@ -581,10 +590,19 @@ namespace ge {
                              .y = y,
                              .z = z,
                              .size = size,
-                             .color = m_currentFill
+                             .color = m_currentFill,
+                             // Default to square; call sites that want a
+                             // rectangular card (e.g. aircraft billboards)
+                             // set these via the pointAspect() helper or
+                             // directly on a Point struct before push.
+                             .aspectX = m_pointAspectX,
+                             .aspectY = m_pointAspectY
                            },
                            m_currentZ
                          });
+
+    m_pointAspectX = 1.0f;
+    m_pointAspectY = 1.0f;
 
     increaseCurrentZ();
   }
@@ -611,16 +629,20 @@ namespace ge {
                           float y,
                           float z)
   {
+    float worldScale = 4.0f;
+
+    float s = 1.0f / m_assetManager->getDpiScale() * worldScale;
+
     float xOffset = 0.0f;
     if (m_textAlignH == TextAlignH::CENTER || m_textAlignH == TextAlignH::RIGHT)
     {
-      const float stringWidth = textWidth(text);
+      const float stringWidth = textWidth(text) * s;
       xOffset = (m_textAlignH == TextAlignH::CENTER) ? -stringWidth * 0.5f : -stringWidth;
     }
 
     float yOffset = 0.0f;
-    const float ascent  = textAscent(text);
-    const float descent = textDescent(text);
+    const float ascent  = textAscent(text) * s;
+    const float descent = textDescent(text) * s;
     const float height  = ascent + descent;
 
     switch (m_textAlignV)
@@ -652,38 +674,38 @@ namespace ge {
     {
       if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
       {
-        float gx = currentX + glyphInfo->bearingX;
-        float gy = adjustedY - glyphInfo->bearingY;
+        float gx = currentX + glyphInfo->bearingX * s;
+        float gy = adjustedY - glyphInfo->bearingY * s;
 
         m_drawList.push_back({
-                               Glyph3DCommand{
-                                 .glyph = {
-                                   .viewMatrix = m_viewMatrix,
-                                   .projMatrix = m_projectionMatrix,
-                                   .x = x,
-                                   .y = y,
-                                   .z = z,
-                                   .glyphOffset = glm::vec2(
-                                     gx - x + glyphInfo->width * 0.5f,
-                                     gy - y + glyphInfo->height * 0.5f
-                                   ),
-                                   .width = glyphInfo->width,
-                                   .height = glyphInfo->height,
-                                   .uv = glm::vec4(
-                                     glyphInfo->u0,
-                                     glyphInfo->v0,
-                                     glyphInfo->u1,
-                                     glyphInfo->v1
-                                   ),
-                                   .color = m_currentFill
-                                 },
-                                 .fontName = m_currentFontName,
-                                 .fontSize = m_currentFontSize
-                               },
-                               textZ
-                             });
+          Glyph3DCommand{
+            .glyph = {
+              .viewMatrix = m_viewMatrix,
+              .projMatrix = m_projectionMatrix,
+              .x = x,
+              .y = y,
+              .z = z,
+              .glyphOffset = glm::vec2(
+                gx - x + glyphInfo->width * s * 0.5f,
+                gy - y + glyphInfo->height * s * 0.5f
+              ),
+              .width = glyphInfo->width * s,
+              .height = glyphInfo->height * s,
+              .uv = glm::vec4(
+                glyphInfo->u0,
+                glyphInfo->v0,
+                glyphInfo->u1,
+                glyphInfo->v1
+              ),
+              .color = m_currentFill
+            },
+            .fontName = m_currentFontName,
+            .fontSize = m_currentFontSize
+          },
+          textZ
+        });
 
-        currentX += glyphInfo->advance;
+        currentX += glyphInfo->advance * s;
       }
     }
 

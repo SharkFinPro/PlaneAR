@@ -33,7 +33,7 @@ class ArPage : Page {
 
     private val initialDisplayRadius = 3000.0f
 
-    private val layerStep = 250.0f
+    private val layerStep = 50.0f
 
     private var waitingOnMousePickingResult: Boolean = false
 
@@ -213,50 +213,79 @@ class ArPage : Page {
                 val distStr = if (distKm < 1.0) "${"%.0f".format(rawLen)} m"
                 else "${"%.1f".format(distKm)} km"
 
-                val dotBackRadius  = displayRadius
                 val dotFrontRadius = displayRadius - layerStep * 0.4f
 
-                val (bx, by, bz) = Triple(nx / displayRadius * dotBackRadius,  ny / displayRadius * dotBackRadius,  nz / displayRadius * dotBackRadius)
                 val (fx, fy, fz) = Triple(nx / displayRadius * dotFrontRadius, ny / displayRadius * dotFrontRadius, nz / displayRadius * dotFrontRadius)
 
-                fill(0);
-                point(bx, by, bz, 270)
-
-                // TODO: only send if mouse picking queried
                 val id = p.id.toLongOrNull(16) ?: 0L
-                mousePickingPoint(bx, by, bz, 270, id)
 
+                // ── Aircraft billboard card ───────────────────────────────────
+                // One draw call: the frag shader handles the border itself,
+                // so the old black-background point() is no longer needed.
+                // aspectX = 2.2 → card is 2.2× wider than it is tall.
+                val cardHalfH = 200f   // half-height in world units (= size arg)
+                val cardAspect = 1.5f
+
+                pointAspect(cardAspect, 1.0f)
                 if (id == selectedId) {
                     fill(150, 245, 150)
                 } else {
                     fill(245)
                 }
-                point(fx, fy, fz, 250)
+                point(fx, fy, fz, cardHalfH)
 
-                // Compass attached to aircraft
-                val headingRad = Math.toRadians(
-                    p.headingDegrees ?: 0.0
-                ).toFloat()
+                // Mouse picking hitbox — use the card's true half-width so the
+                // full horizontal extent is clickable.
+                mousePickingPoint(fx, fy, fz, cardHalfH * cardAspect, id)
 
+                // ── Compass sits on the left side of the card ─────────────────
+                // offsetX = -(cardHalfH * cardAspect) centres it at the left edge;
+                // offsetY = 0 vertically centres it on the card.
+                val headingRad = Math.toRadians(p.headingDegrees ?: 0.0).toFloat()
+                val compassSize = cardHalfH * 0.5f
+                val compassOffX = -(cardHalfH / 1.9 * cardAspect) + compassSize * 0.05f
                 compass(
                     fx * 0.99,
                     fy * 0.99,
                     fz * 0.99,
-                    100f,
-                    180f,
-                    180f,
+                    compassSize,
+                    compassOffX,
+                    -compassSize * 0.5,
                     headingRad,
                     1f
                 )
 
+                // ── Text: callsign above separator line, distance below ────────
+                // Offset rightward to leave room for the compass on the left.
                 val textRadius = displayRadius - layerStep * 0.7f
                 val tx = nx / displayRadius * textRadius
                 val ty = ny / displayRadius * textRadius
                 val tz = nz / displayRadius * textRadius
 
-                textFont("roboto", 30); fill(42, 42, 42)
-                text3D(p.label,  tx, ty + 50, tz)
-                text3D(distStr,  tx, ty - 50, tz)
+                // Shift text to the right half of the card (compass occupies left).
+                // cardHalfH * 0.7 ≈ comfortable inset from left edge.
+                val textRightShift = cardHalfH * 0.5f
+
+                val rx = cz
+                val ry = 0f
+                val rz = -cx
+
+                val textX = tx + rx * textRightShift
+                val textY = ty + cardHalfH * 0.5f
+                val textZ = tz + rz * textRightShift
+
+                textFont("roboto", 16);
+                fill(230, 232, 240)
+                text3D(p.label, textX, textY, textZ)
+
+                textSize(14);
+                fill(160, 165, 185)
+                text3D(
+                    distStr,
+                    tx - rx * textRightShift * 1.2f,
+                    ty - cardHalfH * 0.25f,
+                    tz - rz * textRightShift * 1.2f
+                )
             }
 
             // HUD overlays (always 2-D, drawn after 3-D content)
