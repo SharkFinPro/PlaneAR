@@ -41,6 +41,13 @@ class ArPage : Page {
 
     private var lastConsumedTapPos: Pair<Float, Float>? = null
 
+    private var filteredYaw = 0.0
+    private var filteredPitch = 0.0
+    private var filteredRoll = 0.0
+
+    private var orientationInitialized = false
+    private var lastFrameTimeNs = 0L
+
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val width = sceneInfo.screenWidth
         val height = sceneInfo.screenHeight - navHeight
@@ -51,6 +58,56 @@ class ArPage : Page {
         val hb = AppSettings.hb
 
         val orientation = OrientationStore.data
+
+        val nowNs = System.nanoTime()
+
+        val dt = if (lastFrameTimeNs == 0L) {
+            1f / 60f
+        } else {
+            ((nowNs - lastFrameTimeNs) / 1_000_000_000.0f)
+                .coerceIn(0.001f, 0.1f)
+        }
+
+        lastFrameTimeNs = nowNs
+
+        if (!orientationInitialized) {
+            filteredYaw = orientation.azimuthDeg
+            filteredPitch = orientation.pitchDeg
+            filteredRoll = orientation.rollDeg
+
+            orientationInitialized = true
+        } else {
+
+            val yawTarget = applyAngleDeadband(
+                filteredYaw,
+                orientation.azimuthDeg,
+                0.25
+            )
+
+            val pitchTarget = applyDeadband(
+                filteredPitch,
+                orientation.pitchDeg,
+                0.20
+            )
+
+            val rollTarget = applyDeadband(
+                filteredRoll,
+                orientation.rollDeg,
+                0.20
+            )
+
+            val tau = 0.20
+            val alpha = 1.0 - kotlin.math.exp(-dt.toDouble() / tau)
+
+            filteredYaw =
+                lerpAngle(filteredYaw, yawTarget, alpha)
+
+            filteredPitch +=
+                (pitchTarget - filteredPitch) * alpha
+
+            filteredRoll +=
+                (rollTarget - filteredRoll) * alpha
+        }
 
         val phoneLat: Double = orientation.x.toDouble()
         val phoneLon = orientation.z.toDouble()
@@ -107,9 +164,9 @@ class ArPage : Page {
                 0,
                 phoneAlt,
                 0,
-                orientation.pitchDeg,
-                orientation.azimuthDeg - 90,
-                orientation.rollDeg,
+                filteredPitch,
+                filteredYaw  - 90,
+                filteredRoll,
                 width,
                 height
             )
@@ -124,8 +181,8 @@ class ArPage : Page {
                 GeoUtils.distanceMeters(phoneGeo, p.getPosition())
             }
 
-            val yaw = Math.toRadians((orientation.azimuthDeg - 90))
-            val pitch = Math.toRadians(orientation.pitchDeg)
+            val yaw = Math.toRadians((filteredYaw - 90))
+            val pitch = Math.toRadians(filteredPitch)
 
             val fx = cos(pitch) * cos(yaw)
             val fy = sin(pitch)
@@ -436,5 +493,45 @@ class ArPage : Page {
                 }
             }
         }
+    }
+
+    private fun lerpAngle(
+        current: Double,
+        target: Double,
+        alpha: Double
+    ): Double {
+        var delta = target - current
+
+        while (delta > 180.0) delta -= 360.0
+        while (delta < -180.0) delta += 360.0
+
+        return current + delta * alpha
+    }
+
+    private fun applyAngleDeadband(
+        current: Double,
+        target: Double,
+        thresholdDeg: Double
+    ): Double {
+        var delta = target - current
+
+        while (delta > 180.0) delta -= 360.0
+        while (delta < -180.0) delta += 360.0
+
+        return if (kotlin.math.abs(delta) < thresholdDeg)
+            current
+        else
+            target
+    }
+
+    private fun applyDeadband(
+        current: Double,
+        target: Double,
+        threshold: Double
+    ): Double {
+        return if (kotlin.math.abs(target - current) < threshold)
+            current
+        else
+            target
     }
 }
