@@ -237,14 +237,21 @@ class ArPage : Page {
                 logFlightHistory(sorted[bestIndex])
             }
 
-            val reordered = if (bestIndex > 0) {
-                val mutable = sorted.toMutableList()
-                val best = mutable.removeAt(bestIndex)
-                mutable.add(0, best)
-                mutable
-            } else {
-                sorted
-            }
+            val closestId = if (bestIndex >= 0) {
+                sorted[bestIndex].id.toLongOrNull(16) ?: 0L
+            } else 0L
+
+            val reordered = sorted.sortedWith(
+                compareByDescending { aircraft ->
+                    val id = aircraft.id.toLongOrNull(16) ?: 0L
+
+                    when (id) {
+                        selectedId -> 2
+                        closestId  -> 1
+                        else        -> 0
+                    }
+                }
+            )
 
             data class AircraftRenderData(
                 val label:         String,
