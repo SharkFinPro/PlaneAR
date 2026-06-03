@@ -163,11 +163,6 @@ namespace ge {
         indices.graphicsFamily = i;
       }
 
-      if (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)
-      {
-        indices.computeFamily = i;
-      }
-
       VkBool32 presentSupport = false;
       vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface->getSurface(), &presentSupport);
 

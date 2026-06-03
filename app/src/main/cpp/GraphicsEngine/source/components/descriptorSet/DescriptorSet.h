@@ -29,6 +29,9 @@ namespace ge {
 
     [[nodiscard]] VkDescriptorSet& getDescriptorSet(size_t frame);
 
+    void updateDescriptorSet(size_t frame,
+                             const std::function<std::vector<VkWriteDescriptorSet>(VkDescriptorSet)>& getWrites) const;
+
   protected:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
 

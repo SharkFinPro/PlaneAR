@@ -1172,15 +1172,19 @@ namespace ge {
                                 const RenderInfo* renderInfo,
                                 const Camera& camera) const
   {
-    if (!m_assetManager->getCameraTexture() ||
-        m_assetManager->getCameraTexture()->getDescriptorSet(renderInfo->currentFrame) == VK_NULL_HANDLE)
+    const auto cameraTexture = m_assetManager->getCameraTexture();
+
+    if (!cameraTexture ||
+        cameraTexture->getDescriptorSet(renderInfo->currentFrame) == VK_NULL_HANDLE)
     {
       return;
     }
 
+    cameraTexture->flushDescriptorUpdate(renderInfo->currentFrame);
+
     if (!pipelineManager->hasCameraPipeline())
     {
-      pipelineManager->createCameraPipeline(m_assetManager->getCameraTexture()->getDescriptorSetLayout());
+      pipelineManager->createCameraPipeline(cameraTexture->getDescriptorSetLayout());
     }
 
     pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, PipelineType::camera);
@@ -1188,7 +1192,7 @@ namespace ge {
     pipelineManager->bindGraphicsPipelineDescriptorSet(
       renderInfo->commandBuffer,
       PipelineType::camera,
-      m_assetManager->getCameraTexture()->getDescriptorSet(renderInfo->currentFrame),
+      cameraTexture->getDescriptorSet(renderInfo->currentFrame),
       0
     );
 

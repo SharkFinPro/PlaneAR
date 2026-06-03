@@ -9,9 +9,6 @@ object AppSettings {
     /** When true, AppColors.current returns the dark palette. */
     var darkMode: Boolean = false
 
-    @Volatile var hb: HardwareBuffer? = null
-    @Volatile var hbImage: android.media.Image? = null
-
     var cameraIsEnabled: Boolean = false
 
     var canEnableCamera: Boolean = true

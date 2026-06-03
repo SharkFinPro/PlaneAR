@@ -2,6 +2,7 @@
 #define PLANEAR_LOGICALDEVICE_H
 
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_android.h>
 #include <functional>
 #include <memory>
 #include <vector>
@@ -16,9 +17,8 @@ namespace ge {
   {
   public:
     explicit LogicalDevice(const std::shared_ptr<PhysicalDevice>& physicalDevice);
-    ~LogicalDevice();
 
-    [[nodiscard]] VkDevice getDevice() const;
+    ~LogicalDevice();
 
     [[nodiscard]] std::shared_ptr<PhysicalDevice> getPhysicalDevice() const;
 
@@ -27,8 +27,6 @@ namespace ge {
     [[nodiscard]] VkQueue getGraphicsQueue() const;
 
     [[nodiscard]] VkQueue getPresentQueue() const;
-
-    [[nodiscard]] VkQueue getComputeQueue() const;
 
     [[nodiscard]] uint32_t getMaxFramesInFlight() const;
 
@@ -148,6 +146,13 @@ namespace ge {
 
     void destroySampler(VkSampler& sampler) const;
 
+    void destroySamplerYcbcrConversion(VkSamplerYcbcrConversion& ycbcrConversion) const;
+
+    [[nodiscard]] VkSamplerYcbcrConversion createSamplerYcbcrConversion(VkSamplerYcbcrConversionCreateInfo& ycbcrInfo);
+
+    void getAndroidHardwareBufferPropertiesANDROID(const struct AHardwareBuffer* buffer,
+                                                   VkAndroidHardwareBufferPropertiesANDROID* pProperties);
+
   private:
     std::shared_ptr<PhysicalDevice> m_physicalDevice;
 
@@ -155,7 +160,6 @@ namespace ge {
 
     VkQueue m_graphicsQueue = VK_NULL_HANDLE;
     VkQueue m_presentQueue = VK_NULL_HANDLE;
-    VkQueue m_computeQueue = VK_NULL_HANDLE;
 
     std::vector<VkSemaphore> m_swapchainImageAvailableSemaphores;
 

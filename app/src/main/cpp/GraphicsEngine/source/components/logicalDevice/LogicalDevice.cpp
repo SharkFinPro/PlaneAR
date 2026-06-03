@@ -21,11 +21,6 @@ namespace ge {
     vkDestroyDevice(m_device, nullptr);
   }
 
-  VkDevice LogicalDevice::getDevice() const
-  {
-    return m_device;
-  }
-
   std::shared_ptr<PhysicalDevice> LogicalDevice::getPhysicalDevice() const
   {
     return m_physicalDevice;
@@ -44,11 +39,6 @@ namespace ge {
   VkQueue LogicalDevice::getPresentQueue() const
   {
     return m_presentQueue;
-  }
-
-  VkQueue LogicalDevice::getComputeQueue() const
-  {
-    return m_computeQueue;
   }
 
   uint32_t LogicalDevice::getMaxFramesInFlight() const
@@ -105,7 +95,6 @@ namespace ge {
 
     m_device = m_physicalDevice->createLogicalDevice(createInfo);
 
-    vkGetDeviceQueue(m_device, queueFamilyIndices.computeFamily.value(), 0, &m_computeQueue);
     vkGetDeviceQueue(m_device, queueFamilyIndices.graphicsFamily.value(), 0, &m_graphicsQueue);
     vkGetDeviceQueue(m_device, queueFamilyIndices.presentFamily.value(), 0, &m_presentQueue);
   }
@@ -188,6 +177,11 @@ namespace ge {
 
   void LogicalDevice::destroyImageView(VkImageView& imageView) const
   {
+    if (imageView == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
     vkDestroyImageView(m_device, imageView, nullptr);
 
     imageView = VK_NULL_HANDLE;
@@ -241,6 +235,11 @@ namespace ge {
 
   void LogicalDevice::destroyImage(VkImage& image) const
   {
+    if (image == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
     vkDestroyImage(m_device, image, nullptr);
 
     image = VK_NULL_HANDLE;
@@ -618,6 +617,11 @@ namespace ge {
 
   void LogicalDevice::destroyDescriptorSetLayout(VkDescriptorSetLayout& descriptorSetLayout) const
   {
+    if (descriptorSetLayout == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
     vkDestroyDescriptorSetLayout(m_device, descriptorSetLayout, nullptr);
 
     descriptorSetLayout = VK_NULL_HANDLE;
@@ -655,5 +659,37 @@ namespace ge {
     vkDestroySampler(m_device, sampler, nullptr);
 
     sampler = VK_NULL_HANDLE;
+  }
+
+  void LogicalDevice::destroySamplerYcbcrConversion(VkSamplerYcbcrConversion& ycbcrConversion) const
+  {
+    if (ycbcrConversion == VK_NULL_HANDLE)
+    {
+      return;
+    }
+
+    vkDestroySamplerYcbcrConversion(m_device, ycbcrConversion, nullptr);
+
+    ycbcrConversion = VK_NULL_HANDLE;
+  }
+
+  VkSamplerYcbcrConversion LogicalDevice::createSamplerYcbcrConversion(VkSamplerYcbcrConversionCreateInfo& ycbcrInfo)
+  {
+    VkSamplerYcbcrConversion ycbcrConversion = VK_NULL_HANDLE;
+
+    vkCreateSamplerYcbcrConversion(
+      m_device,
+      &ycbcrInfo,
+      nullptr,
+      &ycbcrConversion
+    );
+
+    return ycbcrConversion;
+  }
+
+  void LogicalDevice::getAndroidHardwareBufferPropertiesANDROID(const struct AHardwareBuffer* buffer,
+                                                                VkAndroidHardwareBufferPropertiesANDROID* pProperties)
+  {
+    vkGetAndroidHardwareBufferPropertiesANDROID(m_device, buffer, pProperties);
   }
 } // ge

@@ -408,9 +408,10 @@ namespace {
     env->ReleaseStringUTFChars(text, textStr);
   }
 
-  void nativeUpdateCameraBuffer(JNIEnv* env,
-                                jobject thiz,
-                                jobject hardwareBuffer)
+  void nativeStartCamera(JNIEnv* env,
+                         jobject thiz,
+                         jint viewWidth,
+                         jint viewHeight)
   {
     ge::Renderer2D* renderer = getRenderer(env, thiz);
     if (renderer == nullptr)
@@ -418,13 +419,43 @@ namespace {
       return;
     }
 
-    AHardwareBuffer* ahb = AHardwareBuffer_fromHardwareBuffer(env, hardwareBuffer);
-    if (ahb == nullptr)
+    renderer->getAssetManager()->getCameraTexture()->startCamera(viewWidth, viewHeight);
+  }
+
+  void nativeStopCamera(JNIEnv* env,
+                        jobject thiz)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
     {
       return;
     }
 
-    renderer->getAssetManager()->getCameraTexture()->updateFromHardwareBuffer(ahb);
+    renderer->getAssetManager()->getCameraTexture()->stopCamera();
+  }
+
+  jboolean nativeIsCameraOpen(JNIEnv* env,
+                              jobject thiz)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return false;
+    }
+
+    return renderer->getAssetManager()->getCameraTexture()->isCameraOpen();
+  }
+
+  void nativeUpdateCameraTexture(JNIEnv* env,
+                                 jobject thiz)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+    renderer->getAssetManager()->getCameraTexture()->updateCameraTexture();
   }
 
   void nativeCamera(JNIEnv* env,
@@ -543,8 +574,11 @@ namespace {
     { "getMousePickingResult",    "()J",      (void*)nativeGetMousePickingResult },
     { "hasNewMousePickingResult", "()Z",      (void*)nativeHasNewMousePickingResult },
 
-    // Camera Buffer
-    { "updateCameraBuffer", "(Landroid/hardware/HardwareBuffer;)V", (void*)nativeUpdateCameraBuffer }
+    // Camera
+    {"updateCameraTexture", "()V", (void*)nativeUpdateCameraTexture },
+    {"startCamera", "(II)V", (void*)nativeStartCamera},
+    {"stopCamera", "()V", (void*)nativeStopCamera},
+    {"isCameraOpen", "()Z", (void*)nativeIsCameraOpen}
   };
 
   const JNINativeMethod graphicsEngineMethods[] = {

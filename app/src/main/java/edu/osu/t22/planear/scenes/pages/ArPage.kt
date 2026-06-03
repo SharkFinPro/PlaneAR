@@ -26,8 +26,6 @@ import kotlin.math.sqrt
 class ArPage : Page {
     override val sceneId = SceneId.AR
 
-    private var lastHb: HardwareBuffer? = null
-
     // Achievement popup state
     private var showingAchievementId: String? = null
     private var achievementAnimProgress: Float = 0.0f
@@ -53,8 +51,6 @@ class ArPage : Page {
         // Mark that we are on the AR page that enables achievement tracking
         AchievementStore.isOnArPage = true
 
-        val hb = AppSettings.hb
-
         val orientation = OrientationStore.data
 
         val phoneLat: Double = orientation.x.toDouble()
@@ -77,7 +73,6 @@ class ArPage : Page {
 
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
-
             tapPos?.let { (tx, ty) ->
                 if (tapPos != lastConsumedTapPos &&
                     tx > 0 && tx < width &&
@@ -123,12 +118,9 @@ class ArPage : Page {
                 waitingOnMousePickingResult = false
             }
 
-            if (hb != null && hb != lastHb) {
-                updateCameraBuffer(hb)
-                lastHb = hb
-            }
-
             if (AppSettings.cameraIsEnabled) {
+                updateCameraTexture()
+
                 imageMode(ImageMode.CORNER)
                 camera(0, 0, width, height)
             } else {
