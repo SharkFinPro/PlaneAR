@@ -69,6 +69,8 @@ namespace ge {
 
     [[nodiscard]] std::shared_ptr<CameraTexture> getCameraTexture();
 
+    [[nodiscard]] float getDpiScale() const;
+
   private:
     std::shared_ptr<CameraTexture> m_cameraTexture;
 
