@@ -648,6 +648,11 @@ namespace ge {
       .color = m_currentFill
     });
 
+    if (firstInstance != 0)
+    {
+      return;
+    }
+
     m_drawList.push_back({
       PointBatchMarker{
         .firstInstance = firstInstance,
@@ -746,7 +751,7 @@ namespace ge {
       }
     }
 
-    if (instanceCount > 0)
+    if (instanceCount > 0 && firstInstance == 0)
     {
       m_drawList.push_back({
         Glyph3DBatchMarker{
@@ -1120,7 +1125,7 @@ namespace ge {
     const VkDeviceSize offset = 0;
     renderInfo->commandBuffer->bindVertexBuffers(0, 1, &buf, &offset);
 
-    renderInfo->commandBuffer->draw(4, marker.instanceCount, 0, marker.firstInstance);
+    renderInfo->commandBuffer->draw(4, m_pointInstances.size(), 0, 0);
   }
 
   void Renderer2D::renderGlyph3DBatch(const std::shared_ptr<PipelineManager>& pipelineManager,
@@ -1163,7 +1168,7 @@ namespace ge {
     const VkDeviceSize offset = 0;
     renderInfo->commandBuffer->bindVertexBuffers(0, 1, &buf, &offset);
 
-    renderInfo->commandBuffer->draw(4, marker.instanceCount, 0, marker.firstInstance);
+    renderInfo->commandBuffer->draw(4, m_glyph3DInstances.size(), 0, 0);
   }
 
   void Renderer2D::renderCamera(const std::shared_ptr<PipelineManager>& pipelineManager,
