@@ -85,6 +85,8 @@ data class FlightSheetData(
                 registration  = live?.registration?.takeIf { it.isNotBlank() }
                     ?: entry.registration.takeIf { it.isNotBlank() }
                     ?: NA,
+                origin      = live?.origin?.takeIf { it.isNotBlank() } ?: NA,
+                destination = live?.destination?.takeIf { it.isNotBlank() } ?: NA,
                 type          = live?.type?.takeIf { it.isNotBlank() }
                     ?: entry.planeType.takeIf { it.isNotBlank() }
                     ?: NA,
@@ -94,8 +96,6 @@ data class FlightSheetData(
                 headingDeg    = formatHeading(live?.headingDegrees),
                 verticalRate  = live?.let { formatVerticalRate(it.verticalRate) } ?: NA,
                 date          = entry.date,
-                origin        = entry.origin,
-                destination   = entry.destination,
                 isLive        = live != null
             )
         }

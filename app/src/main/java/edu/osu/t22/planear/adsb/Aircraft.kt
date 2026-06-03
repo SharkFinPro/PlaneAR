@@ -26,6 +26,10 @@ class Aircraft (
     var groundSpeed: Double? = null
     var verticalRate: Int = 0
 
+    // temp values that can change/be removed once Owen wants
+    var origin: String? = null
+    var destination: String? = null
+
     var seenSeconds: Float? = null
     var seenPosSeconds: Float? = null
     var lastRecieveTime: Long = 0L
