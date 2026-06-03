@@ -122,6 +122,14 @@ namespace ge {
     );
   }
 
+  void CommandBuffer::bindVertexBuffers(const uint32_t firstBinding,
+                                        const uint32_t bindingCount,
+                                        const VkBuffer* buffers,
+                                        const VkDeviceSize* offsets) const
+  {
+    vkCmdBindVertexBuffers(m_commandBuffers[m_currentFrame], firstBinding, bindingCount, buffers, offsets);
+  }
+
   void CommandBuffer::clearAttachments(const std::vector<VkClearAttachment>& clearAttachments,
                                        const std::vector<VkClearRect>& clearRects) const
   {
