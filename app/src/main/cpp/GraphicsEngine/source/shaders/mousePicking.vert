@@ -5,9 +5,9 @@ layout(push_constant) uniform pointPC {
   vec3 worldPos;
   float size;
   vec3 camRight;
-  float _pad0;
+  float aspectX;
   vec3 camUp;
-  float _pad1;
+  float aspectY;
 } pc;
 
 void main() {
@@ -18,11 +18,11 @@ void main() {
     vec2( 1.0,  1.0)
   );
 
-  vec2 offset = corners[gl_VertexIndex] * pc.size;
+  vec2 uv = corners[gl_VertexIndex];
 
   vec3 worldPos = pc.worldPos
-    + pc.camRight * offset.x
-    + pc.camUp    * offset.y;
+    + pc.camRight * (uv.x * pc.size * pc.aspectX)
+    + pc.camUp    * (uv.y * pc.size * pc.aspectY);
 
   gl_Position = pc.mvp * vec4(worldPos, 1.0);
 }

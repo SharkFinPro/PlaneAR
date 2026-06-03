@@ -300,6 +300,8 @@ namespace ge {
     float y;
     float z;
     float size;
+    float aspectX;
+    float aspectY;
     uint32_t id;
 
     struct PushConstant {
@@ -307,9 +309,9 @@ namespace ge {
       glm::vec3 worldPos;
       float size;
       glm::vec3 camRight;
-      float _pad0;
+      float aspectX;
       glm::vec3 camUp;
-      float _pad1;
+      float aspectY;
       uint32_t id;
     };
 
@@ -325,9 +327,9 @@ namespace ge {
         .worldPos = { x, y, z },
         .size     = size,
         .camRight = camRight,
-        ._pad0    = 0.f,
+        .aspectX    = aspectX,
         .camUp    = camUp,
-        ._pad1    = 0.f,
+        .aspectY    = aspectY,
         .id = id
       };
     }

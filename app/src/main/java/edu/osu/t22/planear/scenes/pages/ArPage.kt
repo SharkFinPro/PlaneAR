@@ -314,9 +314,11 @@ class ArPage : Page {
                 }
                 point(fx, fy, fz, cardHalfH)
 
-                // Mouse picking hitbox — use the card's true half-width so the
-                // full horizontal extent is clickable.
-                mousePickingPoint(fx, fy, fz, cardHalfH * cardAspect, id)
+                if (waitingOnMousePickingResult) {
+                    // Mouse picking hitbox — use the card's true half-width so the
+                    // full horizontal extent is clickable.
+                    mousePickingPoint(fx, fy, fz, cardHalfH, id)
+                }
 
                 // ── Compass sits on the left side of the card ─────────────────
                 // offsetX = -(cardHalfH * cardAspect) centres it at the left edge;

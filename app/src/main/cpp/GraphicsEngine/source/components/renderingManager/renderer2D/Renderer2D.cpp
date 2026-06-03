@@ -693,9 +693,6 @@ namespace ge {
                                  ._pad1 = 0.f
                                });
 
-    m_pointAspectX = 1.0f;
-    m_pointAspectY = 1.0f;
-
     if (firstInstance != 0)
     {
       return;
@@ -725,6 +722,8 @@ namespace ge {
       .y = y,
       .z = z,
       .size = size,
+      .aspectX = m_pointAspectX,
+      .aspectY = m_pointAspectY,
       .id = id
     });
   }
