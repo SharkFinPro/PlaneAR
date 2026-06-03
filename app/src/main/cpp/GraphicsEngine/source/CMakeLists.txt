@@ -78,6 +78,8 @@ target_link_libraries(${PROJECT_NAME}
   android
   log
   freetype
+  camera2ndk
+  mediandk
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

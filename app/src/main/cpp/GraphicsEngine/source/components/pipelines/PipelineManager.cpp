@@ -59,6 +59,8 @@ namespace ge {
 
   void PipelineManager::createCameraPipeline(VkDescriptorSetLayout cameraLayout)
   {
+    m_graphicsPipelines.erase(PipelineType::camera);
+
     const auto renderPass = m_renderer->getRenderPass();
 
     createGraphicsPipeline(PipelineType::camera,
@@ -140,7 +142,7 @@ namespace ge {
 
     createGraphicsPipeline(PipelineType::point,
                            PipelineConfig::createPointPipelineOptions(m_logicalDevice,
-                                                                      renderPass, AAssetManager));
+                           renderPass, AAssetManager, m_assetManager->getGlyph3DDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::font3D,
                            PipelineConfig::createFont3DPipelineOptions(m_logicalDevice,

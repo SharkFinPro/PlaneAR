@@ -49,6 +49,11 @@ namespace ge {
                             uint32_t descriptorSetCount,
                             const VkDescriptorSet* descriptorSets) const;
 
+    void bindVertexBuffers(uint32_t firstBinding,
+                           uint32_t bindingCount,
+                           const VkBuffer* buffers,
+                           const VkDeviceSize* offsets) const;
+
     void clearAttachments(const std::vector<VkClearAttachment>& clearAttachments,
                           const std::vector<VkClearRect>& clearRects) const;
 

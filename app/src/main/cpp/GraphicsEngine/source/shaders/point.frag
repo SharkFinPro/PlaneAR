@@ -1,18 +1,6 @@
 #version 450
 
-layout(push_constant) uniform pointPC {
-  layout(offset = 64)
-  vec3  worldPos;    // unused in frag, kept for offset alignment
-  float size;
-  vec3  camRight;
-  float aspectX;
-  vec3  camUp;
-  float aspectY;
-  float r;
-  float g;
-  float b;
-  float a;
-} pc;
+layout(location = 0) in vec4 fragColor;
 
 layout(location = 0) in  vec2 fragUV;   // [-1,+1] in billboard face space
 layout(location = 0) out vec4 outColor;
@@ -57,7 +45,7 @@ void main() {
   float borderMask = cardMask * (1.0 - innerMask);
 
   // ── Fill colour — the color passed from Kotlin is the accent/selection tint ──
-  vec3  accentCol  = vec3(pc.r, pc.g, pc.b);
+  vec3  accentCol  = fragColor.rgb;
 
   // ── Background — frosted dark panel ──────────────────────────────────────────
   // Subtle vertical gradient: slightly lighter at the top.

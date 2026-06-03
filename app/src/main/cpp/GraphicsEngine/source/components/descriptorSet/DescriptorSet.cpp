@@ -48,6 +48,13 @@ namespace ge {
     return m_descriptorSets[frame];
   }
 
+  void DescriptorSet::updateDescriptorSet(size_t frame,
+                                          const std::function<std::vector<VkWriteDescriptorSet>(VkDescriptorSet)>& getWrites) const
+  {
+    auto writes = getWrites(m_descriptorSets[frame]);
+    m_logicalDevice->updateDescriptorSets(writes.size(), writes.data());
+  }
+
   void DescriptorSet::createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding>& layoutBindings)
   {
     const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {

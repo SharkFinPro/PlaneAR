@@ -3,8 +3,13 @@
 
 #include "ImageTexture.h"
 #include <android/hardware_buffer.h>
-#include <unordered_map>
+#include <camera/NdkCameraManager.h>
+#include <camera/NdkCameraDevice.h>
+#include <camera/NdkCameraCaptureSession.h>
+#include <media/NdkImageReader.h>
 #include <vulkan/vulkan_android.h>
+#include <mutex>
+#include <unordered_map>
 
 namespace ge {
 
@@ -17,9 +22,18 @@ namespace ge {
 
     ~CameraTexture() override;
 
-    void updateFromHardwareBuffer(AHardwareBuffer* buffer);
+    [[nodiscard]] bool isCameraOpen() const;
 
     [[nodiscard]] VkDescriptorSetLayout getDescriptorSetLayout() const;
+
+    void startCamera(int viewWidth,
+                     int viewHeight);
+
+    void stopCamera();
+
+    void updateCameraTexture();
+
+    void flushDescriptorUpdate(size_t frame);
 
   private:
     VkCommandPool m_commandPool;
@@ -28,20 +42,46 @@ namespace ge {
     VkDescriptorSetLayout m_descriptorSetLayout = VK_NULL_HANDLE;
 
     struct ImportedBuffer {
-      VkImage image = VK_NULL_HANDLE;
-      VkDeviceMemory memory = VK_NULL_HANDLE;
-      VkImageView imageView = VK_NULL_HANDLE;
+      VkImage        image     = VK_NULL_HANDLE;
+      VkDeviceMemory memory    = VK_NULL_HANDLE;
+      VkImageView    imageView = VK_NULL_HANDLE;
+      AHardwareBuffer* buffer  = nullptr;
     };
 
-    ImportedBuffer m_imageData;
-    AHardwareBuffer* m_currentBuffer = nullptr;
+    std::vector<ImportedBuffer> m_bufferPool;
+    int m_poolIndex = 0;
 
     VkSampler m_ycbcrSampler = VK_NULL_HANDLE;
     VkSamplerYcbcrConversion m_ycbcrConversion = VK_NULL_HANDLE;
 
-    ImportedBuffer importBuffer(AHardwareBuffer* buffer);
+    ACameraManager*          m_camManager  = nullptr;
+    ACameraDevice*           m_camDevice   = nullptr;
+    ACameraCaptureSession*   m_camSession  = nullptr;
+    ACaptureRequest*         m_request     = nullptr;
+    AImageReader*            m_imageReader = nullptr;
+    ANativeWindow*           m_surface     = nullptr;
+
+    AHardwareBuffer*         m_pendingBuffer = nullptr;
+    std::mutex               m_bufferMutex;
+
+    ACameraDevice_StateCallbacks          m_deviceCallbacks{};
+    ACameraCaptureSession_stateCallbacks  m_sessionCallbacks{};
+
+    std::vector<bool> m_dirtyFrames; // one entry per frame-in-flight
+
+    uint8_t m_colorFilterArrangement = 0;
+
+    static void onImageAvailable(void* ctx,
+                                 AImageReader* reader);
+
+    void importBuffer(AHardwareBuffer* buffer,
+                      ImportedBuffer& slot);
 
     void createYCBCRResources(const VkAndroidHardwareBufferFormatPropertiesANDROID& formatProperties);
+
+    void updateFromHardwareBuffer(AHardwareBuffer* buffer);
+
+    void markAllFramesDirty();
   };
 
 } // ge

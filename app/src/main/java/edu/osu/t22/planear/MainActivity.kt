@@ -31,7 +31,6 @@ import edu.osu.t22.planear.scenes.SceneSwitcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import edu.osu.t22.planear.camera.CameraManager
 import edu.osu.t22.planear.orientation.OrientationData
 import edu.osu.t22.planear.orientation.OrientationStore
 import kotlin.math.atan2
@@ -49,8 +48,6 @@ class MainActivity : GameActivity() {
     private lateinit var sceneSwitcher: SceneSwitcher
     private lateinit var appLocationManager: AppLocationManager
     private lateinit var adsbManager: AdsbManager
-
-    private lateinit var cameraManager: CameraManager
 
     private lateinit var frameGestureDetector: FrameGestureDetector
 
@@ -95,8 +92,6 @@ class MainActivity : GameActivity() {
 
         appLocationManager = AppLocationManager(this, lifecycleScope)
         adsbManager = AdsbManager(appLocationManager)
-
-        cameraManager = CameraManager(this)
 
         // Initialize achievement persistence
         AchievementStore.init(this)
@@ -150,19 +145,6 @@ class MainActivity : GameActivity() {
                                 screenH = dm.heightPixels
                             )
                         }
-
-                        if (!AppSettings.cameraIsEnabled && cameraManager.isActive) {
-                            cameraManager.stop()
-                        }
-                        else if (AppSettings.cameraIsEnabled && !cameraManager.isActive) {
-                            window.decorView.post {
-                                cameraManager.start(
-                                    window.decorView.width,
-                                    window.decorView.height
-                                )
-                            }
-                        }
-
                     } catch (e: Exception) {
                         Log.e("ADSB_EXECUTION", "ADS-B projection failed", e)
                     }
@@ -203,7 +185,6 @@ class MainActivity : GameActivity() {
         sensorManager.unregisterListener(sensorListener)
         appLocationManager.stop()
 
-        cameraManager.stop()
         AppSettings.cameraIsEnabled = false
     }
 

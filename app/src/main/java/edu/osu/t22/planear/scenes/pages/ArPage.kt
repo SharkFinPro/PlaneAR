@@ -26,8 +26,6 @@ import kotlin.math.sqrt
 class ArPage : Page {
     override val sceneId = SceneId.AR
 
-    private var lastHb: HardwareBuffer? = null
-
     // Achievement popup state
     private var showingAchievementId: String? = null
     private var achievementAnimProgress: Float = 0.0f
@@ -43,6 +41,9 @@ class ArPage : Page {
 
     val c = AppColors.current
 
+    private var cachedSorted: List<edu.osu.t22.planear.adsb.Aircraft> = emptyList()
+    private var lastSortTimeMs: Long = 0L
+
     private var filteredYaw = 0.0
     private var filteredPitch = 0.0
     private var filteredRoll = 0.0
@@ -56,8 +57,6 @@ class ArPage : Page {
 
         // Mark that we are on the AR page that enables achievement tracking
         AchievementStore.isOnArPage = true
-
-        val hb = AppSettings.hb
 
         val orientation = OrientationStore.data
 
@@ -130,7 +129,6 @@ class ArPage : Page {
         val tapPos = sceneInfo.gestures.touchDownPosition
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
-
             tapPos?.let { (tx, ty) ->
                 if (tapPos != lastConsumedTapPos &&
                     tx > 0 && tx < width &&
@@ -148,18 +146,23 @@ class ArPage : Page {
                     sceneInfo.gestures.markTouchDownConsumed()
                 }
             }
-            // Sort aircraft nearest-first so closer planes draw on top
-            val aircraftRepository = SceneSwitcher.adsbManager.getRepository()
 
-            val sorted = aircraftRepository.getAircraft().sortedBy { p ->
-                GeoUtils.distanceMeters(phoneGeo, p.getPosition())
+            // Sort aircraft nearest-first so closer planes draw on top
+            val nowMs = System.currentTimeMillis()
+            if (nowMs - lastSortTimeMs >= 1_000L) {
+                val aircraftRepository = SceneSwitcher.adsbManager.getRepository()
+                cachedSorted = aircraftRepository.getAircraft().sortedBy { p ->
+                    GeoUtils.distanceMeters(phoneGeo, p.getPosition())
+                }
+                lastSortTimeMs = nowMs
             }
+            val sorted = cachedSorted
 
             if (waitingOnMousePickingResult && hasNewMousePickingResult()) {
                 selectedId = getMousePickingResult()
 
                 if (selectedId != 0L) {
-                    val selectedAircraft = aircraftRepository.getAircraft().find {
+                    val selectedAircraft = sorted.find {
                         (it.id.toLongOrNull(16) ?: 0L) == selectedId
                     }
 
@@ -173,12 +176,9 @@ class ArPage : Page {
                 waitingOnMousePickingResult = false
             }
 
-            if (hb != null && hb != lastHb) {
-                updateCameraBuffer(hb)
-                lastHb = hb
-            }
-
             if (AppSettings.cameraIsEnabled) {
+                updateCameraTexture()
+
                 imageMode(ImageMode.CORNER)
                 camera(0, 0, width, height)
             } else {

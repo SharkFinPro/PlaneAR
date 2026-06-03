@@ -245,20 +245,35 @@ namespace ge {
     }
   };
 
-  struct Point {
-    glm::mat4 viewMatrix;
-    glm::mat4 projMatrix;
-    float x;
-    float y;
-    float z;
+  struct PointInstance {
+    glm::vec3 worldPos;
     float size;
     glm::vec4 color;
+  };
     // Aspect multipliers for the billboard quad.  aspectX > 1 makes the card
     // wider than it is tall.  Default 1.0 keeps square behaviour for any other
     // call sites that don't set these explicitly.
     float aspectX = 1.0f;
     float aspectY = 1.0f;
 
+  struct Glyph3DInstance {
+    glm::vec3 worldPos;
+    float width;
+    float glyphOffsetX;
+    float glyphOffsetY;
+    float height;
+    float _pad;
+    glm::vec4 uv;
+    glm::vec4 color;
+  };
+
+  struct Camera3DUBO {
+    glm::mat4 mvp;
+    glm::vec3 camRight;
+    float _pad0;
+    glm::vec3 camUp;
+    float _pad1;
+  };
     struct PushConstant {
       glm::mat4 mvp;
       glm::vec3 worldPos;
@@ -273,6 +288,12 @@ namespace ge {
       float a;
     };
 
+  struct Point {
+    float x;
+    float y;
+    float z;
+    float size;
+    glm::vec4 color;
     [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent) const
     {
       const glm::mat4 invView = glm::inverse(viewMatrix);
@@ -337,8 +358,6 @@ namespace ge {
   };
 
   struct Glyph3D {
-    glm::mat4 viewMatrix;
-    glm::mat4 projMatrix;
     float x;
     float y;
     float z;
@@ -347,45 +366,6 @@ namespace ge {
     float height;
     glm::vec4 uv;
     glm::vec4 color;
-
-    struct PushConstant {
-      glm::vec3 worldPos;
-      float width;
-      glm::vec3 camRight;
-      float glyphOffsetX;
-      glm::vec3 camUp;
-      float glyphOffsetY;
-      float height;
-      float u0, v0;
-      float u1, v1;
-      float r, g, b, a;
-    };
-
-    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent) const
-    {
-      const glm::mat4 invView = glm::inverse(viewMatrix);
-
-      const glm::vec3 camRight = glm::vec3(invView[0]);
-      const glm::vec3 camUp = glm::vec3(invView[1]);
-
-      return {
-        .worldPos = { x, y, z },
-        .width = width,
-        .camRight = camRight,
-        .glyphOffsetX = glyphOffset.x,
-        .camUp = camUp,
-        .glyphOffsetY = glyphOffset.y,
-        .height = height,
-        .u0 = uv.x,
-        .v0 = uv.y,
-        .u1 = uv.z,
-        .v1 = uv.w,
-        .r = color.r,
-        .g = color.g,
-        .b = color.b,
-        .a = color.a
-      };
-    }
   };
 
   // ── Compass ──────────────────────────────────────────────────────────────────

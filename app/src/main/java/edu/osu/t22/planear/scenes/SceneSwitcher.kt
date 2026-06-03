@@ -2,6 +2,7 @@ package edu.osu.t22.planear.scenes
 
 import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.FrameGestureDetector
+import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
 import edu.osu.t22.planear.adsb.AdsbManager
 import edu.osu.t22.planear.scenes.pages.AchievementsPage
 import edu.osu.t22.planear.scenes.pages.ArPage
@@ -84,6 +85,19 @@ class SceneSwitcher {
     }
 
     private fun renderSceneInternal(sceneId: Int, enginePtr: Long, screenWidth: Float, screenHeight: Float) {
+
+        val cameraStarted = GraphicsEngineWrapper(enginePtr).getRenderer2D().isCameraOpen()
+
+        if (!AppSettings.cameraIsEnabled && cameraStarted) {
+            GraphicsEngineWrapper(enginePtr).getRenderer2D().stopCamera()
+        }
+        else if (AppSettings.cameraIsEnabled && !cameraStarted) {
+            GraphicsEngineWrapper(enginePtr).getRenderer2D().startCamera(
+                screenWidth.toInt(),
+                screenHeight.toInt()
+            )
+        }
+
         AppSettings.cameraIsEnabled = false
 
         val scene = scenes[sceneId] ?: return
