@@ -1,8 +1,9 @@
 #version 450
 
 layout(location = 0) in vec4 fragColor;
+layout(location = 1) in vec2 fragUV;   // [-1,+1] in billboard face space
+layout(location = 2) in vec2 fragAspect;
 
-layout(location = 0) in  vec2 fragUV;   // [-1,+1] in billboard face space
 layout(location = 0) out vec4 outColor;
 
 // ── SDF helpers ───────────────────────────────────────────────────────────────
@@ -25,9 +26,9 @@ void main() {
   // fragUV is [-1,+1] in the *stretched* quad space.  We need SDF distances
   // that are consistent with the actual card proportions, so remap UV into
   // an aspect-correct space where the card half-extents equal (aspectX, aspectY).
-  vec2 p = fragUV * vec2(pc.aspectX, pc.aspectY);
+  vec2 p = fragUV * vec2(fragAspect.x, fragAspect.y);
 
-  vec2  halfExt    = vec2(pc.aspectX, pc.aspectY);
+  vec2  halfExt    = vec2(fragAspect.x, fragAspect.y);
   float cornerR    = 0.18;   // corner radius in the same units as halfExt
   float borderW    = 0.055;  // border thickness
 
@@ -56,13 +57,13 @@ void main() {
 
   // Thin horizontal separator line 40 % down from the top — visually divides
   // the callsign area from the distance/info area.
-  float sepY     = pc.aspectY * 0.30;   // separator Y in card space
+  float sepY     = fragAspect.y * 0.30;   // separator Y in card space
   float sepDist  = abs(p.y - sepY) - 0.018;
   float sepMask  = fillAA(sepDist, fw) * innerMask;
   vec3  sepCol   = vec3(0.30, 0.32, 0.38);
 
   // Left accent stripe — narrow vertical band on the far-left edge of the fill.
-  float stripeX  = -pc.aspectX + borderW + 0.12;
+  float stripeX  = -fragAspect.x + borderW + 0.12;
   float stripeDist = abs(p.x - stripeX) - 0.04;
   float stripeMask = fillAA(stripeDist, fw) * innerMask;
 
