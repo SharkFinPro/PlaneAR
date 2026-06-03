@@ -43,6 +43,9 @@ class ArPage : Page {
 
     val c = AppColors.current
 
+    private var cachedSorted: List<edu.osu.t22.planear.adsb.Aircraft> = emptyList()
+    private var lastSortTimeMs: Long = 0L
+
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val width = sceneInfo.screenWidth
         val height = sceneInfo.screenHeight - navHeight
@@ -90,18 +93,23 @@ class ArPage : Page {
                     sceneInfo.gestures.markTouchDownConsumed()
                 }
             }
-            // Sort aircraft nearest-first so closer planes draw on top
-            val aircraftRepository = SceneSwitcher.adsbManager.getRepository()
 
-            val sorted = aircraftRepository.getAircraft().sortedBy { p ->
-                GeoUtils.distanceMeters(phoneGeo, p.getPosition())
+            // Sort aircraft nearest-first so closer planes draw on top
+            val nowMs = System.currentTimeMillis()
+            if (nowMs - lastSortTimeMs >= 1_000L) {
+                val aircraftRepository = SceneSwitcher.adsbManager.getRepository()
+                cachedSorted = aircraftRepository.getAircraft().sortedBy { p ->
+                    GeoUtils.distanceMeters(phoneGeo, p.getPosition())
+                }
+                lastSortTimeMs = nowMs
             }
+            val sorted = cachedSorted
 
             if (waitingOnMousePickingResult && hasNewMousePickingResult()) {
                 selectedId = getMousePickingResult()
 
                 if (selectedId != 0L) {
-                    val selectedAircraft = aircraftRepository.getAircraft().find {
+                    val selectedAircraft = sorted.find {
                         (it.id.toLongOrNull(16) ?: 0L) == selectedId
                     }
 

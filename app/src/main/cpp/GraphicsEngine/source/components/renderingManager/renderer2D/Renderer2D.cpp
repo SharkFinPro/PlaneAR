@@ -26,7 +26,7 @@ namespace ge {
       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 4}
     }};
 
-    m_cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(glm::mat4));
+    m_cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(Camera3DUBO));
 
     const VkDescriptorPoolCreateInfo poolCreateInfo {
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -50,10 +50,27 @@ namespace ge {
 
       return descriptorWrites;
     });
+
+    const uint32_t frames = m_logicalDevice->getMaxFramesInFlight();
+    constexpr VkDeviceSize kInitialPointCapacity = sizeof(PointInstance) * 64;
+    constexpr VkDeviceSize kInitialGlyph3DCapacity = sizeof(Glyph3DInstance) * 256;
+
+    m_pointInstanceBuffers.resize(frames, VK_NULL_HANDLE);
+    m_pointInstanceMemory.resize(frames, VK_NULL_HANDLE);
+    ensureInstanceBuffer(m_pointInstanceBuffers, m_pointInstanceMemory,
+                         m_pointInstanceBufferCapacity, kInitialPointCapacity);
+
+    m_glyph3DInstanceBuffers.resize(frames, VK_NULL_HANDLE);
+    m_glyph3DInstanceMemory.resize(frames, VK_NULL_HANDLE);
+    ensureInstanceBuffer(m_glyph3DInstanceBuffers, m_glyph3DInstanceMemory,
+                         m_glyph3DInstanceBufferCapacity, kInitialGlyph3DCapacity);
   }
 
   Renderer2D::~Renderer2D()
   {
+    destroyInstanceBuffers(m_pointInstanceBuffers, m_pointInstanceMemory);
+    destroyInstanceBuffers(m_glyph3DInstanceBuffers, m_glyph3DInstanceMemory);
+
     m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
   }
 
@@ -75,16 +92,53 @@ namespace ge {
 
     m_drawList.clear();
 
+    m_pointInstances.clear();
+
+    m_glyph3DInstances.clear();
+
     m_mousePicker->clearObjectsToMousePick();
   }
 
   void Renderer2D::render(const std::shared_ptr<PipelineManager>& pipelineManager,
                           const RenderInfo* renderInfo)
   {
-    std::stable_sort(m_drawList.begin(), m_drawList.end(), [](const DrawEntry& a, const DrawEntry& b) {
-      return a.z < b.z;
-    });
     normalizeZValues();
+
+    const Camera3DUBO cameraUBO {
+      .mvp = m_projectionMatrix * m_viewMatrix,
+      .camRight = m_camRight,
+      ._pad0 = 0.f,
+      .camUp = m_camUp,
+      ._pad1 = 0.f
+    };
+    m_cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
+
+    // Upload all instance data for this frame upfront so markers can draw sub-ranges.
+    if (!m_pointInstances.empty())
+    {
+      const VkDeviceSize requiredBytes = sizeof(PointInstance) * m_pointInstances.size();
+      ensureInstanceBuffer(m_pointInstanceBuffers, m_pointInstanceMemory,
+                           m_pointInstanceBufferCapacity, requiredBytes);
+
+      void* mapped = nullptr;
+      m_logicalDevice->mapMemory(m_pointInstanceMemory[renderInfo->currentFrame],
+                                 0, requiredBytes, 0, &mapped);
+      std::memcpy(mapped, m_pointInstances.data(), requiredBytes);
+      m_logicalDevice->unmapMemory(m_pointInstanceMemory[renderInfo->currentFrame]);
+    }
+
+    if (!m_glyph3DInstances.empty())
+    {
+      const VkDeviceSize requiredBytes = sizeof(Glyph3DInstance) * m_glyph3DInstances.size();
+      ensureInstanceBuffer(m_glyph3DInstanceBuffers, m_glyph3DInstanceMemory,
+                           m_glyph3DInstanceBufferCapacity, requiredBytes);
+
+      void* mapped = nullptr;
+      m_logicalDevice->mapMemory(m_glyph3DInstanceMemory[renderInfo->currentFrame],
+                                 0, requiredBytes, 0, &mapped);
+      std::memcpy(mapped, m_glyph3DInstances.data(), requiredBytes);
+      m_logicalDevice->unmapMemory(m_glyph3DInstanceMemory[renderInfo->currentFrame]);
+    }
 
     PipelineType currentPipeline = PipelineType::rect;
     bool firstDraw = true;
@@ -128,6 +182,22 @@ namespace ge {
         pipelineManager->bindGraphicsPipeline(renderInfo->commandBuffer, type);
         currentPipeline = type;
         firstDraw = false;
+
+        if (type != PipelineType::font3D)
+        {
+          currentGlyph3DFontSet = VK_NULL_HANDLE;
+          currentGlyph3DCameraSet = VK_NULL_HANDLE;
+        }
+
+        if (type != PipelineType::point)
+        {
+          currentPointCameraSet = VK_NULL_HANDLE;
+        }
+
+        if (type != PipelineType::font)
+        {
+          currentGlyphFontSet = VK_NULL_HANDLE;
+        }
       }
     };
 
@@ -161,15 +231,15 @@ namespace ge {
           bindIfNeeded(PipelineType::image);
           renderImage(pipelineManager, renderInfo, cmd);
         }
-        else if constexpr (std::is_same_v<T, Point>)
+        else if constexpr (std::is_same_v<T, PointBatchMarker>)
         {
           bindIfNeeded(PipelineType::point);
-          renderPoint(pipelineManager, renderInfo, cmd);
+          renderPointBatch(pipelineManager, renderInfo, cmd);
         }
-        else if constexpr (std::is_same_v<T, Glyph3DCommand>)
+        else if constexpr (std::is_same_v<T, Glyph3DBatchMarker>)
         {
           bindIfNeeded(PipelineType::font3D);
-          renderGlyph3D(pipelineManager, renderInfo, cmd);
+          renderGlyph3DBatch(pipelineManager, renderInfo, cmd);
         }
         else if constexpr (std::is_same_v<T, Camera>)
         {
@@ -380,7 +450,7 @@ namespace ge {
     m_textAlignV = v;
   }
 
-  float Renderer2D::textWidth(const std::string& text) const
+  float Renderer2D::textWidth(const std::vector<uint32_t>& codepoints) const
   {
     if (!m_currentFont)
     {
@@ -388,7 +458,7 @@ namespace ge {
     }
 
     float width = 0.0f;
-    for (const auto codepoint : decodeUTF8(text))
+    for (const auto codepoint : codepoints)
     {
       if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
       {
@@ -399,7 +469,7 @@ namespace ge {
     return width;
   }
 
-  float Renderer2D::textAscent(const std::string &text) const
+  float Renderer2D::textAscent(const std::vector<uint32_t>& codepoints) const
   {
     if (!m_currentFont)
     {
@@ -407,7 +477,7 @@ namespace ge {
     }
 
     float maxAscent = 0.0f;
-    for (const auto codepoint : decodeUTF8(text))
+    for (const auto codepoint : codepoints)
     {
       if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
       {
@@ -418,7 +488,7 @@ namespace ge {
     return maxAscent;
   }
 
-  float Renderer2D::textDescent(const std::string &text) const
+  float Renderer2D::textDescent(const std::vector<uint32_t>& codepoints) const
   {
     if (!m_currentFont)
     {
@@ -426,7 +496,7 @@ namespace ge {
     }
 
     float maxDescent = 0.0f;
-    for (const auto codepoint : decodeUTF8(text))
+    for (const auto codepoint : codepoints)
     {
       if (const auto glyphInfo = m_currentFont->getGlyphInfo(codepoint))
       {
@@ -442,16 +512,18 @@ namespace ge {
                         float x,
                         float y)
   {
+    const auto codepoints = decodeUTF8(text);
+
     float xOffset = 0.0f;
     if (m_textAlignH == TextAlignH::CENTER || m_textAlignH == TextAlignH::RIGHT)
     {
-      const float stringWidth = textWidth(text);
+      const float stringWidth = textWidth(codepoints);
       xOffset = (m_textAlignH == TextAlignH::CENTER) ? -stringWidth * 0.5f : -stringWidth;
     }
 
     float yOffset = 0.0f;
-    const float ascent  = textAscent(text);
-    const float descent = textDescent(text);
+    const float ascent  = textAscent(codepoints);
+    const float descent = textDescent(codepoints);
     const float height  = ascent + descent;
 
     switch (m_textAlignV)
@@ -565,15 +637,23 @@ namespace ge {
                          float z,
                          float size)
   {
+    const auto firstInstance = static_cast<uint32_t>(m_pointInstances.size());
+
+    m_pointInstances.push_back({
+      .worldPos = { x, y, z },
+      .size = size,
+      .color = m_currentFill
+    });
+
+    if (firstInstance != 0)
+    {
+      return;
+    }
+
     m_drawList.push_back({
-      Point{
-        .viewMatrix = m_viewMatrix,
-        .projMatrix = m_projectionMatrix,
-        .x = x,
-        .y = y,
-        .z = z,
-        .size = size,
-        .color = m_currentFill
+      PointBatchMarker{
+        .firstInstance = firstInstance,
+        .instanceCount = 1
       },
       m_currentZ
     });
@@ -603,16 +683,18 @@ namespace ge {
                           float y,
                           float z)
   {
+    const auto codepoints = decodeUTF8(text);
+
     float xOffset = 0.0f;
     if (m_textAlignH == TextAlignH::CENTER || m_textAlignH == TextAlignH::RIGHT)
     {
-      const float stringWidth = textWidth(text);
+      const float stringWidth = textWidth(codepoints);
       xOffset = (m_textAlignH == TextAlignH::CENTER) ? -stringWidth * 0.5f : -stringWidth;
     }
 
     float yOffset = 0.0f;
-    const float ascent  = textAscent(text);
-    const float descent = textDescent(text);
+    const float ascent  = textAscent(codepoints);
+    const float descent = textDescent(codepoints);
     const float height  = ascent + descent;
 
     switch (m_textAlignV)
@@ -637,8 +719,11 @@ namespace ge {
     float currentX = x + xOffset;
     const float adjustedY = y + yOffset;
 
-    // All glyphs in a text() call share the same Z so they sort together
+    // All glyphs in a text3D() call share the same Z so they sort together
     const float textZ = m_currentZ;
+
+    const auto firstInstance = static_cast<uint32_t>(m_glyph3DInstances.size());
+    uint32_t instanceCount = 0;
 
     for (const auto codepoint : decodeUTF8(text))
     {
@@ -647,36 +732,33 @@ namespace ge {
         float gx = currentX + glyphInfo->bearingX;
         float gy = adjustedY - glyphInfo->bearingY;
 
-        m_drawList.push_back({
-          Glyph3DCommand{
-            .glyph = {
-              .viewMatrix = m_viewMatrix,
-              .projMatrix = m_projectionMatrix,
-              .x = x,
-              .y = y,
-              .z = z,
-              .glyphOffset = glm::vec2(
-                gx - x + glyphInfo->width * 0.5f,
-                gy - y + glyphInfo->height * 0.5f
-              ),
-              .width = glyphInfo->width,
-              .height = glyphInfo->height,
-              .uv = glm::vec4(
-                glyphInfo->u0,
-                glyphInfo->v0,
-                glyphInfo->u1,
-                glyphInfo->v1
-              ),
-              .color = m_currentFill
-            },
-            .fontName = m_currentFontName,
-            .fontSize = m_currentFontSize
-          },
-          textZ
+        m_glyph3DInstances.push_back({
+          .worldPos = { x, y, z },
+          .width = glyphInfo->width,
+          .glyphOffsetX = gx - x + glyphInfo->width * 0.5f,
+          .glyphOffsetY = gy - y + glyphInfo->height * 0.5f,
+          .height = glyphInfo->height,
+          ._pad = 0.f,
+          .uv = { glyphInfo->u0, glyphInfo->v0, glyphInfo->u1, glyphInfo->v1 },
+          .color = m_currentFill
         });
 
+        ++instanceCount;
         currentX += glyphInfo->advance;
       }
+    }
+
+    if (instanceCount > 0 && firstInstance == 0)
+    {
+      m_drawList.push_back({
+        Glyph3DBatchMarker{
+          .firstInstance = firstInstance,
+          .instanceCount = instanceCount,
+          .fontName = m_currentFontName,
+          .fontSize = m_currentFontSize
+        },
+        textZ
+      });
     }
 
     increaseCurrentZ();
@@ -715,6 +797,11 @@ namespace ge {
     );
 
     m_projectionMatrix[1][1] *= -1;
+
+    const glm::mat4 invView = glm::inverse(m_viewMatrix);
+
+    m_camRight = glm::vec3(invView[0]);
+    m_camUp = glm::vec3(invView[1]);
   }
 
   void Renderer2D::createCommandPool()
@@ -725,6 +812,75 @@ namespace ge {
     };
 
     m_commandPool = m_logicalDevice->createCommandPool(poolInfo);
+  }
+
+  void Renderer2D::ensureInstanceBuffer(std::vector<VkBuffer>& buffers,
+                                        std::vector<VkDeviceMemory>& memory,
+                                        VkDeviceSize& capacity,
+                                        VkDeviceSize requiredBytes)
+  {
+    if (requiredBytes <= capacity)
+    {
+      return;
+    }
+
+    destroyInstanceBuffers(buffers, memory);
+
+    VkDeviceSize newCapacity = capacity == 0 ? 64 : capacity;
+    while (newCapacity < requiredBytes)
+    {
+      newCapacity *= 2;
+    }
+
+    const uint32_t frames = static_cast<uint32_t>(buffers.size());
+
+    for (uint32_t i = 0; i < frames; ++i)
+    {
+      const VkBufferCreateInfo bufferInfo {
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .size = newCapacity,
+        .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE
+      };
+
+      buffers[i] = m_logicalDevice->createBuffer(bufferInfo);
+
+      const VkMemoryRequirements memReqs = m_logicalDevice->getBufferMemoryRequirements(buffers[i]);
+
+      const VkMemoryAllocateInfo allocInfo {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .allocationSize = memReqs.size,
+        .memoryTypeIndex = m_logicalDevice->getPhysicalDevice()->findMemoryType(
+          memReqs.memoryTypeBits,
+          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        )
+      };
+
+      m_logicalDevice->allocateMemory(allocInfo, memory[i]);
+
+      m_logicalDevice->bindBufferMemory(buffers[i], memory[i], 0);
+    }
+
+    capacity = newCapacity;
+  }
+
+  void Renderer2D::destroyInstanceBuffers(std::vector<VkBuffer>& buffers,
+                                          std::vector<VkDeviceMemory>& memory)
+  {
+    for (size_t i = 0; i < buffers.size(); ++i)
+    {
+      if (buffers[i] != VK_NULL_HANDLE)
+      {
+        m_logicalDevice->destroyBuffer(buffers[i]);
+        buffers[i] = VK_NULL_HANDLE;
+      }
+
+      if (memory[i] != VK_NULL_HANDLE)
+      {
+        m_logicalDevice->freeMemory(memory[i]);
+        memory[i] = VK_NULL_HANDLE;
+      }
+    }
   }
 
   glm::vec4 Renderer2D::resolveRectBounds(float a,
@@ -821,7 +977,8 @@ namespace ge {
         {
           cmd.glyph.z = flipped;
         }
-        else if constexpr(!std::is_same_v<T, Glyph3DCommand> && !std::is_same_v<T, Point>)
+        else if constexpr (!std::is_same_v<T, PointBatchMarker> &&
+                           !std::is_same_v<T, Glyph3DBatchMarker>)
         {
           cmd.z = flipped;
         }
@@ -885,16 +1042,21 @@ namespace ge {
 
   void Renderer2D::renderGlyph(const std::shared_ptr<PipelineManager>& pipelineManager,
                                const RenderInfo* renderInfo,
-                               const GlyphCommand& glyphCmd) const
+                               const GlyphCommand& glyphCmd)
   {
-    const auto descriptorSet = m_assetManager->getFont(glyphCmd.fontName, glyphCmd.fontSize)->getDescriptorSet(renderInfo->currentFrame);
+    const auto fontSet = m_assetManager->getFont(glyphCmd.fontName, glyphCmd.fontSize)->getDescriptorSet(renderInfo->currentFrame);
 
-    pipelineManager->bindGraphicsPipelineDescriptorSet(
-      renderInfo->commandBuffer,
-      PipelineType::font,
-      descriptorSet,
-      0
-    );
+    if (fontSet != currentGlyphFontSet)
+    {
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        PipelineType::font,
+        fontSet,
+        0
+      );
+
+      currentGlyphFontSet = fontSet;
+    }
 
     const auto glyphPC = glyphCmd.glyph.createPushConstant(renderInfo->extent);
 
@@ -937,6 +1099,75 @@ namespace ge {
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
   }
 
+  void Renderer2D::renderPointBatch(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                    const RenderInfo* renderInfo,
+                                    const PointBatchMarker& marker)
+  {
+    const VkDescriptorSet cameraSet =
+      m_glyph3DDescriptorSet->getDescriptorSet(renderInfo->currentFrame);
+
+    if (cameraSet != currentPointCameraSet)
+    {
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        PipelineType::point,
+        cameraSet,
+        0
+      );
+
+      currentPointCameraSet = cameraSet;
+    }
+
+    const VkBuffer buf = m_pointInstanceBuffers[renderInfo->currentFrame];
+    const VkDeviceSize offset = 0;
+    renderInfo->commandBuffer->bindVertexBuffers(0, 1, &buf, &offset);
+
+    renderInfo->commandBuffer->draw(4, m_pointInstances.size(), 0, 0);
+  }
+
+  void Renderer2D::renderGlyph3DBatch(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                      const RenderInfo* renderInfo,
+                                      const Glyph3DBatchMarker& marker)
+  {
+    const VkDescriptorSet cameraSet =
+      m_glyph3DDescriptorSet->getDescriptorSet(renderInfo->currentFrame);
+
+    if (cameraSet != currentGlyph3DCameraSet)
+    {
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        PipelineType::font3D,
+        cameraSet,
+        1
+      );
+
+      currentGlyph3DCameraSet = cameraSet;
+    }
+
+    const VkDescriptorSet fontSet =
+      m_assetManager
+        ->getFont(marker.fontName, marker.fontSize)
+        ->getDescriptorSet(renderInfo->currentFrame);
+
+    if (fontSet != currentGlyph3DFontSet)
+    {
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        PipelineType::font3D,
+        fontSet,
+        0
+      );
+
+      currentGlyph3DFontSet = fontSet;
+    }
+
+    const VkBuffer buf = m_glyph3DInstanceBuffers[renderInfo->currentFrame];
+    const VkDeviceSize offset = 0;
+    renderInfo->commandBuffer->bindVertexBuffers(0, 1, &buf, &offset);
+
+    renderInfo->commandBuffer->draw(4, m_glyph3DInstances.size(), 0, 0);
+  }
+
   void Renderer2D::renderCamera(const std::shared_ptr<PipelineManager>& pipelineManager,
                                 const RenderInfo* renderInfo,
                                 const Camera& camera) const
@@ -970,62 +1201,6 @@ namespace ge {
       0,
       sizeof(cameraPC),
       &cameraPC
-    );
-
-    renderInfo->commandBuffer->draw(4, 1, 0, 0);
-  }
-
-  void Renderer2D::renderPoint(const std::shared_ptr<PipelineManager>& pipelineManager,
-                               const RenderInfo* renderInfo,
-                               const Point& point)
-  {
-    const auto pointPC = point.createPushConstant(renderInfo->extent);
-
-    pipelineManager->pushGraphicsPipelineConstants(
-      renderInfo->commandBuffer,
-      PipelineType::point,
-      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-      0,
-      sizeof(pointPC),
-      &pointPC
-    );
-
-    renderInfo->commandBuffer->draw(4, 1, 0, 0);
-  }
-
-  void Renderer2D::renderGlyph3D(const std::shared_ptr<PipelineManager>& pipelineManager,
-                                 const RenderInfo* renderInfo,
-                                 const Glyph3DCommand& glyphCmd) const
-  {
-    glm::mat4 cameraUBO = glyphCmd.glyph.projMatrix * glyphCmd.glyph.viewMatrix;
-
-    m_cameraUniform->update(renderInfo->currentFrame, &cameraUBO);
-
-    pipelineManager->bindGraphicsPipelineDescriptorSet(
-      renderInfo->commandBuffer,
-      PipelineType::font3D,
-      m_glyph3DDescriptorSet->getDescriptorSet(renderInfo->currentFrame),
-      1
-    );
-
-    const auto descriptorSet = m_assetManager->getFont(glyphCmd.fontName, glyphCmd.fontSize)->getDescriptorSet(renderInfo->currentFrame);
-
-    pipelineManager->bindGraphicsPipelineDescriptorSet(
-      renderInfo->commandBuffer,
-      PipelineType::font3D,
-      descriptorSet,
-      0
-    );
-
-    const auto glyphPC = glyphCmd.glyph.createPushConstant(renderInfo->extent);
-
-    pipelineManager->pushGraphicsPipelineConstants(
-      renderInfo->commandBuffer,
-      PipelineType::font3D,
-      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-      0,
-      sizeof(glyphPC),
-      &glyphPC
     );
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
