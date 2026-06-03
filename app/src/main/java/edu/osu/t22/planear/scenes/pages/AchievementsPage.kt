@@ -10,6 +10,7 @@ import edu.osu.t22.planear.graphicsEngine.TextAlignH
 import edu.osu.t22.planear.graphicsEngine.TextAlignV
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
+import edu.osu.t22.planear.adsb.Aircraft
 
 /**
  * Achievements page — 2-column scrollable grid of achievement cards.
@@ -29,6 +30,7 @@ class AchievementsPage : Page {
     private val friction = 0.92f
     // Minimum velocity threshold below which we snap to zero
     private val minVelocity = 0.5f
+
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val screenW  = sceneInfo.screenWidth
@@ -84,6 +86,7 @@ class AchievementsPage : Page {
         val unlocked = AchievementStore.getUnlockedCount()
         val total    = ALL_ACHIEVEMENTS.size
         val streak   = AchievementStore.getCurrentStreak()
+
 
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
             rectMode(RectMode.CORNER)
