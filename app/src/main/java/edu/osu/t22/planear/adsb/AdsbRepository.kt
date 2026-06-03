@@ -17,7 +17,7 @@ class AdsbRepository (
             val now = System.currentTimeMillis()
 
             response.ac.forEach { adsbAircraft ->
-                val id = adsbAircraft.hex ?: return@forEach
+                val id = adsbAircraft.hex?.removePrefix("~") ?: return@forEach
 
                 val aircraft = cachedAircraft.getOrPut(id) {
                     Aircraft(id)
