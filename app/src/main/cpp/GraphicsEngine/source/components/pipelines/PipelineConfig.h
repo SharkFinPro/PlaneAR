@@ -176,15 +176,17 @@ namespace ge::PipelineConfig {
                                                             VkDescriptorSetLayout glyph3DDescriptorSetLayout)
   {
     static std::vector<VkVertexInputBindingDescription> sBindings {{
-      .binding = 0,
-      .stride = sizeof(PointInstance),
-      .inputRate = VK_VERTEX_INPUT_RATE_INSTANCE
-    }};
+                                                                     .binding = 0,
+                                                                     .stride = sizeof(PointInstance),
+                                                                     .inputRate = VK_VERTEX_INPUT_RATE_INSTANCE
+                                                                   }};
 
     static std::vector<VkVertexInputAttributeDescription> sAttributes {
       { .location = 0, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT,    .offset = offsetof(PointInstance, worldPos) },
       { .location = 1, .binding = 0, .format = VK_FORMAT_R32_SFLOAT,          .offset = offsetof(PointInstance, size)     },
-      { .location = 2, .binding = 0, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = offsetof(PointInstance, color)    }
+      { .location = 2, .binding = 0, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = offsetof(PointInstance, color)    },
+      { .location = 3, .binding = 0, .format = VK_FORMAT_R32_SFLOAT,          .offset = offsetof(PointInstance, aspectX)  },
+      { .location = 4, .binding = 0, .format = VK_FORMAT_R32_SFLOAT,          .offset = offsetof(PointInstance, aspectY)  }
     };
 
     static const VkPipelineVertexInputStateCreateInfo sVertexInputState {
@@ -225,10 +227,10 @@ namespace ge::PipelineConfig {
                                                              VkDescriptorSetLayout glyph3DDescriptorSetLayout)
   {
     static std::vector<VkVertexInputBindingDescription> sBindings {{
-      .binding = 0,
-      .stride = sizeof(Glyph3DInstance),
-      .inputRate = VK_VERTEX_INPUT_RATE_INSTANCE
-    }};
+                                                                     .binding = 0,
+                                                                     .stride = sizeof(Glyph3DInstance),
+                                                                     .inputRate = VK_VERTEX_INPUT_RATE_INSTANCE
+                                                                   }};
 
     static std::vector<VkVertexInputAttributeDescription> sAttributes {
       { .location = 0,  .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT,    .offset = offsetof(Glyph3DInstance, worldPos)     },
@@ -319,14 +321,36 @@ namespace ge::PipelineConfig {
     };
   }
 
-  // ── Compass ──────────────────────────────────────────────────────────────────
-  // Shares the same pipeline state configuration as the point pipeline
-  // (billboard triangle-strip, transparent blending, depth test) but uses its
-  // own shaders so the fragment stage can draw the compass face procedurally.
   inline GraphicsPipelineOptions createCompassPipelineOptions(const std::shared_ptr<LogicalDevice>& logicalDevice,
                                                               const std::shared_ptr<RenderPass>& renderPass,
-                                                              AAssetManager* assetManager)
+                                                              AAssetManager* assetManager,
+                                                              VkDescriptorSetLayout glyph3DDescriptorSetLayout)
   {
+    static std::vector<VkVertexInputBindingDescription> sBindings {{
+                                                                     .binding = 0,
+                                                                     .stride = sizeof(CompassInstance),
+                                                                     .inputRate = VK_VERTEX_INPUT_RATE_INSTANCE
+                                                                   }};
+
+    static std::vector<VkVertexInputAttributeDescription> sAttributes {
+      { .location = 0, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(CompassInstance, worldPos)   },
+      { .location = 1, .binding = 0, .format = VK_FORMAT_R32_SFLOAT,       .offset = offsetof(CompassInstance, size)       },
+      { .location = 2, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(CompassInstance, _padVec)    },
+      { .location = 3, .binding = 0, .format = VK_FORMAT_R32_SFLOAT,       .offset = offsetof(CompassInstance, offsetX)    },
+      { .location = 4, .binding = 0, .format = VK_FORMAT_R32_SFLOAT,       .offset = offsetof(CompassInstance, offsetY)    },
+      { .location = 5, .binding = 0, .format = VK_FORMAT_R32_SFLOAT,       .offset = offsetof(CompassInstance, headingRad) },
+      { .location = 6, .binding = 0, .format = VK_FORMAT_R32_SFLOAT,       .offset = offsetof(CompassInstance, alpha)      },
+      { .location = 7, .binding = 0, .format = VK_FORMAT_R32_SFLOAT,       .offset = offsetof(CompassInstance, _pad)       }
+    };
+
+    static const VkPipelineVertexInputStateCreateInfo sVertexInputState {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+      .vertexBindingDescriptionCount = static_cast<uint32_t>(sBindings.size()),
+      .pVertexBindingDescriptions = sBindings.data(),
+      .vertexAttributeDescriptionCount = static_cast<uint32_t>(sAttributes.size()),
+      .pVertexAttributeDescriptions = sAttributes.data()
+    };
+
     return {
       .shaders {
         .assetManager = assetManager,
@@ -340,15 +364,11 @@ namespace ge::PipelineConfig {
         .inputAssemblyState = gps::inputAssemblyStateTriangleStrip,
         .multisampleState = gps::getMultsampleState(logicalDevice),
         .rasterizationState = gps::rasterizationStateNoCull,
-        .vertexInputState = gps::vertexInputStateRaw,
+        .vertexInputState = sVertexInputState,
         .viewportState = gps::viewportState
       },
-      .pushConstantRanges {
-        {
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-          .offset = 0,
-          .size = sizeof(Compass::PushConstant)
-        }
+      .descriptorSetLayouts {
+        glyph3DDescriptorSetLayout
       },
       .renderPass = renderPass
     };

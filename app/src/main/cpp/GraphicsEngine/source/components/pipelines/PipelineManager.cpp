@@ -142,7 +142,7 @@ namespace ge {
 
     createGraphicsPipeline(PipelineType::point,
                            PipelineConfig::createPointPipelineOptions(m_logicalDevice,
-                           renderPass, AAssetManager, m_assetManager->getGlyph3DDescriptorSetLayout()));
+                                                                      renderPass, AAssetManager, m_assetManager->getGlyph3DDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::font3D,
                            PipelineConfig::createFont3DPipelineOptions(m_logicalDevice,
@@ -156,7 +156,8 @@ namespace ge {
     // draw the entire compass face procedurally via push constants.
     createGraphicsPipeline(PipelineType::compass,
                            PipelineConfig::createCompassPipelineOptions(m_logicalDevice,
-                                                                        renderPass, AAssetManager));
+                                                                        renderPass, AAssetManager,
+                                                                        m_assetManager->getGlyph3DDescriptorSetLayout()));
   }
 
   void PipelineManager::createGraphicsPipeline(PipelineType pipelineType,

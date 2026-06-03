@@ -1,23 +1,27 @@
 #version 450
 
-// Push constant mirrors Compass::PushConstant exactly (see Primitives2D.h).
-layout(push_constant) uniform compassPC {
-    mat4  mvp;        // projMatrix * viewMatrix
-    vec3  worldPos;   // aircraft world-space position
-    float size;       // half-size of the compass quad in world units
-    vec3  camRight;   // camera right axis (from inverse view)
-    float offsetX;    // additional world-unit shift along camRight (top-right anchor)
-    vec3  camUp;      // camera up axis (from inverse view)
-    float offsetY;    // additional world-unit shift along camUp   (top-right anchor)
-} pc;
+layout(location = 0) in vec3  inWorldPos;
+layout(location = 1) in float inSize;
+layout(location = 2) in vec3  _padVec;
+layout(location = 3) in float inOffsetX;
+layout(location = 4) in float inOffsetY;
+layout(location = 5) in float inHeadingRad;
+layout(location = 6) in float inAlpha;
+layout(location = 7) in float _pad;
 
-// UV [-1,+1] in compass face space; +Y is visual north in the fragment shader.
-layout(location = 0) out vec2 fragUV;
+layout(set = 0, binding = 0) uniform Camera {
+    mat4 mvp;
+    vec3 camRight;
+    float _pad0;
+    vec3 camUp;
+    float _pad1;
+} camera;
+
+layout(location = 0) out vec2  fragUV;
+layout(location = 1) out float fragHeadingRad;
+layout(location = 2) out float fragAlpha;
 
 void main() {
-    // Triangle-strip quad, same winding as point.vert.
-    //  0 → (-1,-1)   1 → (+1,-1)
-    //  2 → (-1,+1)   3 → (+1,+1)
     vec2 corners[4] = vec2[](
         vec2(-1.0, -1.0),
         vec2( 1.0, -1.0),
@@ -26,18 +30,17 @@ void main() {
     );
 
     vec2 uv = corners[gl_VertexIndex];
-    fragUV  = uv;
+    fragUV         = uv;
+    fragHeadingRad = inHeadingRad;
+    fragAlpha      = inAlpha;
 
-    // Anchor point = aircraft position shifted by the screen-space offset so the
-    // compass sits above-right of the aircraft dot.
-    vec3 anchor = pc.worldPos
-                + pc.camRight * pc.offsetX
-                + pc.camUp    * pc.offsetY;
+    vec3 anchor = inWorldPos
+    + camera.camRight * inOffsetX
+    + camera.camUp    * inOffsetY;
 
-    // Expand the billboard quad around that anchor.
     vec3 worldPos = anchor
-                  + pc.camRight * (uv.x * pc.size)
-                  + pc.camUp    * (uv.y * pc.size);
+    + camera.camRight * (uv.x * inSize)
+    + camera.camUp    * (uv.y * inSize);
 
-    gl_Position = pc.mvp * vec4(worldPos, 1.0);
+    gl_Position = camera.mvp * vec4(worldPos, 1.0);
 }

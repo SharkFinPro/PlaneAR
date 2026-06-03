@@ -244,7 +244,14 @@ namespace ge {
       uint32_t fontSize;
     };
 
-    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image, PointBatchMarker, Glyph3DBatchMarker, Camera, Compass>;
+    // Marks the draw list position of a compass instanced batch flush.
+    // firstInstance/instanceCount index into m_compassInstances.
+    struct CompassBatchMarker {
+      uint32_t firstInstance;
+      uint32_t instanceCount;
+    };
+
+    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image, PointBatchMarker, Glyph3DBatchMarker, Camera, CompassBatchMarker>;
 
     struct DrawEntry {
       DrawCommand command;
@@ -274,6 +281,7 @@ namespace ge {
     // Flat instance data arrays filled each frame; markers in m_drawList index into these.
     std::vector<PointInstance> m_pointInstances;
     std::vector<Glyph3DInstance> m_glyph3DInstances;
+    std::vector<CompassInstance> m_compassInstances;
 
     std::vector<VkBuffer> m_pointInstanceBuffers;
     std::vector<VkDeviceMemory> m_pointInstanceMemory;
@@ -282,6 +290,10 @@ namespace ge {
     std::vector<VkBuffer> m_glyph3DInstanceBuffers;
     std::vector<VkDeviceMemory> m_glyph3DInstanceMemory;
     VkDeviceSize m_glyph3DInstanceBufferCapacity = 0;
+
+    std::vector<VkBuffer> m_compassInstanceBuffers;
+    std::vector<VkDeviceMemory> m_compassInstanceMemory;
+    VkDeviceSize m_compassInstanceBufferCapacity = 0;
 
     glm::mat4 m_viewMatrix = glm::mat4(1.0f);
     glm::mat4 m_projectionMatrix = glm::mat4(1.0f);
@@ -311,6 +323,8 @@ namespace ge {
     VkDescriptorSet currentGlyphFontSet = VK_NULL_HANDLE;
 
     VkDescriptorSet currentPointCameraSet = VK_NULL_HANDLE;
+
+    VkDescriptorSet currentCompassCameraSet = VK_NULL_HANDLE;
 
     glm::vec3 m_camRight = glm::vec3(0.0f);
     glm::vec3 m_camUp = glm::vec3(0.0f);
@@ -378,9 +392,9 @@ namespace ge {
                       const RenderInfo* renderInfo,
                       const Camera& camera) const;
 
-    static void renderCompass(const std::shared_ptr<PipelineManager>& pipelineManager,
-                              const RenderInfo* renderInfo,
-                              const Compass& compass);
+    void renderCompassBatch(const std::shared_ptr<PipelineManager>& pipelineManager,
+                            const RenderInfo* renderInfo,
+                            const CompassBatchMarker& marker);
   };
 
 } // ge

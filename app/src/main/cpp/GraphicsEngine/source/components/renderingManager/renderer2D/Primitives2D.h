@@ -249,12 +249,11 @@ namespace ge {
     glm::vec3 worldPos;
     float size;
     glm::vec4 color;
+    float aspectX;
+    float aspectY;
+    float _pad0;
+    float _pad1;
   };
-    // Aspect multipliers for the billboard quad.  aspectX > 1 makes the card
-    // wider than it is tall.  Default 1.0 keeps square behaviour for any other
-    // call sites that don't set these explicitly.
-    float aspectX = 1.0f;
-    float aspectY = 1.0f;
 
   struct Glyph3DInstance {
     glm::vec3 worldPos;
@@ -274,19 +273,17 @@ namespace ge {
     glm::vec3 camUp;
     float _pad1;
   };
-    struct PushConstant {
-      glm::mat4 mvp;
-      glm::vec3 worldPos;
-      float     size;
-      glm::vec3 camRight;
-      float     aspectX;   // was _pad0
-      glm::vec3 camUp;
-      float     aspectY;   // was _pad1
-      float r;
-      float g;
-      float b;
-      float a;
-    };
+
+  struct CompassInstance {
+    glm::vec3 worldPos;
+    float size;
+    glm::vec3 _padVec;
+    float offsetX;
+    float offsetY;
+    float headingRad;
+    float alpha;
+    float _pad;
+  };
 
   struct Point {
     float x;
@@ -294,27 +291,6 @@ namespace ge {
     float z;
     float size;
     glm::vec4 color;
-    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent) const
-    {
-      const glm::mat4 invView = glm::inverse(viewMatrix);
-
-      const glm::vec3 camRight = glm::vec3(invView[0]);
-      const glm::vec3 camUp    = glm::vec3(invView[1]);
-
-      return {
-        .mvp      = projMatrix * viewMatrix,
-        .worldPos = { x, y, z },
-        .size     = size,
-        .camRight = camRight,
-        .aspectX  = aspectX,
-        .camUp    = camUp,
-        .aspectY  = aspectY,
-        .r = color.r,
-        .g = color.g,
-        .b = color.b,
-        .a = color.a
-      };
-    }
   };
 
   struct MousePickingPoint {
@@ -368,63 +344,15 @@ namespace ge {
     glm::vec4 color;
   };
 
-  // ── Compass ──────────────────────────────────────────────────────────────────
-  // A camera-facing (billboard) compass disc drawn entirely in the fragment
-  // shader.  It is anchored to a 3-D world position (the aircraft position) and
-  // shifted in camera space by (offsetX, offsetY) world units so it appears in
-  // the top-right corner of each aircraft billboard.
-  //
-  // headingRad: clockwise angle from visual north (+Y in UV space) to the
-  //   aircraft heading direction.  For "Always North" mode this equals the raw
-  //   aircraft heading.  For "User Relative" mode the user's azimuth has already
-  //   been subtracted before this value is stored here.
   struct Compass {
-    glm::mat4 viewMatrix;
-    glm::mat4 projMatrix;
     float x;
     float y;
     float z;
-    float size;       // half-size of the compass quad in world units
-    float offsetX;    // world-unit shift along camRight to the anchor point
-    float offsetY;    // world-unit shift along camUp    to the anchor point
-    float headingRad; // heading in radians (mode-adjusted before storage)
-    float alpha;      // overall opacity (0–1)
-
-    // Push constant layout — must match compass.vert / compass.frag exactly.
-    struct PushConstant {
-      glm::mat4 mvp;        // offset   0
-      glm::vec3 worldPos;   // offset  64
-      float     size;       // offset  76
-      glm::vec3 camRight;   // offset  80
-      float     offsetX;    // offset  92
-      glm::vec3 camUp;      // offset  96
-      float     offsetY;    // offset 108
-      float     headingRad; // offset 112
-      float     alpha;      // offset 116
-      float     _pad0;      // offset 120
-      float     _pad1;      // offset 124
-    };                      // total  128 bytes
-
-    [[nodiscard]] PushConstant createPushConstant(const VkExtent2D /*extent*/) const
-    {
-      const glm::mat4 invView  = glm::inverse(viewMatrix);
-      const glm::vec3 camRight = glm::vec3(invView[0]);
-      const glm::vec3 camUp    = glm::vec3(invView[1]);
-
-      return {
-        .mvp        = projMatrix * viewMatrix,
-        .worldPos   = { x, y, z },
-        .size       = size,
-        .camRight   = camRight,
-        .offsetX    = offsetX,
-        .camUp      = camUp,
-        .offsetY    = offsetY,
-        .headingRad = headingRad,
-        .alpha      = alpha,
-        ._pad0      = 0.f,
-        ._pad1      = 0.f
-      };
-    }
+    float size;
+    float offsetX;
+    float offsetY;
+    float headingRad;
+    float alpha;
   };
 
 }

@@ -23,7 +23,7 @@ namespace ge {
     m_mousePicker = std::make_shared<MousePicker>(m_logicalDevice, m_commandPool);
 
     std::vector<VkDescriptorPoolSize> poolSizes {{
-      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 4}
+                                                   {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 4}
                                                  }};
 
     m_cameraUniform = std::make_unique<UniformBuffer>(m_logicalDevice, sizeof(Camera3DUBO));
@@ -43,13 +43,13 @@ namespace ge {
       m_assetManager->getGlyph3DDescriptorSetLayout()
     );
     m_glyph3DDescriptorSet->updateDescriptorSets([this](const VkDescriptorSet descriptorSet, const size_t frame)
-    {
-      std::vector descriptorWrites{{
-        m_cameraUniform->getDescriptorSet(0, descriptorSet, frame)
-      }};
+                                                 {
+                                                   std::vector descriptorWrites{{
+                                                                                  m_cameraUniform->getDescriptorSet(0, descriptorSet, frame)
+                                                                                }};
 
-      return descriptorWrites;
-    });
+                                                   return descriptorWrites;
+                                                 });
 
     const uint32_t frames = m_logicalDevice->getMaxFramesInFlight();
     constexpr VkDeviceSize kInitialPointCapacity = sizeof(PointInstance) * 64;
@@ -64,12 +64,19 @@ namespace ge {
     m_glyph3DInstanceMemory.resize(frames, VK_NULL_HANDLE);
     ensureInstanceBuffer(m_glyph3DInstanceBuffers, m_glyph3DInstanceMemory,
                          m_glyph3DInstanceBufferCapacity, kInitialGlyph3DCapacity);
+
+    constexpr VkDeviceSize kInitialCompassCapacity = sizeof(CompassInstance) * 32;
+    m_compassInstanceBuffers.resize(frames, VK_NULL_HANDLE);
+    m_compassInstanceMemory.resize(frames, VK_NULL_HANDLE);
+    ensureInstanceBuffer(m_compassInstanceBuffers, m_compassInstanceMemory,
+                         m_compassInstanceBufferCapacity, kInitialCompassCapacity);
   }
 
   Renderer2D::~Renderer2D()
   {
     destroyInstanceBuffers(m_pointInstanceBuffers, m_pointInstanceMemory);
     destroyInstanceBuffers(m_glyph3DInstanceBuffers, m_glyph3DInstanceMemory);
+    destroyInstanceBuffers(m_compassInstanceBuffers, m_compassInstanceMemory);
 
     m_logicalDevice->destroyDescriptorPool(m_descriptorPool);
   }
@@ -98,6 +105,8 @@ namespace ge {
     m_pointInstances.clear();
 
     m_glyph3DInstances.clear();
+
+    m_compassInstances.clear();
 
     m_mousePicker->clearObjectsToMousePick();
   }
@@ -141,6 +150,19 @@ namespace ge {
                                  0, requiredBytes, 0, &mapped);
       std::memcpy(mapped, m_glyph3DInstances.data(), requiredBytes);
       m_logicalDevice->unmapMemory(m_glyph3DInstanceMemory[renderInfo->currentFrame]);
+    }
+
+    if (!m_compassInstances.empty())
+    {
+      const VkDeviceSize requiredBytes = sizeof(CompassInstance) * m_compassInstances.size();
+      ensureInstanceBuffer(m_compassInstanceBuffers, m_compassInstanceMemory,
+                           m_compassInstanceBufferCapacity, requiredBytes);
+
+      void* mapped = nullptr;
+      m_logicalDevice->mapMemory(m_compassInstanceMemory[renderInfo->currentFrame],
+                                 0, requiredBytes, 0, &mapped);
+      std::memcpy(mapped, m_compassInstances.data(), requiredBytes);
+      m_logicalDevice->unmapMemory(m_compassInstanceMemory[renderInfo->currentFrame]);
     }
 
     PipelineType currentPipeline = PipelineType::rect;
@@ -200,6 +222,11 @@ namespace ge {
           currentPointCameraSet = VK_NULL_HANDLE;
         }
 
+        if (type != PipelineType::compass)
+        {
+          currentCompassCameraSet = VK_NULL_HANDLE;
+        }
+
         if (type != PipelineType::font)
         {
           currentGlyphFontSet = VK_NULL_HANDLE;
@@ -251,10 +278,10 @@ namespace ge {
         {
           renderCamera(pipelineManager, renderInfo, cmd);
         }
-        else if constexpr (std::is_same_v<T, Compass>)
+        else if constexpr (std::is_same_v<T, CompassBatchMarker>)
         {
           bindIfNeeded(PipelineType::compass);
-          renderCompass(pipelineManager, renderInfo, cmd);
+          renderCompassBatch(pipelineManager, renderInfo, cmd);
         }
       }, entry.command);
     }
@@ -377,15 +404,15 @@ namespace ge {
     const auto bounds = resolveRectBounds(x, y, width, height);
 
     m_drawList.push_back({
-      Rect{
-        .bounds = bounds,
-        .color = m_currentFill,
-        .transform = m_currentTransform,
-        .z = m_currentZ,
-        .radius = radius
-      },
-      m_currentZ
-    });
+                           Rect{
+                             .bounds = bounds,
+                             .color = m_currentFill,
+                             .transform = m_currentTransform,
+                             .z = m_currentZ,
+                             .radius = radius
+                           },
+                           m_currentZ
+                         });
 
     increaseCurrentZ();
   }
@@ -398,16 +425,16 @@ namespace ge {
                             const float y3)
   {
     m_drawList.push_back({
-      Triangle{
-        .p1 = glm::vec2(x1, y1),
-        .p2 = glm::vec2(x2, y2),
-        .p3 = glm::vec2(x3, y3),
-        .color = m_currentFill,
-        .transform = m_currentTransform,
-        .z = m_currentZ
-      },
-      m_currentZ
-    });
+                           Triangle{
+                             .p1 = glm::vec2(x1, y1),
+                             .p2 = glm::vec2(x2, y2),
+                             .p3 = glm::vec2(x3, y3),
+                             .color = m_currentFill,
+                             .transform = m_currentTransform,
+                             .z = m_currentZ
+                           },
+                           m_currentZ
+                         });
 
     increaseCurrentZ();
   }
@@ -420,14 +447,14 @@ namespace ge {
     const auto bounds = resolveEllipseBounds(x, y, width, height);
 
     m_drawList.push_back({
-      Ellipse{
-        .bounds = bounds,
-        .color = m_currentFill,
-        .transform = m_currentTransform,
-        .z = m_currentZ
-      },
-      m_currentZ
-    });
+                           Ellipse{
+                             .bounds = bounds,
+                             .color = m_currentFill,
+                             .transform = m_currentTransform,
+                             .z = m_currentZ
+                           },
+                           m_currentZ
+                         });
 
     increaseCurrentZ();
   }
@@ -607,14 +634,14 @@ namespace ge {
     const auto bounds = resolveImageBounds(x, y, width, height);
 
     m_drawList.push_back({
-      Image{
-        .imageName = std::move(image),
-        .bounds = bounds,
-        .transform = m_currentTransform,
-        .z = m_currentZ
-      },
-      m_currentZ
-    });
+                           Image{
+                             .imageName = std::move(image),
+                             .bounds = bounds,
+                             .transform = m_currentTransform,
+                             .z = m_currentZ
+                           },
+                           m_currentZ
+                         });
 
     increaseCurrentZ();
   }
@@ -632,13 +659,13 @@ namespace ge {
     const auto bounds = resolveImageBounds(x, y, width, height);
 
     m_drawList.push_back({
-      Camera{
-        .bounds = bounds,
-        .transform = m_currentTransform,
-        .z = m_currentZ
-      },
-      m_currentZ
-    });
+                           Camera{
+                             .bounds = bounds,
+                             .transform = m_currentTransform,
+                             .z = m_currentZ
+                           },
+                           m_currentZ
+                         });
 
     increaseCurrentZ();
   }
@@ -657,10 +684,17 @@ namespace ge {
     const auto firstInstance = static_cast<uint32_t>(m_pointInstances.size());
 
     m_pointInstances.push_back({
-      .worldPos = { x, y, z },
-      .size = size,
-      .color = m_currentFill
-    });
+                                 .worldPos = { x, y, z },
+                                 .size = size,
+                                 .color = m_currentFill,
+                                 .aspectX = m_pointAspectX,
+                                 .aspectY = m_pointAspectY,
+                                 ._pad0 = 0.f,
+                                 ._pad1 = 0.f
+                               });
+
+    m_pointAspectX = 1.0f;
+    m_pointAspectY = 1.0f;
 
     if (firstInstance != 0)
     {
@@ -668,15 +702,12 @@ namespace ge {
     }
 
     m_drawList.push_back({
-      PointBatchMarker{
-        .firstInstance = firstInstance,
-        .instanceCount = 1
-      },
-      m_currentZ
-    });
-
-    m_pointAspectX = 1.0f;
-    m_pointAspectY = 1.0f;
+                           PointBatchMarker{
+                             .firstInstance = firstInstance,
+                             .instanceCount = 1
+                           },
+                           m_currentZ
+                         });
 
     increaseCurrentZ();
   }
@@ -757,15 +788,15 @@ namespace ge {
         float gy = adjustedY - glyphInfo->bearingY * s;
 
         m_glyph3DInstances.push_back({
-          .worldPos = { x, y, z },
-          .width = glyphInfo->width * s,
-          .glyphOffsetX = gx - x + glyphInfo->width * s * 0.5f,
-          .glyphOffsetY = gy - y + glyphInfo->height * s * 0.5f,
-          .height = glyphInfo->height * s,
-          ._pad = 0.f,
-          .uv = { glyphInfo->u0, glyphInfo->v0, glyphInfo->u1, glyphInfo->v1 },
-          .color = m_currentFill
-        });
+                                       .worldPos = { x, y, z },
+                                       .width = glyphInfo->width * s,
+                                       .glyphOffsetX = gx - x + glyphInfo->width * s * 0.5f,
+                                       .glyphOffsetY = gy - y + glyphInfo->height * s * 0.5f,
+                                       .height = glyphInfo->height * s,
+                                       ._pad = 0.f,
+                                       .uv = { glyphInfo->u0, glyphInfo->v0, glyphInfo->u1, glyphInfo->v1 },
+                                       .color = m_currentFill
+                                     });
 
         ++instanceCount;
         currentX += glyphInfo->advance * s;
@@ -775,14 +806,14 @@ namespace ge {
     if (instanceCount > 0 && firstInstance == 0)
     {
       m_drawList.push_back({
-        Glyph3DBatchMarker{
-          .firstInstance = firstInstance,
-          .instanceCount = instanceCount,
-          .fontName = m_currentFontName,
-          .fontSize = m_currentFontSize
-        },
-        textZ
-      });
+                             Glyph3DBatchMarker{
+                               .firstInstance = firstInstance,
+                               .instanceCount = instanceCount,
+                               .fontName = m_currentFontName,
+                               .fontSize = m_currentFontSize
+                             },
+                             textZ
+                           });
     }
 
     increaseCurrentZ();
@@ -839,18 +870,28 @@ namespace ge {
                            float headingRad,
                            float alpha)
   {
+    const auto firstInstance = static_cast<uint32_t>(m_compassInstances.size());
+
+    m_compassInstances.push_back({
+                                   .worldPos   = { x, y, z },
+                                   .size       = size,
+                                   ._padVec    = {},
+                                   .offsetX    = offsetX,
+                                   .offsetY    = offsetY,
+                                   .headingRad = headingRad,
+                                   .alpha      = alpha,
+                                   ._pad       = 0.f
+                                 });
+
+    if (firstInstance != 0)
+    {
+      return;
+    }
+
     m_drawList.push_back({
-                           Compass{
-                             .viewMatrix = m_viewMatrix,
-                             .projMatrix = m_projectionMatrix,
-                             .x          = x,
-                             .y          = y,
-                             .z          = z,
-                             .size       = size,
-                             .offsetX    = offsetX,
-                             .offsetY    = offsetY,
-                             .headingRad = headingRad,
-                             .alpha      = alpha
+                           CompassBatchMarker{
+                             .firstInstance = firstInstance,
+                             .instanceCount = 1
                            },
                            m_currentZ
                          });
@@ -1035,7 +1076,7 @@ namespace ge {
         }
         else if constexpr (!std::is_same_v<T, PointBatchMarker> &&
                            !std::is_same_v<T, Glyph3DBatchMarker> &&
-                           !std::is_same_v<T, Compass>)
+                           !std::is_same_v<T, CompassBatchMarker>)
         {
           cmd.z = flipped;
         }
@@ -1265,6 +1306,32 @@ namespace ge {
     );
 
     renderInfo->commandBuffer->draw(4, 1, 0, 0);
+  }
+
+  void Renderer2D::renderCompassBatch(const std::shared_ptr<PipelineManager>& pipelineManager,
+                                      const RenderInfo* renderInfo,
+                                      const CompassBatchMarker& marker)
+  {
+    const VkDescriptorSet cameraSet =
+      m_glyph3DDescriptorSet->getDescriptorSet(renderInfo->currentFrame);
+
+    if (cameraSet != currentCompassCameraSet)
+    {
+      pipelineManager->bindGraphicsPipelineDescriptorSet(
+        renderInfo->commandBuffer,
+        PipelineType::compass,
+        cameraSet,
+        0
+      );
+
+      currentCompassCameraSet = cameraSet;
+    }
+
+    const VkBuffer buf = m_compassInstanceBuffers[renderInfo->currentFrame];
+    const VkDeviceSize offset = 0;
+    renderInfo->commandBuffer->bindVertexBuffers(0, 1, &buf, &offset);
+
+    renderInfo->commandBuffer->draw(4, m_compassInstances.size(), 0, 0);
   }
 
 } // ge
