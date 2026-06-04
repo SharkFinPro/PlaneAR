@@ -14,7 +14,6 @@ import edu.osu.t22.planear.scenes.Scene
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
 import edu.osu.t22.planear.adsb.Aircraft
-import edu.osu.t22.planear.scenes.pages.FlightSheetData
 
 enum class SceneId(val id: Int) {
     AR(2), FlightHistory(3), Settings(4), Favorites(5), Achievements(6)
@@ -29,6 +28,11 @@ enum class SheetResult { ANIMATING, OPEN, DISMISSED }
 object FlightDetailSheet {
 
     private const val ANIM_STEP = 0.06f
+
+    private var frameCount = 0
+
+    private var fieldScrollOffset = 0f
+    private var fieldMaxScroll = 0f
 
     var pendingData: FlightSheetData? = null
         private set
@@ -55,10 +59,6 @@ object FlightDetailSheet {
         isOpen = true
     }
 
-    /** Programmatically start the closing animation. */
-    fun dismiss() {
-        closing = true
-    }
 
     /** Reset all state (called internally after dismiss animation completes). */
     private fun reset() {
@@ -66,6 +66,9 @@ object FlightDetailSheet {
         animProgress = 0f
         closing = false
         isOpen = false
+        frameCount = 0
+        fieldScrollOffset = 0f
+        fieldMaxScroll    = 0f
     }
 
     /**
@@ -106,6 +109,26 @@ object FlightDetailSheet {
         // Ease-out curve: fast start, settles smoothly
         val eased = 1f - (1f - animProgress) * (1f - animProgress)
 
+        // --- Live data refresh every ~4 seconds ---
+        if (flight.isLive && ++frameCount % 400 == 0) {
+            val liveAircraft = SceneSwitcher.adsbManager
+                .getRepository()
+                .getAircraft()
+                .firstOrNull { it.label == flight.callsign }
+
+            pendingData = if (liveAircraft != null) {
+                FlightSheetData.fromAircraft(liveAircraft)
+            } else {
+                // Plane gone — fall back to history snapshot if available
+                val entry = flightData.firstOrNull { it.callsign == flight.callsign }
+                if (entry != null) {
+                    FlightSheetData.fromEntry(entry)
+                } else {
+                    flight.copy(isLive = false, altitudeFt = "N/A", headingDeg = "N/A", verticalRate = "N/A")
+                }
+            }
+        }
+
         // --- Layout ---
         // Sheet covers exactly the bottom half of the screen (above the nav bar)
         val sheetH = screenH * 0.655f
@@ -143,39 +166,45 @@ object FlightDetailSheet {
             ellipse(screenW / 2f, sheetY + 22f, 100f, 10f)
 
             // "LIVE" badge or date pill
+            val badgeY = sheetY + sheetH * 0.03f
+            val badgeCenterY = badgeY + 14f  // half of pill height (28f)
+
             if (flight.isLive) {
                 fill(c.accent)
-                rect(padX, sheetY + 16f, 80f, 28f, 14f)
+                rect(padX, badgeY, 80f, 28f, 14f)
                 fill(c.textOnAccent)
                 textFont("roboto", 11)
                 textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-                text("● LIVE", padX + 40f, sheetY + 30f)
+                text("LIVE", padX + 40f, badgeCenterY)
             } else if (flight.date != "N/A") {
                 fill(c.divider)
-                rect(padX, sheetY + 16f, 180f, 28f, 14f)
+                rect(padX, badgeY, 180f, 28f, 14f)
                 fill(c.textSecondary)
                 textFont("roboto", 11)
                 textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-                text(flight.date, padX + 90f, sheetY + 30f)
+                text(flight.date, padX + 90f, badgeCenterY)
             }
+
+            val headerY = sheetY + sheetH * 0.13f
 
             // Callsign
             fill(c.textPrimary)
             textFont("roboto", 26)
             textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
-            text(flight.callsign, padX, sheetY + 120f)
+            text(flight.callsign, padX, headerY)
 
             // Accent underline
             fill(c.accent)
-            rect(padX, sheetY + 132f, 200f, 4f, 2f)
+            rect(padX, headerY + 12f, 200f, 4f, 2f)
+
 
             // Favourite star
             val starX = rightEdge
-            val starY = sheetY + 90f
+            val starY = headerY
             textFont("emoji", 32)
             textAlign(TextAlignH.RIGHT, TextAlignV.BASELINE)
             if (isFavorited) fill(239, 191, 4) else fill(c.divider)
-            text("⭐", starX, starY)
+            text("⭐", starX, headerY)
 
             // ── Close button data — anchored inside the sheet near the bottom ──────
             // data placed here so it can be reference by data fields below
@@ -185,20 +214,35 @@ object FlightDetailSheet {
             // Place it with a fixed margin above the nav bar top
             val btnY = screenH - navHeight - btnH - 28f
 
+            fun dynamicFontSize(text: String, maxSize: Int = 15, minSize: Int = 9): Int {
+                return when {
+                    text.length <= 20 -> maxSize
+                    text.length <= 30 -> maxSize - 2
+                    text.length >  30 -> maxSize - 4
+                    else              -> minSize
+                }
+            }
+
             // ── Data fields ───────────────────────────────────────────────────
-            val fieldStartY = sheetY + 200f
-            val fieldEnd    = screenH - navHeight - btnH - 28f - 20f
+            val fieldWindowTop = headerY + sheetH * 0.08f
+            val fieldWindowBottom = btnY - 20f
+            val fieldWindowH      = fieldWindowBottom - fieldWindowTop
+            val fieldRowH         = 100f
 
             fun drawField(label: String, value: String, y: Float) {
+                if (y + fieldRowH < fieldWindowTop || y > fieldWindowBottom) return
+
                 fill(c.textHint)
-                textFont("roboto", 12)
+                textFont("roboto", 18)
                 textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
-                text(label, padX, y)
+                text("$label:  ", padX, y + 30f)
 
                 fill(c.textPrimary)
-                textFont("roboto", 18)
-                textAlign(TextAlignH.RIGHT, TextAlignV.BASELINE)
-                text(value, rightEdge, y + 30f)
+                textFont("roboto", dynamicFontSize(value))
+                textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
+                // Offset value to sit after the label — adjust labelWidth if labels vary a lot in length
+                val labelWidth = screenW * 0.38f
+                text(value, padX + labelWidth, y + 30f)
 
                 fill(c.divider)
                 rect(padX, y + 44f, screenW - 2f * padX, 1.5f)
@@ -212,22 +256,37 @@ object FlightDetailSheet {
                     flight.registration != flight.callsign) {
                     add("REGISTRATION" to flight.registration)
                 }
+                if (flight.origin != "N/A")      add("ORIGIN"      to flight.origin)
+                if (flight.destination != "N/A") add("DESTINATION" to flight.destination)
                 add("ALTITUDE"  to flight.altitudeFt)
+                add("VERT RATE" to flight.verticalRate)
                 add("SPEED"     to flight.speedKts)
                 add("TYPE"      to flight.type)
                 add("HEADING"   to flight.headingDeg)
-                add("VERT RATE" to flight.verticalRate)
-                add("ORIGIN"    to flight.origin)
-                add("DEST"      to flight.destination)
             }
 
-            val fieldGap = (fieldEnd - fieldStartY) / fields.size.toFloat()
+            val totalContentH = fields.size * fieldRowH
+            fieldMaxScroll    = (totalContentH - fieldWindowH).coerceAtLeast(0f)
 
             fields.forEachIndexed { index, (label, value) ->
-                drawField(label, value, fieldStartY + fieldGap * index)
+                val y = fieldWindowTop + index * fieldRowH - fieldScrollOffset
+                drawField(label, value, y)
             }
 
-            // close button
+            // Scrollbar
+            if (fieldMaxScroll > 0f) {
+                val scrollBarX      = screenW - padX / 2f
+                val scrollBarTrackH = fieldWindowH
+                val scrollBarH      = (fieldWindowH / totalContentH * scrollBarTrackH).coerceAtLeast(40f)
+                val scrollBarY      = fieldWindowTop + (fieldScrollOffset / fieldMaxScroll) * (scrollBarTrackH - scrollBarH)
+
+                fill(c.divider)
+                rect(scrollBarX - 3f, fieldWindowTop, 6f, scrollBarTrackH, 3f)
+                fill(c.accent)
+                rect(scrollBarX - 3f, scrollBarY, 6f, scrollBarH, 3f)
+            }
+
+            // Close button
             fill(c.accent)
             rect(btnX, btnY, btnW, btnH, btnH / 2f)
             fill(c.textOnAccent)
@@ -258,13 +317,23 @@ object FlightDetailSheet {
                     if (hitClose || hitBackdrop) closing = true
                 }
 
-                // Swipe-down to dismiss
+                // Scroll field list
                 if (gestures.isScrolling) {
                     val (scrollX, scrollY) = gestures.scrollPosition ?: Pair(0f, 0f)
                     val adjScrollY = scrollY + slideOffset
-                    val onSheet = adjScrollY >= sheetY && scrollX >= 0f && scrollX <= screenW
+                    val onSheet     = adjScrollY >= sheetY && scrollX >= 0f && scrollX <= screenW
                     val swipingDown = gestures.scrollDelta.second < -30f
-                    if (onSheet && swipingDown) closing = true
+
+                    if (onSheet) {
+                        val inFieldWindow = adjScrollY >= fieldWindowTop && adjScrollY <= fieldWindowBottom
+                        if (inFieldWindow) {
+                            // Scroll fields — negative delta = scrolling up = content moves up
+                            fieldScrollOffset = (fieldScrollOffset + gestures.scrollDelta.second)
+                                .coerceIn(0f, fieldMaxScroll)
+                        } else if (swipingDown) {
+                            closing = true
+                        }
+                    }
                 }
             }
         }
