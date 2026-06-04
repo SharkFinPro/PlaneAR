@@ -41,24 +41,19 @@ object FlightDetailSheet {
         private set
 
     private var animProgress: Float = 0f
-    private var closing: Boolean = false
-
-
+    var closing: Boolean = false
 
     // Opens the sheet for the given flight. Safe to call from any page.
     fun open(aircraft: Aircraft) = open(FlightSheetData.fromAircraft(aircraft))
 
     // Called from History/Favorites with a FlightEntry
     fun open(entry: FlightEntry)  = open(FlightSheetData.fromEntry(entry))
-
-
     fun open(data: FlightSheetData) {
         pendingData = data
         animProgress = 0f
         closing = false
         isOpen = true
     }
-
 
     /** Reset all state (called internally after dismiss animation completes). */
     private fun reset() {

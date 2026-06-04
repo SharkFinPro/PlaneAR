@@ -7,6 +7,7 @@ import edu.osu.t22.planear.adsb.AdsbManager
 import edu.osu.t22.planear.scenes.pages.AchievementsPage
 import edu.osu.t22.planear.scenes.pages.ArPage
 import edu.osu.t22.planear.scenes.pages.FavoritesPage
+import edu.osu.t22.planear.scenes.pages.FlightDetailSheet
 import edu.osu.t22.planear.scenes.pages.FlightHistoryPage
 
 import edu.osu.t22.planear.scenes.pages.SceneId
@@ -82,6 +83,10 @@ class SceneSwitcher {
             throw IllegalArgumentException("Scene $sceneId not registered")
         }
         nativeSetCurrentScene(sceneId)
+
+        if (FlightDetailSheet.isOpen) {
+            FlightDetailSheet.closing = true
+        }
     }
 
     private fun renderSceneInternal(sceneId: Int, enginePtr: Long, screenWidth: Float, screenHeight: Float) {
