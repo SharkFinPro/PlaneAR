@@ -33,7 +33,7 @@ class ArPage : Page {
 
     private val initialDisplayRadius = 3000.0f
 
-    private val layerStep = 100.0f
+    private val layerStep = 150.0f
 
     private var waitingOnMousePickingResult: Boolean = false
     private var selectedId: Long = 0
@@ -293,7 +293,7 @@ class ArPage : Page {
                 val distStr = if (distKm < 1.0) "${"%.0f".format(rawLen)} m"
                 else "${"%.1f".format(distKm)} km"
 
-                val dotFrontRadius = displayRadius - layerStep * 0.4f
+                val dotFrontRadius = displayRadius - layerStep
 
                 val (fx, fy, fz) = Triple(nx / displayRadius * dotFrontRadius, ny / displayRadius * dotFrontRadius, nz / displayRadius * dotFrontRadius)
 
@@ -325,7 +325,7 @@ class ArPage : Page {
                 // offsetY = 0 vertically centres it on the card.
                 val headingRad = Math.toRadians(p.headingDegrees ?: 0.0).toFloat()
                 val compassSize = cardHalfH * 0.5f
-                val compassOffX = -(cardHalfH / 1.9 * cardAspect) + compassSize * 0.05f
+                val compassOffX = -(cardHalfH / 2.25 * cardAspect) + compassSize * 0.05f
                 compass(
                     fx * 0.99,
                     fy * 0.99,
