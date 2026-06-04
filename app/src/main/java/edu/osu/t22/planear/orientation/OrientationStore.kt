@@ -6,7 +6,11 @@ data class OrientationData(
     val rollDeg: Double,
     val x: Float,
     val y: Float,
-    val z: Float
+    val z: Float,
+    // Raw 3×3 rotation matrix from SensorManager.getRotationMatrixFromVector,
+    // stored row-major as 9 floats.  Passed directly to set3DViewMatrix() so
+    // the GPU view matrices are built without going through Euler angles.
+    val rotationMatrix: FloatArray = FloatArray(9) { if (it % 4 == 0) 1f else 0f }
 ) {
     fun getCardinalDirection(): String {
         return when (azimuthDeg) {

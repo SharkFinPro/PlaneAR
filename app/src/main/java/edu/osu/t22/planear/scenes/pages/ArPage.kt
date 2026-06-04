@@ -187,13 +187,8 @@ class ArPage : Page {
                 rect(0, 0, width, height)
             }
 
-            set3DView(
-                0,
-                phoneAlt,
-                0,
-                filteredPitch,
-                filteredYaw  - 90,
-                filteredRoll,
+            set3DViewMatrix(
+                orientation.rotationMatrix,
                 width,
                 height
             )
