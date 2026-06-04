@@ -217,6 +217,8 @@ object FlightDetailSheet {
                 add("TYPE"      to flight.type)
                 add("HEADING"   to flight.headingDeg)
                 add("VERT RATE" to flight.verticalRate)
+                add("ORIGIN"    to flight.origin)
+                add("DEST"      to flight.destination)
             }
 
             val fieldGap = (fieldEnd - fieldStartY) / fields.size.toFloat()

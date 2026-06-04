@@ -8,6 +8,7 @@ import edu.osu.t22.planear.achievements.AchievementTracker
 import edu.osu.t22.planear.geo.GeoPoint
 import edu.osu.t22.planear.geo.Planeprojector
 import edu.osu.t22.planear.location.AppLocationManager
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -20,8 +21,11 @@ data class AircraftOverlayResult(
     val labels: Array<String>
 )
 
-class AdsbManager(private val appLocationManager: AppLocationManager) {
-    private val repository: AdsbRepository = AdsbRepository(AdsbApi.create())
+class AdsbManager(
+    private val appLocationManager: AppLocationManager,
+    private val scope: CoroutineScope
+) {
+    private val repository: AdsbRepository = AdsbRepository(AdsbApi.create(), HexDbApi.create(), scope)
 
     companion object {
         const val H_FOV_DEG = 54.8

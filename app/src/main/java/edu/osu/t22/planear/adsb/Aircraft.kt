@@ -10,9 +10,11 @@ class Aircraft (
     val id: String
 ) {
     var isActive: Boolean = false
+    var enrichmentState: EnrichmentState = EnrichmentState.NONE
 
     var callsign: String? = null
     var type: String? = null
+    var longType: String? = null
     var registration: String? = null
 
     var latitude: Double = 0.0
@@ -27,6 +29,9 @@ class Aircraft (
     var seenSeconds: Float? = null
     var seenPosSeconds: Float? = null
     var lastRecieveTime: Long = 0L
+
+    var origin: String? = null
+    var destination: String? = null
 
     val label: String
         get() = callsign ?: registration ?: id
@@ -105,5 +110,14 @@ class Aircraft (
             lonDeg = ((Math.toDegrees(lon2) + 540) % 360) - 180,
             altM = altitude * 0.3048
         )
+    }
+
+    fun setRoute(routeValue: String?) {
+        val route = routeValue?.trim()
+        val parts = route?.split("-")
+        if (parts != null && parts.size >= 2) {
+            origin = parts.first().trim()
+            destination = parts.last().trim()
+        }
     }
 }
