@@ -33,7 +33,7 @@ class ArPage : Page {
 
     private val initialDisplayRadius = 3000.0f
 
-    private val layerStep = 50.0f
+    private val layerStep = 100.0f
 
     private var waitingOnMousePickingResult: Boolean = false
     private var selectedId: Long = 0
@@ -356,17 +356,19 @@ class ArPage : Page {
                 val textY = ty + cardHalfH * 0.5f
                 val textZ = tz + rz * textRightShift
 
+                val distScale = 0.97
+
                 textFont("roboto", 16);
                 fill(230, 232, 240)
-                text3D(p.label, textX, textY, textZ)
+                text3D(p.label, textX * distScale, textY * distScale, textZ * distScale)
 
                 textSize(14);
                 fill(160, 165, 185)
                 text3D(
                     distStr,
-                    tx - rx * textRightShift * 1.2f,
-                    ty - cardHalfH * 0.25f,
-                    tz - rz * textRightShift * 1.2f
+                    (tx - rx * textRightShift * 1.2f) * distScale,
+                    (ty - cardHalfH * 0.25f) * distScale,
+                    (tz - rz * textRightShift * 1.2f) * distScale
                 )
 
                 AircraftRenderData(p.label, rawLen, displayRadius, nx, ny, nz)
