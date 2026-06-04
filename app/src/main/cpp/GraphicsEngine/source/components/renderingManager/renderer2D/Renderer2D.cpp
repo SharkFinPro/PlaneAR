@@ -716,8 +716,9 @@ namespace ge {
                                      uint32_t id)
   {
     m_mousePicker->addObjectToMousePick(MousePickingPoint{
-      .viewMatrix = m_viewMatrix,
-      .projMatrix = m_projectionMatrix,
+      .mvp = m_projectionMatrix * m_viewMatrix,
+      .camRight = m_camRight,
+      .camUp = m_camUp,
       .x = x,
       .y = y,
       .z = z,
