@@ -14,6 +14,7 @@ void android_main(struct android_app* pApp)
 {
   std::unique_ptr<ge::GraphicsEngine> engine;
   SceneSwitcher switcher;
+  bool engineReady = false;
 
   // Register the switcher with the JNI bridge
   JNISceneBridge::setSceneSwitcher(&switcher);
@@ -45,11 +46,21 @@ void android_main(struct android_app* pApp)
         engine = std::make_unique<ge::GraphicsEngine>(pApp);
 
         preloadAssets(engine);
+
+        engineReady = true;
+      }
+      else if (pApp->window != nullptr && engine && !engineReady)
+      {
+        engine->resume(pApp->window);
+
+        engineReady = true;
       }
 
-      if (pApp->window == nullptr && engine)
+      if (pApp->window == nullptr && engine && engineReady)
       {
-        engine.reset();
+        engine->suspend();
+
+        engineReady = false;
       }
     }
 
@@ -58,7 +69,7 @@ void android_main(struct android_app* pApp)
       return;
     }
 
-    if (engine)
+    if (engine && engineReady)
     {
       SceneInfo info{engine, pApp};
       switcher.renderCurrentScene(info);

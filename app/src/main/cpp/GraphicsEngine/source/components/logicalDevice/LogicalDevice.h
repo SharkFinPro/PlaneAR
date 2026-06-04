@@ -99,6 +99,8 @@ namespace ge {
 
     void createSyncObjects(const std::shared_ptr<Swapchain>& swapchain);
 
+    void destroySyncObjects();
+
     [[nodiscard]] VkPipelineLayout createPipelineLayout(const VkPipelineLayoutCreateInfo& pipelineLayoutCreateInfo) const;
 
     void destroyPipelineLayout(VkPipelineLayout& pipelineLayout) const;
@@ -174,8 +176,6 @@ namespace ge {
     uint8_t m_swapchainImageCount;
 
     void createDevice();
-
-    void destroySyncObjects();
   };
 
 } // ge

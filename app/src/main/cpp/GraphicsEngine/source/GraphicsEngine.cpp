@@ -39,6 +39,18 @@ namespace ge {
     createNewFrame();
   }
 
+  void GraphicsEngine::suspend()
+  {
+    m_renderingManager->suspend();
+  }
+
+  void GraphicsEngine::resume(ANativeWindow* window)
+  {
+    m_currentFrame = 0;
+
+    m_renderingManager->resume(window);
+  }
+
   std::shared_ptr<AssetManager> GraphicsEngine::getAssetManager() const
   {
     return m_assetManager;
@@ -84,6 +96,7 @@ namespace ge {
 
     m_renderingManager = std::make_shared<RenderingManager>(
       m_logicalDevice,
+      m_instance,
       m_surface,
       m_assetManager,
       m_commandPool

@@ -1,5 +1,6 @@
 #include "Surface.h"
 #include "../instance/Instance.h"
+#include <android/native_window.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 #include <utility>
 
@@ -14,6 +15,16 @@ namespace ge {
     m_width = ANativeWindow_getWidth(pWindow);
 
     m_height = ANativeWindow_getHeight(pWindow);
+  }
+
+  Surface::Surface(std::shared_ptr<Instance> instance, ANativeWindow* window)
+    : m_instance(std::move(instance))
+  {
+    m_surface = m_instance->createSurface(window);
+
+    m_width = ANativeWindow_getWidth(window);
+
+    m_height = ANativeWindow_getHeight(window);
   }
 
   Surface::~Surface()

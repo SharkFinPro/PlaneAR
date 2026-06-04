@@ -5,6 +5,7 @@
 #include <memory>
 
 struct android_app;
+struct ANativeWindow;
 
 namespace ge {
 
@@ -14,6 +15,7 @@ namespace ge {
   {
   public:
     Surface(std::shared_ptr<Instance> instance, android_app* pApp);
+    Surface(std::shared_ptr<Instance> instance, ANativeWindow* window);
     ~Surface();
 
     [[nodiscard]] VkSurfaceKHR getSurface() const;
