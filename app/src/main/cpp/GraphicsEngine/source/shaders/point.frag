@@ -26,9 +26,9 @@ void main() {
   // fragUV is [-1,+1] in the *stretched* quad space.  We need SDF distances
   // that are consistent with the actual card proportions, so remap UV into
   // an aspect-correct space where the card half-extents equal (aspectX, aspectY).
-  vec2 p = fragUV * vec2(fragAspect.x, fragAspect.y);
+  vec2 p = fragUV * fragAspect;
 
-  vec2  halfExt    = vec2(fragAspect.x, fragAspect.y);
+  vec2  halfExt    = fragAspect;
   float cornerR    = 0.18;   // corner radius in the same units as halfExt
   float borderW    = 0.055;  // border thickness
 
