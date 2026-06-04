@@ -19,6 +19,8 @@ namespace ge {
     [[nodiscard]] const std::vector<VkImageView>& getImageViews() override;
 
     [[nodiscard]] VkSampleCountFlagBits getSampleCount() override;
+
+    [[nodiscard]] VkImageUsageFlags getColorUsageFlags() override;
   };
 
 } // ge

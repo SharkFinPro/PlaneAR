@@ -30,4 +30,10 @@ namespace ge {
   {
     return m_logicalDevice->getPhysicalDevice()->getMsaaSamples();
   }
+
+  VkImageUsageFlags SwapchainFramebuffer::getColorUsageFlags()
+  {
+    return VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+           VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+  }
 } // ge
