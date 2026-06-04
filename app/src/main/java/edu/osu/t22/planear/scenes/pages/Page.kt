@@ -263,15 +263,6 @@ object FlightDetailSheet {
                 add("SPEED"     to flight.speedKts)
                 add("TYPE"      to flight.type)
                 add("HEADING"   to flight.headingDeg)
-                add("TEST1" to "Value 1")
-                add("TEST2" to "Value 2")
-                add("TEST3" to "12345678901234567890")
-                add("TEST4" to "Raytheon Aircraft Company King Air B350")
-                add("TEST5" to "Embraer EMB-175 LR")
-                add("TEST6" to "Value 6")
-                add("TEST7" to "Value 7")
-                add("TEST8" to "Value 8")
-                add("TEST9" to "Value 9")
             }
 
             val totalContentH = fields.size * fieldRowH
