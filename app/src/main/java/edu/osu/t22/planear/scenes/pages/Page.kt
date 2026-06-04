@@ -41,7 +41,7 @@ object FlightDetailSheet {
         private set
 
     private var animProgress: Float = 0f
-    private var closing: Boolean = false
+    var closing: Boolean = false
 
     // Opens the sheet for the given flight. Safe to call from any page.
     fun open(aircraft: Aircraft) = open(FlightSheetData.fromAircraft(aircraft))
