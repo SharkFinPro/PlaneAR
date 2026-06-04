@@ -53,6 +53,8 @@ namespace ge {
     [[nodiscard]] virtual const std::vector<VkImageView>& getImageViews() = 0;
 
     [[nodiscard]] virtual VkSampleCountFlagBits getSampleCount() = 0;
+
+    virtual VkImageUsageFlags getColorUsageFlags() = 0;
   };
 
 } // ge

@@ -26,4 +26,10 @@ namespace ge {
   {
     return VK_SAMPLE_COUNT_1_BIT;
   }
+
+  VkImageUsageFlags MousePickingFramebuffer::getColorUsageFlags()
+  {
+    return VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+           VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+  }
 } // ge
