@@ -33,7 +33,7 @@ class ArPage : Page {
 
     private val initialDisplayRadius = 3000.0f
 
-    private val layerStep = 200.0f
+    private val layerStep = 250.0f
 
     private var waitingOnMousePickingResult: Boolean = false
     private var selectedId: Long = 0
