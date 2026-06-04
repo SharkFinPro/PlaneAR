@@ -196,18 +196,17 @@ class ArPage : Page {
             val metersPerDegLat = 111_320.0
             val metersPerDegLon = 111_320.0 * cos(Math.toRadians(phoneLat))
 
-            val yaw = Math.toRadians((filteredYaw - 90))
-            val pitch = Math.toRadians(filteredPitch)
+            val R = orientation.rotationMatrix
 
-            val fx = cos(pitch) * cos(yaw)
-            val fy = sin(pitch)
-            val fz = cos(pitch) * sin(yaw)
+            val forward = floatArrayOf(
+                -R[2],
+                -R[5],
+                -R[8]
+            )
 
-            val flen = sqrt(fx*fx + fy*fy + fz*fz).toFloat()
-
-            val cx = (fx / flen).toFloat()
-            val cy = (fy / flen).toFloat()
-            val cz = (fz / flen).toFloat()
+            val cx = forward[0]
+            val cy = forward[2]
+            val cz = -forward[1]
 
             var bestIndex = -1
             var bestDot = -1f
