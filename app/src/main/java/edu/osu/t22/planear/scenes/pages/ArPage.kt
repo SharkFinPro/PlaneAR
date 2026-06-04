@@ -33,7 +33,7 @@ class ArPage : Page {
 
     private val initialDisplayRadius = 3000.0f
 
-    private val layerStep = 150.0f
+    private val layerStep = 200.0f
 
     private var waitingOnMousePickingResult: Boolean = false
     private var selectedId: Long = 0
@@ -344,31 +344,30 @@ class ArPage : Page {
                 val ty = ny / displayRadius * textRadius
                 val tz = nz / displayRadius * textRadius
 
-                // Shift text to the right half of the card (compass occupies left).
-                // cardHalfH * 0.7 ≈ comfortable inset from left edge.
-                val textRightShift = cardHalfH * 0.5f
+                val textLeftShift = cardHalfH * 0.4f
+                val textRightShift = cardHalfH * 0.6f
 
                 val rx = cz
-                val ry = 0f
                 val rz = -cx
-
-                val textX = tx + rx * textRightShift
-                val textY = ty + cardHalfH * 0.5f
-                val textZ = tz + rz * textRightShift
 
                 val distScale = 0.98
 
                 textFont("roboto", 16);
                 fill(230, 232, 240)
-                text3D(p.label, textX * distScale, textY * distScale, textZ * distScale)
+                text3D(
+                    p.label,
+                    (tx + rx * textLeftShift) * distScale,
+                    (ty + cardHalfH * 0.6f) * distScale,
+                    (tz + rz * textLeftShift) * distScale
+                )
 
                 textSize(14);
                 fill(160, 165, 185)
                 text3D(
                     distStr,
-                    (tx - rx * textRightShift * 1.2f) * distScale,
+                    (tx - rx * textRightShift) * distScale,
                     (ty - cardHalfH * 0.25f) * distScale,
-                    (tz - rz * textRightShift * 1.2f) * distScale
+                    (tz - rz * textRightShift) * distScale
                 )
 
                 AircraftRenderData(p.label, rawLen, displayRadius, nx, ny, nz)
