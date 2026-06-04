@@ -44,9 +44,7 @@ class ArPage : Page {
     private var cachedSorted: List<edu.osu.t22.planear.adsb.Aircraft> = emptyList()
     private var lastSortTimeMs: Long = 0L
 
-    private var filteredYaw = 0.0
-    private var filteredPitch = 0.0
-    private var filteredRoll = 0.0
+    private var filteredMatrix = FloatArray(9) { if (it % 4 == 0) 1f else 0f }
 
     private var orientationInitialized = false
     private var lastFrameTimeNs = 0L
@@ -71,43 +69,15 @@ class ArPage : Page {
 
         lastFrameTimeNs = nowNs
 
-        if (!orientationInitialized) {
-            filteredYaw = orientation.azimuthDeg
-            filteredPitch = orientation.pitchDeg
-            filteredRoll = orientation.rollDeg
+        val R = orientation.rotationMatrix
 
+        if (!orientationInitialized) {
+            filteredMatrix = R.copyOf()
             orientationInitialized = true
         } else {
-
-            val yawTarget = applyAngleDeadband(
-                filteredYaw,
-                orientation.azimuthDeg,
-                0.25
-            )
-
-            val pitchTarget = applyDeadband(
-                filteredPitch,
-                orientation.pitchDeg,
-                0.20
-            )
-
-            val rollTarget = applyDeadband(
-                filteredRoll,
-                orientation.rollDeg,
-                0.20
-            )
-
             val tau = 0.20
-            val alpha = 1.0 - kotlin.math.exp(-dt.toDouble() / tau)
-
-            filteredYaw =
-                lerpAngle(filteredYaw, yawTarget, alpha)
-
-            filteredPitch +=
-                (pitchTarget - filteredPitch) * alpha
-
-            filteredRoll +=
-                (rollTarget - filteredRoll) * alpha
+            val alpha = (1.0 - kotlin.math.exp(-dt.toDouble() / tau)).toFloat()
+            filteredMatrix = slerpMatrix(filteredMatrix, R, alpha)
         }
 
         val phoneLat: Double = orientation.x.toDouble()
@@ -188,7 +158,7 @@ class ArPage : Page {
             }
 
             set3DViewMatrix(
-                orientation.rotationMatrix,
+                filteredMatrix,
                 width,
                 height
             )
@@ -196,12 +166,10 @@ class ArPage : Page {
             val metersPerDegLat = 111_320.0
             val metersPerDegLon = 111_320.0 * cos(Math.toRadians(phoneLat))
 
-            val R = orientation.rotationMatrix
-
             val forward = floatArrayOf(
-                -R[2],
-                -R[5],
-                -R[8]
+                -filteredMatrix[2],
+                -filteredMatrix[5],
+                -filteredMatrix[8]
             )
 
             val cx = forward[0]
@@ -595,43 +563,26 @@ class ArPage : Page {
         }
     }
 
-    private fun lerpAngle(
-        current: Double,
-        target: Double,
-        alpha: Double
-    ): Double {
-        var delta = target - current
+    private fun slerpMatrix(a: FloatArray, b: FloatArray, t: Float): FloatArray {
+        val result = FloatArray(9)
+        for (i in 0..8) result[i] = a[i] + (b[i] - a[i]) * t
 
-        while (delta > 180.0) delta -= 360.0
-        while (delta < -180.0) delta += 360.0
+        fun normalize3(i0: Int, i1: Int, i2: Int) {
+            val len = sqrt(result[i0] * result[i0] + result[i1] * result[i1] + result[i2] * result[i2])
+            if (len > 1e-6f) { result[i0] /= len; result[i1] /= len; result[i2] /= len }
+        }
 
-        return current + delta * alpha
-    }
+        normalize3(0, 1, 2)
 
-    private fun applyAngleDeadband(
-        current: Double,
-        target: Double,
-        thresholdDeg: Double
-    ): Double {
-        var delta = target - current
+        result[3] -= result[0] * (result[0]*result[3] + result[1]*result[4] + result[2]*result[5])
+        result[4] -= result[1] * (result[0]*result[3] + result[1]*result[4] + result[2]*result[5])
+        result[5] -= result[2] * (result[0]*result[3] + result[1]*result[4] + result[2]*result[5])
+        normalize3(3, 4, 5)
 
-        while (delta > 180.0) delta -= 360.0
-        while (delta < -180.0) delta += 360.0
+        result[6] = result[1]*result[5] - result[2]*result[4]
+        result[7] = result[2]*result[3] - result[0]*result[5]
+        result[8] = result[0]*result[4] - result[1]*result[3]
 
-        return if (kotlin.math.abs(delta) < thresholdDeg)
-            current
-        else
-            target
-    }
-
-    private fun applyDeadband(
-        current: Double,
-        target: Double,
-        threshold: Double
-    ): Double {
-        return if (kotlin.math.abs(target - current) < threshold)
-            current
-        else
-            target
+        return result
     }
 }
