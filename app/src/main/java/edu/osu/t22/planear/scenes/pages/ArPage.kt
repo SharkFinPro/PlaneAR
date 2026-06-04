@@ -300,7 +300,6 @@ class ArPage : Page {
                 )
 
                 // ── Text: callsign above separator line, distance below ────────
-                // Offset rightward to leave room for the compass on the left.
                 val textRadius = displayRadius - layerStep * 0.7
                 val tx = nx / displayRadius * textRadius
                 val ty = ny / displayRadius * textRadius
@@ -308,28 +307,45 @@ class ArPage : Page {
 
                 val textLeftShift = cardHalfH * 0.4f
                 val textRightShift = cardHalfH * 0.6f
-
-                val rx = cz
-                val rz = -cx
-
                 val distScale = 0.98
 
+                // 1. Manually calculate Screen-Right vector (Perpendicular to Forward vector on the horizontal XZ plane)
+                // This ensures that "Right" means moving toward the right side of your phone screen.
+                val rLen = sqrt(cx * cx + cz * cz)
+                val rx = if (rLen > 0.01f) cz / rLen else 1f
+                val ry = 0f
+                val rz = if (rLen > 0.01f) -cx / rLen else 0f
+
+                // 2. Cross product (Forward × Right) to get a true Screen-Up vector
+                // This is mathematically guaranteed to point toward the top edge of your screen, even at the zenith.
+                val ux = cy * rz - cz * ry
+                val uy = cz * rx - cx * rz
+                val uz = cx * ry - cy * rx
+
+                // Normalize the constructed Up vector
+                val uLen = sqrt(ux * ux + uy * uy + uz * uz)
+                val uxNorm = if (uLen > 0.01f) ux / uLen else 0f
+                val uyNorm = if (uLen > 0.01f) uy / uLen else 1f
+                val uzNorm = if (uLen > 0.01f) uz / uLen else 0f
+
+                // 3. Render Top Text (Callsign) shifted UP and RIGHT relative to screen space
                 textFont("roboto", 16);
                 fill(230, 232, 240)
                 text3D(
                     p.label,
-                    (tx + rx * textLeftShift) * distScale,
-                    (ty + cardHalfH * 0.6f) * distScale,
-                    (tz + rz * textLeftShift) * distScale
+                    (tx + rx * textLeftShift + uxNorm * cardHalfH * 0.6f) * distScale,
+                    (ty + ry * textLeftShift + uyNorm * cardHalfH * 0.6f) * distScale,
+                    (tz + rz * textLeftShift + uzNorm * cardHalfH * 0.6f) * distScale
                 )
 
+                // 4. Render Bottom Text (Distance) shifted DOWN and LEFT relative to screen space
                 textSize(14);
                 fill(160, 165, 185)
                 text3D(
                     distStr,
-                    (tx - rx * textRightShift) * distScale,
-                    (ty - cardHalfH * 0.25f) * distScale,
-                    (tz - rz * textRightShift) * distScale
+                    (tx - rx * textRightShift - uxNorm * cardHalfH * 0.25f) * distScale,
+                    (ty - ry * textRightShift - uyNorm * cardHalfH * 0.25f) * distScale,
+                    (tz - rz * textRightShift - uzNorm * cardHalfH * 0.25f) * distScale
                 )
 
                 AircraftRenderData(p.label, rawLen, displayRadius, nx, ny, nz)
