@@ -49,12 +49,6 @@ void android_main(struct android_app* pApp)
 
         engineReady = true;
       }
-      else if (pApp->window != nullptr && engine && !engineReady)
-      {
-        engine->resume(pApp->window);
-
-        engineReady = true;
-      }
 
       if (pApp->window == nullptr && engine && engineReady)
       {
@@ -62,6 +56,13 @@ void android_main(struct android_app* pApp)
 
         engineReady = false;
       }
+    }
+
+    if (pApp->window != nullptr && engine && !engineReady)
+    {
+      engine->resume(pApp->window);
+
+      engineReady = true;
     }
 
     if (pApp->destroyRequested != 0)
