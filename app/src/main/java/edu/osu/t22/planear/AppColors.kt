@@ -39,6 +39,7 @@ object AppColors {
         val trackBackground: Color,  // slider track unfilled portion
         val danger:          Color,  // destructive actions (remove)
         val overlay:         Color,  // backdrop behind bottom sheets (use with alpha)
+        val skyBackground:   Color,  // camera-unavailable AR background
     )
 
     private val light = Palette(
@@ -58,6 +59,7 @@ object AppColors {
         trackBackground = Color(220, 220, 220),
         danger          = Color(220, 60,  60),
         overlay         = Color(0,   0,   0),
+        skyBackground   = Color(135, 195, 235),
     )
 
     private val dark = Palette(
@@ -77,6 +79,7 @@ object AppColors {
         trackBackground = Color(60,  60,  60),
         danger          = Color(200, 50,  50),
         overlay         = Color(0,   0,   0),
+        skyBackground   = Color(20,  35,  55),
     )
 
     val current: Palette
