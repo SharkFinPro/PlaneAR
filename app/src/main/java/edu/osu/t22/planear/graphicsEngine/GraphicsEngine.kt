@@ -105,11 +105,6 @@ class Renderer2D(private val ptr: Long) {
 
     private external fun point(x: Float, y: Float, z: Float, size: Float)
 
-    fun set3DView(x: Number, y: Number, z: Number, pitch: Number, yaw: Number, roll: Number, screenWidth: Number, screenHeight: Number)
-            = set3DView(x.toFloat(), y.toFloat(), z.toFloat(), pitch.toFloat(), yaw.toFloat(), roll.toFloat(), screenWidth.toFloat(), screenHeight.toFloat())
-
-    private external fun set3DView(x: Float, y: Float, z: Float, pitch: Float, yaw: Float, roll: Float, screenWidth: Float, screenHeight: Float)
-
     // Pass Android's 3×3 rotation matrix (from SensorManager.getRotationMatrixFromVector,
     // 9 floats, row-major) directly to the renderer.  This skips Euler-angle decomposition
     // and builds the GPU view/projection matrices from the raw sensor data.

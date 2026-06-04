@@ -818,46 +818,6 @@ namespace ge {
     increaseCurrentZ();
   }
 
-  void Renderer2D::set3DView(float x,
-                             float y,
-                             float z,
-                             float pitch,
-                             float yaw,
-                             float roll,
-                             float screenWidth,
-                             float screenHeight)
-  {
-    const glm::vec3 position { x, y, z };
-
-    glm::vec3 direction = normalize(glm::vec3(
-      std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch)),
-      std::sin(glm::radians(pitch)),
-      std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch))
-    ));
-
-    constexpr auto UP = glm::vec3(0.0f, 1.0f, 0.0f);
-
-    m_viewMatrix = glm::lookAt(
-      position,
-      position + direction,
-      UP
-    );
-
-    m_projectionMatrix = glm::perspective(
-      glm::radians(50.0f),
-      screenWidth / screenHeight,
-      500.0f,
-      20000.0f
-    );
-
-    m_projectionMatrix[1][1] *= -1;
-
-    const glm::mat4 invView = glm::inverse(m_viewMatrix);
-
-    m_camRight = glm::vec3(invView[0]);
-    m_camUp = glm::vec3(invView[1]);
-  }
-
   void Renderer2D::set3DViewMatrix(const float* R,
                                    float screenWidth,
                                    float screenHeight)

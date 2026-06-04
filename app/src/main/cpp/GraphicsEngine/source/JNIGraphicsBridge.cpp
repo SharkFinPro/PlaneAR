@@ -364,26 +364,6 @@ namespace {
     renderer->point(x, y, z, size);
   }
 
-  void nativeSet3DView(JNIEnv* env,
-                       jobject thiz,
-                       jfloat x,
-                       jfloat y,
-                       jfloat z,
-                       jfloat pitch,
-                       jfloat yaw,
-                       jfloat roll,
-                       jfloat screenWidth,
-                       jfloat screenHeight)
-  {
-    ge::Renderer2D* renderer = getRenderer(env, thiz);
-    if (renderer == nullptr)
-    {
-      return;
-    }
-
-    renderer->set3DView(x, y, z, pitch, yaw, roll, screenWidth, screenHeight);
-  }
-
   // Receives Android's 3×3 rotation matrix (9 floats, row-major) produced by
   // SensorManager.getRotationMatrixFromVector and forwards it to the renderer
   // so that the GPU view/projection matrices are built without going through
@@ -639,7 +619,6 @@ namespace {
     { "image", "(Ljava/lang/String;FFFF)V", (void*)nativeImage },
 
     // 3D
-    { "set3DView",         "(FFFFFFFF)V",              (void*)nativeSet3DView },
     { "set3DViewMatrix",   "([FFF)V",                  (void*)nativeSet3DViewMatrix },
     { "text3D",            "(Ljava/lang/String;FFF)V", (void*)nativeText3D },
     { "camera",            "(FFFF)V",                  (void*)nativeCamera },
