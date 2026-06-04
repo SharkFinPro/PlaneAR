@@ -217,8 +217,8 @@ object FlightDetailSheet {
             fun dynamicFontSize(text: String, maxSize: Int = 15, minSize: Int = 9): Int {
                 return when {
                     text.length <= 20 -> maxSize
-                    text.length <= 40 -> maxSize - 2
-                    text.length >  40 -> maxSize - 4
+                    text.length <= 30 -> maxSize - 2
+                    text.length >  30 -> maxSize - 4
                     else              -> minSize
                 }
             }
