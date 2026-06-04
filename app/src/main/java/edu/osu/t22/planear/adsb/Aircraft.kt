@@ -26,7 +26,6 @@ class Aircraft (
     var groundSpeed: Double? = null
     var verticalRate: Int = 0
 
-
     var seenSeconds: Float? = null
     var seenPosSeconds: Float? = null
     var lastRecieveTime: Long = 0L
