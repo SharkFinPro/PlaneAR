@@ -332,7 +332,7 @@ class ArPage : Page {
                     fz * 0.99,
                     compassSize,
                     compassOffX,
-                    -compassSize * 0.5,
+                    -compassSize * 0.6,
                     headingRad,
                     1f
                 )
