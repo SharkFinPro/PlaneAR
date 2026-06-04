@@ -172,14 +172,14 @@ namespace ge {
                            float size,
                            uint32_t id);
 
-    void set3DView(float x,
-                   float y,
-                   float z,
-                   float pitch,
-                   float yaw,
-                   float roll,
-                   float screenWidth,
-                   float screenHeight);
+    // Set the camera matrices directly from Android's 3x3 rotation matrix
+    // (row-major, 9 floats as returned by SensorManager.getRotationMatrixFromVector).
+    // The view matrix is built by treating the matrix rows as world-space axes,
+    // then constructing glm::lookAt from the extracted forward and up vectors.
+    // The projection matrix uses the same FOV and near/far as set3DView.
+    void set3DViewMatrix(const float* rotationMatrix9,
+                         float screenWidth,
+                         float screenHeight);
 
     void text3D(const std::string& text,
                 float x,

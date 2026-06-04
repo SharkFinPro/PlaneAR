@@ -105,10 +105,13 @@ class Renderer2D(private val ptr: Long) {
 
     private external fun point(x: Float, y: Float, z: Float, size: Float)
 
-    fun set3DView(x: Number, y: Number, z: Number, pitch: Number, yaw: Number, roll: Number, screenWidth: Number, screenHeight: Number)
-        = set3DView(x.toFloat(), y.toFloat(), z.toFloat(), pitch.toFloat(), yaw.toFloat(), roll.toFloat(), screenWidth.toFloat(), screenHeight.toFloat())
+    // Pass Android's 3×3 rotation matrix (from SensorManager.getRotationMatrixFromVector,
+    // 9 floats, row-major) directly to the renderer.  This skips Euler-angle decomposition
+    // and builds the GPU view/projection matrices from the raw sensor data.
+    fun set3DViewMatrix(rotationMatrix: FloatArray, screenWidth: Number, screenHeight: Number) =
+        set3DViewMatrix(rotationMatrix, screenWidth.toFloat(), screenHeight.toFloat())
 
-    private external fun set3DView(x: Float, y: Float, z: Float, pitch: Float, yaw: Float, roll: Float, screenWidth: Float, screenHeight: Float)
+    private external fun set3DViewMatrix(rotationMatrix: FloatArray, screenWidth: Float, screenHeight: Float)
 
     fun text3D(text: String, x: Number, y: Number, z: Number) = text3D(text, x.toFloat(), y.toFloat(), z.toFloat())
 
@@ -116,7 +119,7 @@ class Renderer2D(private val ptr: Long) {
 
     /* Mouse Picking */
     fun mousePickingPoint(x: Number, y: Number, z: Number, size: Number, id: Long)
-        = mousePickingPoint(x.toFloat(), y.toFloat(), z.toFloat(), size.toFloat(), id)
+            = mousePickingPoint(x.toFloat(), y.toFloat(), z.toFloat(), size.toFloat(), id)
 
     private external fun mousePickingPoint(x: Float, y: Float, z: Float, size: Float, id: Long)
 

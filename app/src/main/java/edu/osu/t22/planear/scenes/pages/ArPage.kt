@@ -44,9 +44,7 @@ class ArPage : Page {
     private var cachedSorted: List<edu.osu.t22.planear.adsb.Aircraft> = emptyList()
     private var lastSortTimeMs: Long = 0L
 
-    private var filteredYaw = 0.0
-    private var filteredPitch = 0.0
-    private var filteredRoll = 0.0
+    private var filteredMatrix = FloatArray(9) { if (it % 4 == 0) 1f else 0f }
 
     private var orientationInitialized = false
     private var lastFrameTimeNs = 0L
@@ -71,43 +69,15 @@ class ArPage : Page {
 
         lastFrameTimeNs = nowNs
 
-        if (!orientationInitialized) {
-            filteredYaw = orientation.azimuthDeg
-            filteredPitch = orientation.pitchDeg
-            filteredRoll = orientation.rollDeg
+        val R = orientation.rotationMatrix
 
+        if (!orientationInitialized) {
+            filteredMatrix = R.copyOf()
             orientationInitialized = true
         } else {
-
-            val yawTarget = applyAngleDeadband(
-                filteredYaw,
-                orientation.azimuthDeg,
-                0.25
-            )
-
-            val pitchTarget = applyDeadband(
-                filteredPitch,
-                orientation.pitchDeg,
-                0.20
-            )
-
-            val rollTarget = applyDeadband(
-                filteredRoll,
-                orientation.rollDeg,
-                0.20
-            )
-
             val tau = 0.20
-            val alpha = 1.0 - kotlin.math.exp(-dt.toDouble() / tau)
-
-            filteredYaw =
-                lerpAngle(filteredYaw, yawTarget, alpha)
-
-            filteredPitch +=
-                (pitchTarget - filteredPitch) * alpha
-
-            filteredRoll +=
-                (rollTarget - filteredRoll) * alpha
+            val alpha = (1.0 - kotlin.math.exp(-dt.toDouble() / tau)).toFloat()
+            filteredMatrix = slerpMatrix(filteredMatrix, R, alpha)
         }
 
         val phoneLat: Double = orientation.x.toDouble()
@@ -187,13 +157,8 @@ class ArPage : Page {
                 rect(0, 0, width, height)
             }
 
-            set3DView(
-                0,
-                phoneAlt,
-                0,
-                filteredPitch,
-                filteredYaw  - 90,
-                filteredRoll,
+            set3DViewMatrix(
+                filteredMatrix,
                 width,
                 height
             )
@@ -201,18 +166,15 @@ class ArPage : Page {
             val metersPerDegLat = 111_320.0
             val metersPerDegLon = 111_320.0 * cos(Math.toRadians(phoneLat))
 
-            val yaw = Math.toRadians((filteredYaw - 90))
-            val pitch = Math.toRadians(filteredPitch)
+            val forward = floatArrayOf(
+                -filteredMatrix[2],
+                -filteredMatrix[5],
+                -filteredMatrix[8]
+            )
 
-            val fx = cos(pitch) * cos(yaw)
-            val fy = sin(pitch)
-            val fz = cos(pitch) * sin(yaw)
-
-            val flen = sqrt(fx*fx + fy*fy + fz*fz).toFloat()
-
-            val cx = (fx / flen).toFloat()
-            val cy = (fy / flen).toFloat()
-            val cz = (fz / flen).toFloat()
+            val cx = forward[0]
+            val cy = forward[2]
+            val cz = -forward[1]
 
             var bestIndex = -1
             var bestDot = -1f
@@ -338,7 +300,6 @@ class ArPage : Page {
                 )
 
                 // ── Text: callsign above separator line, distance below ────────
-                // Offset rightward to leave room for the compass on the left.
                 val textRadius = displayRadius - layerStep * 0.7
                 val tx = nx / displayRadius * textRadius
                 val ty = ny / displayRadius * textRadius
@@ -346,28 +307,45 @@ class ArPage : Page {
 
                 val textLeftShift = cardHalfH * 0.4f
                 val textRightShift = cardHalfH * 0.6f
-
-                val rx = cz
-                val rz = -cx
-
                 val distScale = 0.98
 
+                // 1. Manually calculate Screen-Right vector (Perpendicular to Forward vector on the horizontal XZ plane)
+                // This ensures that "Right" means moving toward the right side of your phone screen.
+                val rLen = sqrt(cx * cx + cz * cz)
+                val rx = if (rLen > 0.01f) cz / rLen else 1f
+                val ry = 0f
+                val rz = if (rLen > 0.01f) -cx / rLen else 0f
+
+                // 2. Cross product (Forward × Right) to get a true Screen-Up vector
+                // This is mathematically guaranteed to point toward the top edge of your screen, even at the zenith.
+                val ux = cy * rz - cz * ry
+                val uy = cz * rx - cx * rz
+                val uz = cx * ry - cy * rx
+
+                // Normalize the constructed Up vector
+                val uLen = sqrt(ux * ux + uy * uy + uz * uz)
+                val uxNorm = if (uLen > 0.01f) ux / uLen else 0f
+                val uyNorm = if (uLen > 0.01f) uy / uLen else 1f
+                val uzNorm = if (uLen > 0.01f) uz / uLen else 0f
+
+                // 3. Render Top Text (Callsign) shifted UP and RIGHT relative to screen space
                 textFont("roboto", 16);
                 fill(230, 232, 240)
                 text3D(
                     p.label,
-                    (tx + rx * textLeftShift) * distScale,
-                    (ty + cardHalfH * 0.6f) * distScale,
-                    (tz + rz * textLeftShift) * distScale
+                    (tx + rx * textLeftShift + uxNorm * cardHalfH * 0.6f) * distScale,
+                    (ty + ry * textLeftShift + uyNorm * cardHalfH * 0.6f) * distScale,
+                    (tz + rz * textLeftShift + uzNorm * cardHalfH * 0.6f) * distScale
                 )
 
+                // 4. Render Bottom Text (Distance) shifted DOWN and LEFT relative to screen space
                 textSize(14);
                 fill(160, 165, 185)
                 text3D(
                     distStr,
-                    (tx - rx * textRightShift) * distScale,
-                    (ty - cardHalfH * 0.25f) * distScale,
-                    (tz - rz * textRightShift) * distScale
+                    (tx - rx * textRightShift - uxNorm * cardHalfH * 0.25f) * distScale,
+                    (ty - ry * textRightShift - uyNorm * cardHalfH * 0.25f) * distScale,
+                    (tz - rz * textRightShift - uzNorm * cardHalfH * 0.25f) * distScale
                 )
 
                 AircraftRenderData(p.label, rawLen, displayRadius, nx, ny, nz)
@@ -601,43 +579,26 @@ class ArPage : Page {
         }
     }
 
-    private fun lerpAngle(
-        current: Double,
-        target: Double,
-        alpha: Double
-    ): Double {
-        var delta = target - current
+    private fun slerpMatrix(a: FloatArray, b: FloatArray, t: Float): FloatArray {
+        val result = FloatArray(9)
+        for (i in 0..8) result[i] = a[i] + (b[i] - a[i]) * t
 
-        while (delta > 180.0) delta -= 360.0
-        while (delta < -180.0) delta += 360.0
+        fun normalize3(i0: Int, i1: Int, i2: Int) {
+            val len = sqrt(result[i0] * result[i0] + result[i1] * result[i1] + result[i2] * result[i2])
+            if (len > 1e-6f) { result[i0] /= len; result[i1] /= len; result[i2] /= len }
+        }
 
-        return current + delta * alpha
-    }
+        normalize3(0, 1, 2)
 
-    private fun applyAngleDeadband(
-        current: Double,
-        target: Double,
-        thresholdDeg: Double
-    ): Double {
-        var delta = target - current
+        result[3] -= result[0] * (result[0]*result[3] + result[1]*result[4] + result[2]*result[5])
+        result[4] -= result[1] * (result[0]*result[3] + result[1]*result[4] + result[2]*result[5])
+        result[5] -= result[2] * (result[0]*result[3] + result[1]*result[4] + result[2]*result[5])
+        normalize3(3, 4, 5)
 
-        while (delta > 180.0) delta -= 360.0
-        while (delta < -180.0) delta += 360.0
+        result[6] = result[1]*result[5] - result[2]*result[4]
+        result[7] = result[2]*result[3] - result[0]*result[5]
+        result[8] = result[0]*result[4] - result[1]*result[3]
 
-        return if (kotlin.math.abs(delta) < thresholdDeg)
-            current
-        else
-            target
-    }
-
-    private fun applyDeadband(
-        current: Double,
-        target: Double,
-        threshold: Double
-    ): Double {
-        return if (kotlin.math.abs(target - current) < threshold)
-            current
-        else
-            target
+        return result
     }
 }

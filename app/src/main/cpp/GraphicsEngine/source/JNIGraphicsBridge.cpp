@@ -364,16 +364,15 @@ namespace {
     renderer->point(x, y, z, size);
   }
 
-  void nativeSet3DView(JNIEnv* env,
-                       jobject thiz,
-                       jfloat x,
-                       jfloat y,
-                       jfloat z,
-                       jfloat pitch,
-                       jfloat yaw,
-                       jfloat roll,
-                       jfloat screenWidth,
-                       jfloat screenHeight)
+  // Receives Android's 3×3 rotation matrix (9 floats, row-major) produced by
+  // SensorManager.getRotationMatrixFromVector and forwards it to the renderer
+  // so that the GPU view/projection matrices are built without going through
+  // Euler angles.  The existing set3DView (Euler-angle) path is left untouched.
+  void nativeSet3DViewMatrix(JNIEnv* env,
+                             jobject thiz,
+                             jfloatArray rotationMatrix,
+                             jfloat screenWidth,
+                             jfloat screenHeight)
   {
     ge::Renderer2D* renderer = getRenderer(env, thiz);
     if (renderer == nullptr)
@@ -381,7 +380,21 @@ namespace {
       return;
     }
 
-    renderer->set3DView(x, y, z, pitch, yaw, roll, screenWidth, screenHeight);
+    const jsize len = env->GetArrayLength(rotationMatrix);
+    if (len < 9)
+    {
+      return;
+    }
+
+    jfloat* elements = env->GetFloatArrayElements(rotationMatrix, nullptr);
+    if (elements == nullptr)
+    {
+      return;
+    }
+
+    renderer->set3DViewMatrix(elements, screenWidth, screenHeight);
+
+    env->ReleaseFloatArrayElements(rotationMatrix, elements, JNI_ABORT);
   }
 
   void nativeText3D(JNIEnv* env,
@@ -558,9 +571,9 @@ namespace {
   }
 
   void nativePointAspect(JNIEnv* env,
-                   jobject thiz,
-                   jfloat aspectX,
-                   jfloat aspectY)
+                         jobject thiz,
+                         jfloat aspectX,
+                         jfloat aspectY)
   {
     ge::Renderer2D* renderer = getRenderer(env, thiz);
     if (renderer == nullptr)
@@ -606,7 +619,7 @@ namespace {
     { "image", "(Ljava/lang/String;FFFF)V", (void*)nativeImage },
 
     // 3D
-    { "set3DView",         "(FFFFFFFF)V",              (void*)nativeSet3DView },
+    { "set3DViewMatrix",   "([FFF)V",                  (void*)nativeSet3DViewMatrix },
     { "text3D",            "(Ljava/lang/String;FFF)V", (void*)nativeText3D },
     { "camera",            "(FFFF)V",                  (void*)nativeCamera },
     { "pointAspect",       "(FF)V",                    (void*)nativePointAspect },

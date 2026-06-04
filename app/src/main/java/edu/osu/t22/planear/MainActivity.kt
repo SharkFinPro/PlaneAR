@@ -247,7 +247,10 @@ class MainActivity : GameActivity() {
                     rollDeg = deviceRollDeg,
                     x = loc.latitude.toFloat(),
                     y = loc.altitude.toFloat(),
-                    z = loc.longitude.toFloat()
+                    z = loc.longitude.toFloat(),
+                    // Snapshot the 3×3 matrix so ArPage can pass it straight
+                    // to set3DViewMatrix() without recomputing from Euler angles.
+                    rotationMatrix = rotationMatrix.copyOf()
                 )
             }
         }

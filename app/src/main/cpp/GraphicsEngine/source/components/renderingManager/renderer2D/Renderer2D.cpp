@@ -716,8 +716,9 @@ namespace ge {
                                      uint32_t id)
   {
     m_mousePicker->addObjectToMousePick(MousePickingPoint{
-      .viewMatrix = m_viewMatrix,
-      .projMatrix = m_projectionMatrix,
+      .mvp = m_projectionMatrix * m_viewMatrix,
+      .camRight = m_camRight,
+      .camUp = m_camUp,
       .x = x,
       .y = y,
       .z = z,
@@ -818,30 +819,42 @@ namespace ge {
     increaseCurrentZ();
   }
 
-  void Renderer2D::set3DView(float x,
-                             float y,
-                             float z,
-                             float pitch,
-                             float yaw,
-                             float roll,
-                             float screenWidth,
-                             float screenHeight)
+  void Renderer2D::set3DViewMatrix(const float* R,
+                                   float screenWidth,
+                                   float screenHeight)
   {
-    const glm::vec3 position { x, y, z };
+    // Android's rotation matrix R is a 3x3 stored row-major in a flat array:
+    //   R[0] R[1] R[2]   (world X components of device X, Y, Z axes)
+    //   R[3] R[4] R[5]
+    //   R[6] R[7] R[8]
+    //
+    // The camera looks out the back of the phone, i.e. device -Z axis.
+    // In world coordinates that direction is: -[R[2], R[5], R[8]].
+    // Device +Y (top of phone) maps to world:  [R[1], R[4], R[7]].
+    //
+    // We sit at the origin (position = 0,0,0 in world space) so lookAt
+    // is just the rotation part of the view matrix.
 
-    glm::vec3 direction = normalize(glm::vec3(
-      std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch)),
-      std::sin(glm::radians(pitch)),
-      std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch))
-    ));
+//    const glm::vec3 forward(-R[2], -R[5], -R[8]);   // where the camera points
+//    const glm::vec3 up     ( R[1],  R[4],  R[7]);   // phone top in world space
+    const glm::vec3 forwardZUp(-R[2], -R[5], -R[8]);
+    const glm::vec3 upZUp     ( R[1],  R[4],  R[7]);
 
-    constexpr auto UP = glm::vec3(0.0f, 1.0f, 0.0f);
-
-    m_viewMatrix = glm::lookAt(
-      position,
-      position + direction,
-      UP
+    const glm::mat3 zUpToYUp(
+      1.0f, 0.0f,  0.0f,
+      0.0f, 0.0f, -1.0f,
+      0.0f, 1.0f,  0.0f
     );
+
+    const glm::vec3 forward = zUpToYUp * forwardZUp;
+    const glm::vec3 up      = zUpToYUp * upZUp;
+
+    // Guard against degenerate input (parallel forward/up)
+    const glm::vec3 safeUp = (glm::abs(glm::dot(forward, up)) > 0.999f)
+                             ? glm::vec3(0.f, 1.f, 0.f)
+                             : up;
+
+    m_viewMatrix = glm::lookAt(glm::vec3(0.f), forward, safeUp);
 
     m_projectionMatrix = glm::perspective(
       glm::radians(50.0f),
@@ -850,12 +863,13 @@ namespace ge {
       20000.0f
     );
 
+    // Vulkan NDC: Y points down, so flip the Y column of the projection matrix.
     m_projectionMatrix[1][1] *= -1;
 
-    const glm::mat4 invView = glm::inverse(m_viewMatrix);
-
-    m_camRight = glm::vec3(invView[0]);
-    m_camUp = glm::vec3(invView[1]);
+    glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
+    glm::vec3 viewDir = glm::normalize(forward);
+    m_camRight = glm::normalize(glm::cross(viewDir, worldUp));
+    m_camUp    = glm::normalize(glm::cross(m_camRight, viewDir));
   }
 
   // ── Compass ────────────────────────────────────────────────────────────────

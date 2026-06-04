@@ -294,8 +294,9 @@ namespace ge {
   };
 
   struct MousePickingPoint {
-    glm::mat4 viewMatrix;
-    glm::mat4 projMatrix;
+    glm::mat4 mvp;
+    glm::vec3 camRight;
+    glm::vec3 camUp;
     float x;
     float y;
     float z;
@@ -317,19 +318,14 @@ namespace ge {
 
     [[nodiscard]] PushConstant createPushConstant(const VkExtent2D extent) const
     {
-      const glm::mat4 invView = glm::inverse(viewMatrix);
-
-      const glm::vec3 camRight = glm::vec3(invView[0]);
-      const glm::vec3 camUp    = glm::vec3(invView[1]);
-
       return {
-        .mvp      = projMatrix * viewMatrix,
+        .mvp      = mvp,
         .worldPos = { x, y, z },
         .size     = size,
         .camRight = camRight,
-        .aspectX    = aspectX,
+        .aspectX  = aspectX,
         .camUp    = camUp,
-        .aspectY    = aspectY,
+        .aspectY  = aspectY,
         .id = id
       };
     }
