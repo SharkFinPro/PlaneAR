@@ -214,6 +214,15 @@ object FlightDetailSheet {
             // Place it with a fixed margin above the nav bar top
             val btnY = screenH - navHeight - btnH - 28f
 
+            fun dynamicFontSize(text: String, maxSize: Int = 15, minSize: Int = 9): Int {
+                return when {
+                    text.length <= 20 -> maxSize
+                    text.length <= 40 -> maxSize - 2
+                    text.length >  40 -> maxSize - 4
+                    else              -> minSize
+                }
+            }
+
             // ── Data fields ───────────────────────────────────────────────────
             val fieldWindowTop = headerY + sheetH * 0.08f
             val fieldWindowBottom = btnY - 20f
@@ -229,7 +238,7 @@ object FlightDetailSheet {
                 text("$label:  ", padX, y + 30f)
 
                 fill(c.textPrimary)
-                textFont("roboto", 18)
+                textFont("roboto", dynamicFontSize(value))
                 textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
                 // Offset value to sit after the label — adjust labelWidth if labels vary a lot in length
                 val labelWidth = screenW * 0.38f
@@ -256,9 +265,9 @@ object FlightDetailSheet {
                 add("HEADING"   to flight.headingDeg)
                 add("TEST1" to "Value 1")
                 add("TEST2" to "Value 2")
-                add("TEST3" to "Value 3")
-                add("TEST4" to "Value 4")
-                add("TEST5" to "Value 5")
+                add("TEST3" to "12345678901234567890")
+                add("TEST4" to "Raytheon Aircraft Company King Air B350")
+                add("TEST5" to "Embraer EMB-175 LR")
                 add("TEST6" to "Value 6")
                 add("TEST7" to "Value 7")
                 add("TEST8" to "Value 8")

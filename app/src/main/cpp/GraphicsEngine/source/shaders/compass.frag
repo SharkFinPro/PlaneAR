@@ -114,7 +114,9 @@ void main() {
         letters = max(letters, s);
     }
 
-    vec2 arrowUV = rot(uv, -fragHeadingRad);
+    vec2 arrowUVRaw = uv;
+    arrowUVRaw.x *= -1;
+    vec2 arrowUV = rot(arrowUVRaw, -fragHeadingRad);
     arrowUV /= 0.85;
 
     float arrow = 0.0;
