@@ -4,12 +4,14 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 
+struct ANativeWindow;
 struct AAssetManager;
 
 namespace ge {
 
   class AssetManager;
   class CommandBuffer;
+  class Instance;
   class LogicalDevice;
   class PipelineManager;
   class Renderer;
@@ -21,12 +23,17 @@ namespace ge {
   {
   public:
     RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                     const std::shared_ptr<Instance>& instance,
                      const std::shared_ptr<Surface>& surface,
                      std::shared_ptr<AssetManager> assetManager,
                      VkCommandPool commandPool);
 
     void doRendering(const std::shared_ptr<PipelineManager>& pipelineManager,
                      uint32_t currentFrame);
+
+    void suspend();
+
+    void resume(ANativeWindow* window);
 
     void createNewFrame();
 
@@ -36,6 +43,8 @@ namespace ge {
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
+
+    std::shared_ptr<Instance> m_instance;
 
     std::shared_ptr<Surface> m_surface;
 

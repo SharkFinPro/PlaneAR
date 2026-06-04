@@ -1,19 +1,24 @@
 #include "RenderingManager.h"
 #include "Renderer.h"
 #include "renderer2D/Renderer2D.h"
+#include "../assets/AssetManager.h"
+#include "../assets/textures/CameraTexture.h"
 #include "../commandBuffer/CommandBuffer.h"
+#include "../instance/Instance.h"
 #include "../logicalDevice/LogicalDevice.h"
 #include "../pipelines/GraphicsPipeline.h"
+#include "../surface/Surface.h"
 #include "../surface/Swapchain.h"
 #include <utility>
 
 namespace ge {
 
   RenderingManager::RenderingManager(const std::shared_ptr<LogicalDevice>& logicalDevice,
+                                     const std::shared_ptr<Instance>& instance,
                                      const std::shared_ptr<Surface>& surface,
                                      std::shared_ptr<AssetManager> assetManager,
                                      VkCommandPool commandPool)
-    : m_logicalDevice(logicalDevice), m_surface(surface), m_commandPool(commandPool)
+    : m_logicalDevice(logicalDevice), m_instance(instance), m_surface(surface), m_commandPool(commandPool)
   {
     m_swapchain = std::make_shared<Swapchain>(m_logicalDevice, m_surface);
     m_logicalDevice->createSyncObjects(m_swapchain);
@@ -62,6 +67,35 @@ namespace ge {
     m_renderer2D->createNewFrame();
   }
 
+  void RenderingManager::suspend()
+  {
+    m_logicalDevice->waitIdle();
+
+    m_renderer2D->getAssetManager()->getCameraTexture()->stopCamera();
+
+    m_renderer->resetSwapchainImageResources(nullptr);
+    m_renderer->resetMousePickingImageResources({});
+
+    m_swapchain.reset();
+
+    m_logicalDevice->destroySyncObjects();
+
+    m_surface.reset();
+  }
+
+  void RenderingManager::resume(ANativeWindow* window)
+  {
+    m_surface = std::make_shared<Surface>(m_instance, window);
+
+    m_swapchain = std::make_shared<Swapchain>(m_logicalDevice, m_surface);
+
+    m_logicalDevice->createSyncObjects(m_swapchain);
+
+    m_renderer->resetSwapchainImageResources(m_swapchain);
+
+    m_renderer->resetMousePickingImageResources(m_swapchain->getExtent());
+  }
+
   std::shared_ptr<Renderer> RenderingManager::getRenderer() const
   {
     return m_renderer;
@@ -77,75 +111,75 @@ namespace ge {
                                                       uint32_t imageIndex) const
   {
     m_swapchainCommandBuffer->record([this, pipelineManager, currentFrame, imageIndex]
-    {
-      RenderInfo renderInfo {
-        .commandBuffer = m_swapchainCommandBuffer,
-        .currentFrame = currentFrame,
-        .extent = m_swapchain->getExtent()
-      };
+                                     {
+                                       RenderInfo renderInfo {
+                                         .commandBuffer = m_swapchainCommandBuffer,
+                                         .currentFrame = currentFrame,
+                                         .extent = m_swapchain->getExtent()
+                                       };
 
-      m_renderer->beginSwapchainRendering(imageIndex, renderInfo.extent, renderInfo.commandBuffer, m_swapchain);
+                                       m_renderer->beginSwapchainRendering(imageIndex, renderInfo.extent, renderInfo.commandBuffer, m_swapchain);
 
-      const VkViewport viewport = {
-        .x = 0.0f,
-        .y = 0.0f,
-        .width = static_cast<float>(renderInfo.extent.width),
-        .height = static_cast<float>(renderInfo.extent.height),
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f
-      };
-      renderInfo.commandBuffer->setViewport(viewport);
+                                       const VkViewport viewport = {
+                                         .x = 0.0f,
+                                         .y = 0.0f,
+                                         .width = static_cast<float>(renderInfo.extent.width),
+                                         .height = static_cast<float>(renderInfo.extent.height),
+                                         .minDepth = 0.0f,
+                                         .maxDepth = 1.0f
+                                       };
+                                       renderInfo.commandBuffer->setViewport(viewport);
 
-      const VkRect2D scissor = {
-        .offset = {0, 0},
-        .extent = renderInfo.extent
-      };
-      renderInfo.commandBuffer->setScissor(scissor);
+                                       const VkRect2D scissor = {
+                                         .offset = {0, 0},
+                                         .extent = renderInfo.extent
+                                       };
+                                       renderInfo.commandBuffer->setScissor(scissor);
 
-      m_renderer2D->render(pipelineManager, &renderInfo);
+                                       m_renderer2D->render(pipelineManager, &renderInfo);
 
-      ge::Renderer::endRendering(renderInfo.commandBuffer);
-    });
+                                       ge::Renderer::endRendering(renderInfo.commandBuffer);
+                                     });
   }
 
   void RenderingManager::recordMousePickingCommandBuffer(const std::shared_ptr<PipelineManager>& pipelineManager,
                                                          uint32_t currentFrame) const
   {
     m_mousePickingCommandBuffer->record([this, pipelineManager, currentFrame]
-    {
-      const RenderInfo renderInfo {
-        .commandBuffer = m_mousePickingCommandBuffer,
-        .currentFrame = currentFrame,
-        .extent = m_swapchain->getExtent(),
-      };
+                                        {
+                                          const RenderInfo renderInfo {
+                                            .commandBuffer = m_mousePickingCommandBuffer,
+                                            .currentFrame = currentFrame,
+                                            .extent = m_swapchain->getExtent(),
+                                          };
 
-      if (renderInfo.extent.width == 0 || renderInfo.extent.height == 0)
-      {
-        return;
-      }
+                                          if (renderInfo.extent.width == 0 || renderInfo.extent.height == 0)
+                                          {
+                                            return;
+                                          }
 
-      m_renderer->beginMousePickingRendering(currentFrame, renderInfo.extent, renderInfo.commandBuffer);
+                                          m_renderer->beginMousePickingRendering(currentFrame, renderInfo.extent, renderInfo.commandBuffer);
 
-      const VkViewport viewport = {
-        .x = 0.0f,
-        .y = 0.0f,
-        .width = static_cast<float>(renderInfo.extent.width),
-        .height = static_cast<float>(renderInfo.extent.height),
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f
-      };
-      renderInfo.commandBuffer->setViewport(viewport);
+                                          const VkViewport viewport = {
+                                            .x = 0.0f,
+                                            .y = 0.0f,
+                                            .width = static_cast<float>(renderInfo.extent.width),
+                                            .height = static_cast<float>(renderInfo.extent.height),
+                                            .minDepth = 0.0f,
+                                            .maxDepth = 1.0f
+                                          };
+                                          renderInfo.commandBuffer->setViewport(viewport);
 
-      const VkRect2D scissor = {
-        .offset = {0, 0},
-        .extent = renderInfo.extent
-      };
-      renderInfo.commandBuffer->setScissor(scissor);
+                                          const VkRect2D scissor = {
+                                            .offset = {0, 0},
+                                            .extent = renderInfo.extent
+                                          };
+                                          renderInfo.commandBuffer->setScissor(scissor);
 
-      m_renderer2D->renderMousePicking(pipelineManager, &renderInfo);
+                                          m_renderer2D->renderMousePicking(pipelineManager, &renderInfo);
 
-      ge::Renderer::endRendering(renderInfo.commandBuffer);
-    });
+                                          ge::Renderer::endRendering(renderInfo.commandBuffer);
+                                        });
   }
 
   void RenderingManager::doMousePicking(const std::shared_ptr<PipelineManager>& pipelineManager,

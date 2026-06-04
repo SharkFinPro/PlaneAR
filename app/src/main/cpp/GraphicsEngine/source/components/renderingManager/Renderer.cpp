@@ -41,6 +41,12 @@ namespace ge {
   void Renderer::resetSwapchainImageResources(const std::shared_ptr<Swapchain>& swapchain)
   {
     m_framebuffer.reset();
+
+    if (!swapchain)
+    {
+      return;
+    }
+
     m_framebuffer = std::make_shared<SwapchainFramebuffer>(
       m_logicalDevice,
       swapchain,
@@ -53,6 +59,11 @@ namespace ge {
   void Renderer::resetMousePickingImageResources(VkExtent2D mousePickingExtent)
   {
     m_mousePickingFramebuffer.reset();
+
+    if (mousePickingExtent.width == 0 && mousePickingExtent.height == 0)
+    {
+      return;
+    }
 
     m_mousePickingFramebuffer = std::make_shared<MousePickingFramebuffer>(
       m_logicalDevice,

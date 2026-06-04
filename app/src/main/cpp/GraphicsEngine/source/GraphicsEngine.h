@@ -5,6 +5,7 @@
 #include <memory>
 
 struct android_app;
+struct ANativeWindow;
 
 namespace ge {
 
@@ -24,6 +25,10 @@ namespace ge {
     ~GraphicsEngine();
 
     void render();
+
+    void suspend();
+
+    void resume(ANativeWindow* window);
 
     [[nodiscard]] std::shared_ptr<AssetManager> getAssetManager() const;
 
