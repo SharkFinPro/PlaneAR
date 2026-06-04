@@ -293,7 +293,7 @@ class ArPage : Page {
                 val distStr = if (distKm < 1.0) "${"%.0f".format(rawLen)} m"
                 else "${"%.1f".format(distKm)} km"
 
-                val dotFrontRadius = displayRadius - layerStep
+                val dotFrontRadius = displayRadius - layerStep * 0.4f
 
                 val (fx, fy, fz) = Triple(nx / displayRadius * dotFrontRadius, ny / displayRadius * dotFrontRadius, nz / displayRadius * dotFrontRadius)
 
@@ -339,7 +339,7 @@ class ArPage : Page {
 
                 // ── Text: callsign above separator line, distance below ────────
                 // Offset rightward to leave room for the compass on the left.
-                val textRadius = displayRadius - layerStep * 0.7f
+                val textRadius = displayRadius - layerStep * 0.7
                 val tx = nx / displayRadius * textRadius
                 val ty = ny / displayRadius * textRadius
                 val tz = nz / displayRadius * textRadius
@@ -356,7 +356,7 @@ class ArPage : Page {
                 val textY = ty + cardHalfH * 0.5f
                 val textZ = tz + rz * textRightShift
 
-                val distScale = 0.97
+                val distScale = 0.98
 
                 textFont("roboto", 16);
                 fill(230, 232, 240)
