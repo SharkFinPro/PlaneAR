@@ -32,8 +32,8 @@ class ArPage : Page {
     private var achievementClosing: Boolean = false
 
     private val initialDisplayRadius = 3000.0f
-    private val layerStep = 250.0f
 
+    private val layerStep = 250.0f
 
     private var waitingOnMousePickingResult: Boolean = false
     private var selectedId: Long = 0
@@ -44,6 +44,13 @@ class ArPage : Page {
     private var cachedSorted: List<edu.osu.t22.planear.adsb.Aircraft> = emptyList()
     private var lastSortTimeMs: Long = 0L
 
+    private var filteredYaw = 0.0
+    private var filteredPitch = 0.0
+    private var filteredRoll = 0.0
+
+    private var orientationInitialized = false
+    private var lastFrameTimeNs = 0L
+
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
         val width = sceneInfo.screenWidth
         val height = sceneInfo.screenHeight - navHeight
@@ -52,6 +59,56 @@ class ArPage : Page {
         AchievementStore.isOnArPage = true
 
         val orientation = OrientationStore.data
+
+        val nowNs = System.nanoTime()
+
+        val dt = if (lastFrameTimeNs == 0L) {
+            1f / 60f
+        } else {
+            ((nowNs - lastFrameTimeNs) / 1_000_000_000.0f)
+                .coerceIn(0.001f, 0.1f)
+        }
+
+        lastFrameTimeNs = nowNs
+
+        if (!orientationInitialized) {
+            filteredYaw = orientation.azimuthDeg
+            filteredPitch = orientation.pitchDeg
+            filteredRoll = orientation.rollDeg
+
+            orientationInitialized = true
+        } else {
+
+            val yawTarget = applyAngleDeadband(
+                filteredYaw,
+                orientation.azimuthDeg,
+                0.25
+            )
+
+            val pitchTarget = applyDeadband(
+                filteredPitch,
+                orientation.pitchDeg,
+                0.20
+            )
+
+            val rollTarget = applyDeadband(
+                filteredRoll,
+                orientation.rollDeg,
+                0.20
+            )
+
+            val tau = 0.20
+            val alpha = 1.0 - kotlin.math.exp(-dt.toDouble() / tau)
+
+            filteredYaw =
+                lerpAngle(filteredYaw, yawTarget, alpha)
+
+            filteredPitch +=
+                (pitchTarget - filteredPitch) * alpha
+
+            filteredRoll +=
+                (rollTarget - filteredRoll) * alpha
+        }
 
         val phoneLat: Double = orientation.x.toDouble()
         val phoneLon: Double = orientation.z.toDouble()
@@ -71,7 +128,6 @@ class ArPage : Page {
 
         val tapPos = sceneInfo.gestures.touchDownPosition
 
-
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
             tapPos?.let { (tx, ty) ->
                 if (tapPos != lastConsumedTapPos &&
@@ -79,9 +135,11 @@ class ArPage : Page {
                     ty > 0 && ty < height &&
                     !waitingOnMousePickingResult) {
 
-                    requestMousePicking(tx, ty)
+                    if (!FlightDetailSheet.isOpen) {
+                        requestMousePicking(tx, ty)
 
-                    waitingOnMousePickingResult = true
+                        waitingOnMousePickingResult = true
+                    }
 
                     lastConsumedTapPos = tapPos
 
@@ -133,9 +191,9 @@ class ArPage : Page {
                 0,
                 phoneAlt,
                 0,
-                orientation.pitchDeg,
-                orientation.azimuthDeg - 90,
-                orientation.rollDeg,
+                filteredPitch,
+                filteredYaw  - 90,
+                filteredRoll,
                 width,
                 height
             )
@@ -143,10 +201,8 @@ class ArPage : Page {
             val metersPerDegLat = 111_320.0
             val metersPerDegLon = 111_320.0 * cos(Math.toRadians(phoneLat))
 
-
-
-            val yaw = Math.toRadians((orientation.azimuthDeg - 90))
-            val pitch = Math.toRadians(orientation.pitchDeg)
+            val yaw = Math.toRadians((filteredYaw - 90))
+            val pitch = Math.toRadians(filteredPitch)
 
             val fx = cos(pitch) * cos(yaw)
             val fy = sin(pitch)
@@ -181,14 +237,21 @@ class ArPage : Page {
                 logFlightHistory(sorted[bestIndex])
             }
 
-            val reordered = if (bestIndex > 0) {
-                val mutable = sorted.toMutableList()
-                val best = mutable.removeAt(bestIndex)
-                mutable.add(0, best)
-                mutable
-            } else {
-                sorted
-            }
+            val closestId = if (bestIndex >= 0) {
+                sorted[bestIndex].id.toLongOrNull(16) ?: 0L
+            } else 0L
+
+            val reordered = sorted.sortedWith(
+                compareByDescending { aircraft ->
+                    val id = aircraft.id.toLongOrNull(16) ?: 0L
+
+                    when (id) {
+                        selectedId -> 2
+                        closestId  -> 1
+                        else        -> 0
+                    }
+                }
+            )
 
             data class AircraftRenderData(
                 val label:         String,
@@ -230,43 +293,82 @@ class ArPage : Page {
                 val distStr = if (distKm < 1.0) "${"%.0f".format(rawLen)} m"
                 else "${"%.1f".format(distKm)} km"
 
-                val dotBackRadius  = displayRadius
                 val dotFrontRadius = displayRadius - layerStep * 0.4f
 
-                val (bx, by, bz) = Triple(
-                    nx / displayRadius * dotBackRadius,
-                    ny / displayRadius * dotBackRadius,
-                    nz / displayRadius * dotBackRadius
-                )
-                val (frontX, frontY, frontZ) = Triple(
-                    nx / displayRadius * dotFrontRadius,
-                    ny / displayRadius * dotFrontRadius,
-                    nz / displayRadius * dotFrontRadius
-                )
+                val (fx, fy, fz) = Triple(nx / displayRadius * dotFrontRadius, ny / displayRadius * dotFrontRadius, nz / displayRadius * dotFrontRadius)
 
-                fill(0)
-                point(bx, by, bz, 270)
-
-                // TODO: only send if mouse picking queried
                 val id = p.id.toLongOrNull(16) ?: 0L
-                mousePickingPoint(bx, by, bz, 270, id)
 
+                // ── Aircraft billboard card ───────────────────────────────────
+                // One draw call: the frag shader handles the border itself,
+                // so the old black-background point() is no longer needed.
+                // aspectX = 2.2 → card is 2.2× wider than it is tall.
+                val cardHalfH = 200f   // half-height in world units (= size arg)
+                val cardAspect = 1.5f
+
+                pointAspect(cardAspect, 1.0f)
                 if (id == selectedId) {
                     fill(150, 245, 150)
                 } else {
                     fill(245)
                 }
-                point(frontX, frontY, frontZ, 250)
+                point(fx, fy, fz, cardHalfH)
 
-                val textRadius = displayRadius - layerStep * 0.7f
+                if (waitingOnMousePickingResult) {
+                    // Mouse picking hitbox — use the card's true half-width so the
+                    // full horizontal extent is clickable.
+                    mousePickingPoint(fx, fy, fz, cardHalfH, id)
+                }
+
+                // ── Compass sits on the left side of the card ─────────────────
+                // offsetX = -(cardHalfH * cardAspect) centres it at the left edge;
+                // offsetY = 0 vertically centres it on the card.
+                val headingRad = Math.toRadians(p.headingDegrees ?: 0.0).toFloat()
+                val compassSize = cardHalfH * 0.5f
+                val compassOffX = -(cardHalfH / 2.25 * cardAspect) + compassSize * 0.05f
+                compass(
+                    fx * 0.99,
+                    fy * 0.99,
+                    fz * 0.99,
+                    compassSize,
+                    compassOffX,
+                    -compassSize * 0.6,
+                    headingRad,
+                    1f
+                )
+
+                // ── Text: callsign above separator line, distance below ────────
+                // Offset rightward to leave room for the compass on the left.
+                val textRadius = displayRadius - layerStep * 0.7
                 val tx = nx / displayRadius * textRadius
                 val ty = ny / displayRadius * textRadius
                 val tz = nz / displayRadius * textRadius
 
-                textFont("roboto", 30)
-                fill(42, 42, 42)
-                text3D(p.label, tx, ty + 50, tz)
-                text3D(distStr, tx, ty - 50, tz)
+                val textLeftShift = cardHalfH * 0.4f
+                val textRightShift = cardHalfH * 0.6f
+
+                val rx = cz
+                val rz = -cx
+
+                val distScale = 0.98
+
+                textFont("roboto", 16);
+                fill(230, 232, 240)
+                text3D(
+                    p.label,
+                    (tx + rx * textLeftShift) * distScale,
+                    (ty + cardHalfH * 0.6f) * distScale,
+                    (tz + rz * textLeftShift) * distScale
+                )
+
+                textSize(14);
+                fill(160, 165, 185)
+                text3D(
+                    distStr,
+                    (tx - rx * textRightShift) * distScale,
+                    (ty - cardHalfH * 0.25f) * distScale,
+                    (tz - rz * textRightShift) * distScale
+                )
 
                 AircraftRenderData(p.label, rawLen, displayRadius, nx, ny, nz)
             }
@@ -497,5 +599,45 @@ class ArPage : Page {
                 }
             }
         }
+    }
+
+    private fun lerpAngle(
+        current: Double,
+        target: Double,
+        alpha: Double
+    ): Double {
+        var delta = target - current
+
+        while (delta > 180.0) delta -= 360.0
+        while (delta < -180.0) delta += 360.0
+
+        return current + delta * alpha
+    }
+
+    private fun applyAngleDeadband(
+        current: Double,
+        target: Double,
+        thresholdDeg: Double
+    ): Double {
+        var delta = target - current
+
+        while (delta > 180.0) delta -= 360.0
+        while (delta < -180.0) delta += 360.0
+
+        return if (kotlin.math.abs(delta) < thresholdDeg)
+            current
+        else
+            target
+    }
+
+    private fun applyDeadband(
+        current: Double,
+        target: Double,
+        threshold: Double
+    ): Double {
+        return if (kotlin.math.abs(target - current) < threshold)
+            current
+        else
+            target
     }
 }

@@ -160,6 +160,12 @@ namespace ge {
                float z,
                float size);
 
+    // Set the aspect-ratio multipliers for the next point() draw.
+    // aspectX > 1 makes the billboard wider than it is tall (e.g. 2.2 for a
+    // wide info card).  Resets to 1.0/1.0 each frame via createNewFrame().
+    void pointAspect(float aspectX,
+                     float aspectY);
+
     void mousePickingPoint(float x,
                            float y,
                            float z,
@@ -184,6 +190,26 @@ namespace ge {
                 float y,
                 float width,
                 float height);
+
+    // Draw a compass billboard anchored to the given 3-D world position.
+    //
+    // x, y, z      — aircraft world position (same coords used for point()).
+    // size         — half-size of the quad in world units (controls how large
+    //                the compass appears regardless of depth).
+    // offsetX/Y    — shift in world units along camRight / camUp so the compass
+    //                sits top-right of the aircraft dot.
+    // headingRad   — aircraft heading in radians, already adjusted for the
+    //                active compass mode (Always North vs User Relative).
+    //                0 = pointing up (+Y / north), increases clockwise.
+    // alpha        — opacity 0–1.
+    void compass(float x,
+                 float y,
+                 float z,
+                 float size,
+                 float offsetX,
+                 float offsetY,
+                 float headingRad,
+                 float alpha);
 
   private:
     std::shared_ptr<LogicalDevice> m_logicalDevice;
@@ -218,7 +244,14 @@ namespace ge {
       uint32_t fontSize;
     };
 
-    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image, PointBatchMarker, Glyph3DBatchMarker, Camera>;
+    // Marks the draw list position of a compass instanced batch flush.
+    // firstInstance/instanceCount index into m_compassInstances.
+    struct CompassBatchMarker {
+      uint32_t firstInstance;
+      uint32_t instanceCount;
+    };
+
+    using DrawCommand = std::variant<Rect, Triangle, Ellipse, GlyphCommand, Image, PointBatchMarker, Glyph3DBatchMarker, Camera, CompassBatchMarker>;
 
     struct DrawEntry {
       DrawCommand command;
@@ -248,6 +281,7 @@ namespace ge {
     // Flat instance data arrays filled each frame; markers in m_drawList index into these.
     std::vector<PointInstance> m_pointInstances;
     std::vector<Glyph3DInstance> m_glyph3DInstances;
+    std::vector<CompassInstance> m_compassInstances;
 
     std::vector<VkBuffer> m_pointInstanceBuffers;
     std::vector<VkDeviceMemory> m_pointInstanceMemory;
@@ -257,6 +291,10 @@ namespace ge {
     std::vector<VkDeviceMemory> m_glyph3DInstanceMemory;
     VkDeviceSize m_glyph3DInstanceBufferCapacity = 0;
 
+    std::vector<VkBuffer> m_compassInstanceBuffers;
+    std::vector<VkDeviceMemory> m_compassInstanceMemory;
+    VkDeviceSize m_compassInstanceBufferCapacity = 0;
+
     glm::mat4 m_viewMatrix = glm::mat4(1.0f);
     glm::mat4 m_projectionMatrix = glm::mat4(1.0f);
 
@@ -265,6 +303,11 @@ namespace ge {
     uint32_t m_currentFontSize = 12;
 
     float m_currentZ = 0.01f;
+
+    // Per-draw aspect-ratio multipliers for point() billboard quads.
+    // Reset to 1.0 each frame; set via pointAspect() before a point() call.
+    float m_pointAspectX = 1.0f;
+    float m_pointAspectY = 1.0f;
 
     std::shared_ptr<MousePicker> m_mousePicker;
 
@@ -280,6 +323,8 @@ namespace ge {
     VkDescriptorSet currentGlyphFontSet = VK_NULL_HANDLE;
 
     VkDescriptorSet currentPointCameraSet = VK_NULL_HANDLE;
+
+    VkDescriptorSet currentCompassCameraSet = VK_NULL_HANDLE;
 
     glm::vec3 m_camRight = glm::vec3(0.0f);
     glm::vec3 m_camUp = glm::vec3(0.0f);
@@ -346,6 +391,10 @@ namespace ge {
     void renderCamera(const std::shared_ptr<PipelineManager>& pipelineManager,
                       const RenderInfo* renderInfo,
                       const Camera& camera) const;
+
+    void renderCompassBatch(const std::shared_ptr<PipelineManager>& pipelineManager,
+                            const RenderInfo* renderInfo,
+                            const CompassBatchMarker& marker);
   };
 
 } // ge

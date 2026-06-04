@@ -64,12 +64,12 @@ namespace ge {
     const auto renderPass = m_renderer->getRenderPass();
 
     createGraphicsPipeline(PipelineType::camera,
-      PipelineConfig::createCameraPipelineOptions(
-        m_logicalDevice,
-        renderPass,
-        m_assetManager->getAAssetManager(),
-        cameraLayout
-      )
+                           PipelineConfig::createCameraPipelineOptions(
+                             m_logicalDevice,
+                             renderPass,
+                             m_assetManager->getAAssetManager(),
+                             cameraLayout
+                           )
     );
   }
 
@@ -91,8 +91,8 @@ namespace ge {
   void PipelineManager::createDescriptorPool()
   {
     const std::array<VkDescriptorPoolSize, 1> poolSizes {{
-      {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30}
-    }};
+                                                           {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, m_logicalDevice->getMaxFramesInFlight() * 30}
+                                                         }};
 
     const VkDescriptorPoolCreateInfo poolCreateInfo {
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -117,40 +117,47 @@ namespace ge {
 
   void PipelineManager::createPipelines()
   {
-    const auto renderPass = m_renderer->getRenderPass();
+    const auto renderPass    = m_renderer->getRenderPass();
     const auto AAssetManager = m_assetManager->getAAssetManager();
 
     createGraphicsPipeline(PipelineType::rect,
                            PipelineConfig::createRectPipelineOptions(m_logicalDevice,
-                           renderPass, AAssetManager));
+                                                                     renderPass, AAssetManager));
 
     createGraphicsPipeline(PipelineType::triangle,
                            PipelineConfig::createTrianglePipelineOptions(m_logicalDevice,
-                           renderPass, AAssetManager));
+                                                                         renderPass, AAssetManager));
 
     createGraphicsPipeline(PipelineType::ellipse,
                            PipelineConfig::createEllipsePipelineOptions(m_logicalDevice,
-                           renderPass, AAssetManager));
+                                                                        renderPass, AAssetManager));
 
     createGraphicsPipeline(PipelineType::font,
                            PipelineConfig::createFontPipelineOptions(m_logicalDevice,
-                           renderPass, AAssetManager, m_assetManager->getFontDescriptorSetLayout()));
+                                                                     renderPass, AAssetManager, m_assetManager->getFontDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::image,
                            PipelineConfig::createImagePipelineOptions(m_logicalDevice,
-                           renderPass, AAssetManager, m_assetManager->getImageDescriptorSetLayout()));
+                                                                      renderPass, AAssetManager, m_assetManager->getImageDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::point,
                            PipelineConfig::createPointPipelineOptions(m_logicalDevice,
-                           renderPass, AAssetManager, m_assetManager->getGlyph3DDescriptorSetLayout()));
+                                                                      renderPass, AAssetManager, m_assetManager->getGlyph3DDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::font3D,
                            PipelineConfig::createFont3DPipelineOptions(m_logicalDevice,
-                           renderPass, AAssetManager, m_assetManager->getFontDescriptorSetLayout(),
-                           m_assetManager->getGlyph3DDescriptorSetLayout()));
+                                                                       renderPass, AAssetManager, m_assetManager->getFontDescriptorSetLayout(),
+                                                                       m_assetManager->getGlyph3DDescriptorSetLayout()));
 
     createGraphicsPipeline(PipelineType::mousePicking,
                            PipelineConfig::createMousePickingPipelineOptions(m_renderer->getMousePickingRenderPass(), AAssetManager));
+
+    // Compass: a 3-D billboard pipeline with no descriptor sets.  Its shaders
+    // draw the entire compass face procedurally via push constants.
+    createGraphicsPipeline(PipelineType::compass,
+                           PipelineConfig::createCompassPipelineOptions(m_logicalDevice,
+                                                                        renderPass, AAssetManager,
+                                                                        m_assetManager->getGlyph3DDescriptorSetLayout()));
   }
 
   void PipelineManager::createGraphicsPipeline(PipelineType pipelineType,

@@ -140,6 +140,43 @@ class Renderer2D(private val ptr: Long) {
     fun camera(x: Number, y: Number, width: Number, height: Number) = camera(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
 
     private external fun camera(x: Float, y: Float, width: Float, height: Float)
+
+    /* Compass */
+    /* Compass */
+    fun compass(
+        x: Number,
+        y: Number,
+        z: Number,
+        size: Number,
+        offsetX: Number,
+        offsetY: Number,
+        headingRad: Number,
+        alpha: Number = 1f
+    ) = compass(
+        x.toFloat(),
+        y.toFloat(),
+        z.toFloat(),
+        size.toFloat(),
+        offsetX.toFloat(),
+        offsetY.toFloat(),
+        headingRad.toFloat(),
+        alpha.toFloat()
+    )
+
+    private external fun compass(
+        x: Float,
+        y: Float,
+        z: Float,
+        size: Float,
+        offsetX: Float,
+        offsetY: Float,
+        headingRad: Float,
+        alpha: Float
+    )
+
+    fun pointAspect(aspectX: Number, aspectY: Number) = pointAspect(aspectX.toFloat(), aspectY.toFloat())
+
+    private external fun pointAspect(aspectX: Float, aspectY: Float)
 }
 
 class GraphicsEngineWrapper(private val ptr: Long) {

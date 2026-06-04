@@ -23,7 +23,8 @@ namespace ge {
     font3D,
     image,
     camera,
-    mousePicking
+    mousePicking,
+    compass        // billboard compass overlay — uses compass.vert / compass.frag
   };
 
   class PipelineManager

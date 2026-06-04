@@ -119,6 +119,11 @@ namespace ge {
     return m_cameraTexture;
   }
 
+  float AssetManager::getDpiScale() const
+  {
+    return m_dpiScale;
+  }
+
   void AssetManager::createDescriptorSetLayouts()
   {
     createFontDescriptorSetLayout();

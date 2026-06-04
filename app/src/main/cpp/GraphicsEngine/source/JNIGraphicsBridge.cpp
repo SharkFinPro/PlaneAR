@@ -349,11 +349,11 @@ namespace {
   }
 
   void nativePoint(JNIEnv* env,
-                    jobject thiz,
-                    jfloat x,
-                    jfloat y,
-                    jfloat z,
-                    jfloat size)
+                   jobject thiz,
+                   jfloat x,
+                   jfloat y,
+                   jfloat z,
+                   jfloat size)
   {
     ge::Renderer2D* renderer = getRenderer(env, thiz);
     if (renderer == nullptr)
@@ -385,11 +385,11 @@ namespace {
   }
 
   void nativeText3D(JNIEnv* env,
-                  jobject thiz,
-                  jstring text,
-                  jfloat x,
-                  jfloat y,
-                  jfloat z)
+                    jobject thiz,
+                    jstring text,
+                    jfloat x,
+                    jfloat y,
+                    jfloat z)
   {
     const char* textStr = env->GetStringUTFChars(text, nullptr);
     if (textStr == nullptr)
@@ -529,6 +529,48 @@ namespace {
     renderer->getMousePicker()->requestMousePicking(mouseX, mouseY);
   }
 
+  // ── Compass ────────────────────────────────────────────────────────────────
+  // Enqueues one compass billboard draw command into the renderer.
+  //
+  // x, y, z      — aircraft world position.
+  // size         — half-size of the compass quad in world units.
+  // offsetX/Y    — world-unit shift along camRight / camUp to the anchor point.
+  // headingRad   — mode-adjusted heading in radians (computed on the Kotlin side).
+  // alpha        — overall opacity 0–1.
+  void nativeCompass(JNIEnv* env,
+                     jobject thiz,
+                     jfloat x,
+                     jfloat y,
+                     jfloat z,
+                     jfloat size,
+                     jfloat offsetX,
+                     jfloat offsetY,
+                     jfloat headingRad,
+                     jfloat alpha)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+    renderer->compass(x, y, z, size, offsetX, offsetY, headingRad, alpha);
+  }
+
+  void nativePointAspect(JNIEnv* env,
+                   jobject thiz,
+                   jfloat aspectX,
+                   jfloat aspectY)
+  {
+    ge::Renderer2D* renderer = getRenderer(env, thiz);
+    if (renderer == nullptr)
+    {
+      return;
+    }
+
+    renderer->pointAspect(aspectX, aspectY);
+  }
+
   const JNINativeMethod renderer2DMethods[] = {
     // Color / Style
     { "fill", "(IIII)V", (void*)nativeFill },
@@ -564,9 +606,10 @@ namespace {
     { "image", "(Ljava/lang/String;FFFF)V", (void*)nativeImage },
 
     // 3D
-    { "set3DView",         "(FFFFFFFF)V",           (void*)nativeSet3DView },
+    { "set3DView",         "(FFFFFFFF)V",              (void*)nativeSet3DView },
     { "text3D",            "(Ljava/lang/String;FFF)V", (void*)nativeText3D },
-    { "camera",            "(FFFF)V",               (void*)nativeCamera },
+    { "camera",            "(FFFF)V",                  (void*)nativeCamera },
+    { "pointAspect",       "(FF)V",                    (void*)nativePointAspect },
 
     // Mouse Picking
     { "mousePickingPoint",        "(FFFFJ)V", (void*)nativeMousePickingPoint },
@@ -578,7 +621,10 @@ namespace {
     {"updateCameraTexture", "()V", (void*)nativeUpdateCameraTexture },
     {"startCamera", "(II)V", (void*)nativeStartCamera},
     {"stopCamera", "()V", (void*)nativeStopCamera},
-    {"isCameraOpen", "()Z", (void*)nativeIsCameraOpen}
+    {"isCameraOpen", "()Z", (void*)nativeIsCameraOpen},
+
+    // Compass
+    { "compass", "(FFFFFFFF)V", (void*)nativeCompass },
   };
 
   const JNINativeMethod graphicsEngineMethods[] = {
