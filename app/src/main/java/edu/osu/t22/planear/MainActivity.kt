@@ -33,6 +33,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import edu.osu.t22.planear.orientation.OrientationData
 import edu.osu.t22.planear.orientation.OrientationStore
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
@@ -91,7 +93,7 @@ class MainActivity : GameActivity() {
         rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
         appLocationManager = AppLocationManager(this, lifecycleScope)
-        adsbManager = AdsbManager(appLocationManager)
+        adsbManager = AdsbManager(appLocationManager, lifecycleScope)
 
         // Initialize achievement persistence
         AchievementStore.init(this)
@@ -104,9 +106,13 @@ class MainActivity : GameActivity() {
         frameGestureDetector = FrameGestureDetector(this)
         SceneSwitcher.gestureDetector = frameGestureDetector
 
-        // Coroutine 1: Fetch aircraft data every 5 seconds
+        // Coroutine 1: Fetch aircraft data every 2.5 seconds
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
+                appLocationManager.locationFlow
+                    .filterNotNull()
+                    .first()
+
                 while (isActive) {
                     try {
                         adsbManager.fetchAircraftData(appLocationManager.lastKnownLocation)

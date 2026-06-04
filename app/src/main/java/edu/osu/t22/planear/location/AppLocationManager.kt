@@ -14,14 +14,19 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class AppLocationManager(
     private val context: Context,
     private val scope: kotlinx.coroutines.CoroutineScope
 ) {
-    @Volatile
-    var lastKnownLocation: Location? = null
-        private set
+    private val _locationFlow = MutableStateFlow<Location?>(null)
+    val locationFlow: StateFlow<Location?> = _locationFlow
+
+    var lastKnownLocation: Location?
+        get() = _locationFlow.value
+        private set(value) { _locationFlow.value = value }
 
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
