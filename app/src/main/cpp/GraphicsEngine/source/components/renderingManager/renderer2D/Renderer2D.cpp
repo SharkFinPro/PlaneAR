@@ -905,13 +905,10 @@ namespace ge {
     // Vulkan NDC: Y points down, so flip the Y column of the projection matrix.
     m_projectionMatrix[1][1] *= -1;
 
-    // Extract billboard axes directly from the rotation matrix rows instead of
-    // inverting the view matrix — they are identical because the view matrix is
-    // pure rotation (orthonormal).
-    //   camRight = world direction of device +X = first row of R
-    //   camUp    = world direction of device +Y = second row of R
-    m_camRight = zUpToYUp * glm::vec3(R[0], R[3], R[6]);
-    m_camUp    = zUpToYUp * glm::vec3(R[1], R[4], R[7]);
+    glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
+    glm::vec3 viewDir = glm::normalize(forward);
+    m_camRight = glm::normalize(glm::cross(viewDir, worldUp));
+    m_camUp    = glm::normalize(glm::cross(m_camRight, viewDir));
   }
 
   // ── Compass ────────────────────────────────────────────────────────────────
