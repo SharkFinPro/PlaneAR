@@ -106,7 +106,7 @@ class MainActivity : GameActivity() {
         frameGestureDetector = FrameGestureDetector(this)
         SceneSwitcher.gestureDetector = frameGestureDetector
 
-        // Coroutine 1: Fetch aircraft data every 2.5 seconds
+        // Coroutine 1: Fetch aircraft data every 1 seconds
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 appLocationManager.locationFlow
@@ -119,7 +119,7 @@ class MainActivity : GameActivity() {
                     } catch (e: Exception) {
                         Log.e("ADSB_EXECUTION", "ADS-B fetch failed", e)
                     }
-                    delay(2_500L)
+                    delay(1_000L)
                 }
             }
         }
