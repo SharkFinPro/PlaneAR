@@ -13,7 +13,8 @@ data class FlightSheetData(
     val headingDeg:     String,
     val verticalRate:   String,   // e.g. "+1200 ft/min" or "-800 ft/min"
     val date:           String,
-    val takeoffTime:    String,
+    val origin:         String,
+    val destination:    String,
     val isLive:         Boolean
 ) {
     companion object {
@@ -54,13 +55,14 @@ data class FlightSheetData(
                 callsign      = csValue,
                 callsignLabel = csLabel,
                 registration  = aircraft.registration?.takeIf { it.isNotBlank() } ?: NA,
-                type          = aircraft.type?.takeIf { it.isNotBlank() } ?: NA,
+                type          = aircraft.longType?.takeIf { it.isNotBlank() } ?: aircraft.type?.takeIf { it.isNotBlank() } ?: NA,
                 altitudeFt    = "%.0f ft".format(aircraft.altitudeSeaLevel),
                 speedKts      = "${aircraft.groundSpeed?.toInt() ?: NA} kts",
                 headingDeg    = formatHeading(aircraft.headingDegrees),
                 verticalRate  = formatVerticalRate(aircraft.verticalRate),
                 date          = NA,
-                takeoffTime   = NA,
+                origin        = aircraft.origin?.takeIf { it.isNotBlank() } ?: NA,
+                destination   = aircraft.destination?.takeIf { it.isNotBlank() } ?: NA,
                 isLive        = true
             )
         }
@@ -92,7 +94,8 @@ data class FlightSheetData(
                 headingDeg    = formatHeading(live?.headingDegrees),
                 verticalRate  = live?.let { formatVerticalRate(it.verticalRate) } ?: NA,
                 date          = entry.date,
-                takeoffTime   = entry.takeoffTime,
+                origin        = entry.origin,
+                destination   = entry.destination,
                 isLive        = live != null
             )
         }

@@ -10,8 +10,8 @@ import edu.osu.t22.planear.adsb.Aircraft
 // Shared flight data
 data class FlightEntry(
     val callsign:     String,
-    val takeoffTime:  String,
-    val landingTime:  String,
+    val origin:  String,
+    val destination:  String,
     val planeType:    String,
     val airspeed:     Int,
     val verticalRate: Int,       // ft/min
@@ -37,15 +37,15 @@ object FlightHistoryStore {
         flightData.clear()
         Page.flightFavorites.clear()
 
-        // Format: "index|callsign|takeoffTime|landingTime|planeType|airspeed|verticalRate|registration|date|isFavorite"
+        // Format: "index|callsign|origin|destination|planeType|airspeed|verticalRate|registration|date|isFavorite"
         val parsedList = encodedSet.mapNotNull { str ->
             val parts = str.split("|", limit = 10)
             if (parts.size == 10) {
                 val index = parts[0].toIntOrNull() ?: 0
                 val entry = FlightEntry(
                     callsign = parts[1],
-                    takeoffTime = parts[2],
-                    landingTime = parts[3],
+                    origin = parts[2],
+                    destination = parts[3],
                     planeType = parts[4],
                     airspeed = parts[5].toIntOrNull() ?: 0,
                     verticalRate = parts[6].toIntOrNull() ?: 0,
@@ -71,7 +71,7 @@ object FlightHistoryStore {
         for (i in 0 until flightData.size) {
             val f = flightData[i]
             val isFav = if (i < Page.flightFavorites.size) Page.flightFavorites[i] else false
-            val encoded = "$i|${f.callsign}|${f.takeoffTime}|${f.landingTime}|" +
+            val encoded = "$i|${f.callsign}|${f.origin}|${f.destination}|" +
                     "${f.planeType}|${f.airspeed}|${f.verticalRate}|" +
                     "${f.registration}|${f.date}|$isFav"
             encodedSet.add(encoded)
@@ -89,10 +89,10 @@ fun logFlightHistory(plane: Aircraft) {
 
         flightData.add(
             0, FlightEntry(
-                callsign = plane.label,
-            takeoffTime = timeFormat.format(Date()),
-            landingTime = "Unknown",
-            planeType = plane.type?.takeIf { it.isNotBlank() } ?: "Unknown",
+            callsign = plane.label,
+            origin = plane.origin?.takeIf { it.isNotBlank() } ?: "",
+            destination = plane.destination?.takeIf { it.isNotBlank() } ?: "",
+            planeType = plane.longType?.takeIf { it.isNotBlank() } ?: plane.type?.takeIf { it.isNotBlank() } ?: "Unknown",
             airspeed = plane.groundSpeed?.toInt() ?: 0,
             verticalRate = plane.verticalRate,
             registration = plane.registration?.takeIf { it.isNotBlank() } ?: "",
