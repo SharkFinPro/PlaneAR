@@ -31,18 +31,25 @@ const Team: React.FC = () => {
               <div ref={ref}>
                 <div
                   key={member.name}
-                  className="team-card bg-surface rounded-lg md:rounded-xl overflow-hidden shadow-sm
+                  className="group team-card bg-surface rounded-lg md:rounded-xl overflow-hidden shadow-sm
                              border border-outline-variant/10 transition-all duration-300
                              hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10"
                 >
-                  <div className="p-4 md:p-6">
+                  <div className="p-4 md:p-6 flex flex-col items-center text-center">
+                    <div className="flex justify-center mb-4 md:mb-6">
+                      <img
+                        src={member.headshot}
+                        alt={`${member.name}'s headshot`}
+                        className="w-20 h-20 md:w-32 md:h-32 rounded-xl group-hover:rounded-2xl object-cover shadow-sm border border-outline-variant/20 transition-all duration-300"
+                      />
+                    </div>
                     <div className="text-[10px] md:text-xs font-bold text-primary tracking-widest uppercase mb-1">
                       {member.role}
                     </div>
                     <h3 className="font-headline text-sm md:text-lg font-bold mb-3 md:mb-4">
                       {member.name}
                     </h3>
-                    <div className="flex gap-3 md:gap-4">
+                    <div className="flex gap-3 md:gap-4 justify-center">
                       {member.github && (
                         <a href={member.github} target="_blank" rel="noopener noreferrer"
                            aria-label={`${member.name}'s GitHub profile`}>
