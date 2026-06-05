@@ -102,6 +102,7 @@ void preloadAssets(const std::unique_ptr<ge::GraphicsEngine>& engine)
   am->registerFont("roboto", "fonts/Roboto-VariableFont_wdth,wght.ttf");
   am->registerFont("emoji", "fonts/NotoEmoji-VariableFont_wght.ttf", ge::CharsetMode::FULL);
   am->registerImage("plane", "images/plane.jpg");
+  am->registerImage("overview_plane", "images/overview_plane.jpg");
 
   am->preloadFont("roboto", 11);
   am->preloadFont("roboto", 12);

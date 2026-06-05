@@ -187,7 +187,11 @@ class FavoritesPage : Page {
                 val imgY = cardY + (cardH - thumbH) / 2f
                 fill(c.backgroundRow)
                 rect(imgX, imgY, thumbW, thumbH, thumbR)
-                image("plane", imgX, imgY, thumbW, thumbH)
+                
+                fill(c.textPrimary)
+                textFont("emoji", 40)
+                textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+                text("✈️", imgX + thumbW / 2f, imgY + thumbH / 2f)
 
                 val textX     = imgX + thumbW + 20f
                 val rightEdge = cardX + hl.contentW - 20f
@@ -406,7 +410,7 @@ class FavoritesPage : Page {
 
             fill(c.backgroundCard)
             rect(hl.margin + imgPad, imgTop, imgW, imgH, imgR)
-            image("plane", hl.margin + imgPad, imgTop, imgW, imgH)
+            image("overview_plane", hl.margin + imgPad, imgTop, imgW, imgH)
 
             // ── Stats row ─────────────────────────────────────────────
             val statsY    = heroTop + heroH + 30f
@@ -479,7 +483,11 @@ class FavoritesPage : Page {
 
                 fill(c.backgroundRow)
                 rect(rawX + 8f, rvTop + 8f, rvCardW - 16f, rvImgH - 8f, rvCornerR - 4f)
-                image("plane", rawX + 8f, rvTop + 8f, rvCardW - 16f, rvImgH - 8f)
+                
+                fill(c.textPrimary)
+                textFont("emoji", 40)
+                textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+                text("✈️", rawX + 8f + (rvCardW - 16f) / 2f, rvTop + 8f + (rvImgH - 8f) / 2f)
 
                 val textY = rvTop + rvImgH + 25f
                 fill(c.textPrimary)
@@ -548,7 +556,11 @@ class FavoritesPage : Page {
 
                 fill(c.backgroundRow)
                 rect(rawX + 8f, favTop + 8f, rvCardW - 16f, rvImgH - 8f, rvCornerR - 4f)
-                image("plane", rawX + 8f, favTop + 8f, rvCardW - 16f, rvImgH - 8f)
+                
+                fill(c.textPrimary)
+                textFont("emoji", 40)
+                textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+                text("✈️", rawX + 8f + (rvCardW - 16f) / 2f, favTop + 8f + (rvImgH - 8f) / 2f)
 
                 val ftextY = favTop + rvImgH + 25f
                 fill(c.textPrimary)

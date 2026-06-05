@@ -131,7 +131,11 @@ class FlightHistoryPage : Page {
 
                 fill(c.backgroundRow)
                 rect(imgX, imgY, thumbW, thumbH, thumbR)
-                image("plane", imgX, imgY, thumbW, thumbH)
+                
+                fill(c.textPrimary)
+                textFont("emoji", 40)
+                textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+                text("✈️", imgX + thumbW / 2f, imgY + thumbH / 2f)
 
                 // ── Text content ───────────────────────────────────────
                 val textX     = imgX + thumbW + 20f
