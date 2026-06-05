@@ -36,10 +36,9 @@ class FlightHistoryPage : Page {
 
         // ── Header area ────────────────────────────────────────────────
         val headerY    = screenH * 0.04f
-        val titleY     = headerY + 55.0f
 
         // ── Tab bar (pill-style: History | Favorites | Overview) ──────
-        val tabBarY    = titleY + 50.0f
+        val tabBarY    = headerY + 15.0f
         val tabBarH    = 65f
         val tabCount   = 3
         val tabGap     = 16f
@@ -237,12 +236,6 @@ class FlightHistoryPage : Page {
             // Solid background behind header — covers any cards scrolling behind
             fill(c.background)
             rect(0, 0, screenW, headerBottom)
-
-            // Title
-            fill(c.textPrimary)
-            textFont("roboto", 20)
-            textAlign(TextAlignH.CENTER, TextAlignV.BASELINE)
-            text("Flight History", screenW / 2.0f, titleY)
 
             // Tab pills
             for (ti in 0 until tabCount) {

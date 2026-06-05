@@ -54,7 +54,7 @@ class FavoritesPage : Page {
     // ════════════════════════════════════════════════════════════════════
     private data class HeaderLayout(
         val margin: Float, val contentW: Float,
-        val headerY: Float, val titleY: Float,
+        val headerY: Float,
         val tabBarY: Float, val tabBarH: Float,
         val tabGap: Float, val tabW: Float, val tabR: Float,
         val headerBottom: Float
@@ -64,14 +64,13 @@ class FavoritesPage : Page {
         val margin   = screenW * 0.05f
         val contentW = screenW - 2f * margin
         val headerY  = screenH * 0.04f
-        val titleY   = headerY + 55.0f
-        val tabBarY  = titleY + 50.0f
+        val tabBarY  = headerY + 15.0f
         val tabBarH  = 65f
         val tabGap   = 16f
         val tabW     = (contentW - 2f * tabGap) / 3f
         val tabR     = tabBarH / 2f
         val headerBottom = tabBarY + tabBarH + 15f
-        return HeaderLayout(margin, contentW, headerY, titleY, tabBarY, tabBarH, tabGap, tabW, tabR, headerBottom)
+        return HeaderLayout(margin, contentW, headerY, tabBarY, tabBarH, tabGap, tabW, tabR, headerBottom)
     }
 
     // ════════════════════════════════════════════════════════════════════
@@ -278,11 +277,6 @@ class FavoritesPage : Page {
             // ════════════════════════════════════════════════════════════
             fill(c.background)
             rect(0, 0, screenW, hl.headerBottom)
-
-            fill(c.textPrimary)
-            textFont("roboto", 20)
-            textAlign(TextAlignH.CENTER, TextAlignV.BASELINE)
-            text("Favorites", screenW / 2.0f, hl.titleY)
 
             for (ti in 0 until 3) {
                 val tabX = hl.margin + ti * (hl.tabW + hl.tabGap)
@@ -605,11 +599,6 @@ class FavoritesPage : Page {
             // ════════════════════════════════════════════════════════════
             fill(c.background)
             rect(0, 0, screenW, hl.headerBottom)
-
-            fill(c.textPrimary)
-            textFont("roboto", 20)
-            textAlign(TextAlignH.CENTER, TextAlignV.BASELINE)
-            text("Overview", screenW / 2f, hl.titleY)
 
             for (ti in 0 until 3) {
                 val tabX = hl.margin + ti * (hl.tabW + hl.tabGap)
