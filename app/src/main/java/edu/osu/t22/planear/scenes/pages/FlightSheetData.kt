@@ -86,13 +86,17 @@ data class FlightSheetData(
                 registration    = live?.registration?.takeIf { it.isNotBlank() }
                     ?: entry.registration.takeIf { it.isNotBlank() }
                     ?: NA,
-                origin          = live?.origin?.takeIf { it.isNotBlank() } ?: NA,
-                destination     = live?.destination?.takeIf { it.isNotBlank() } ?: NA,
+                origin          = live?.origin?.takeIf { it.isNotBlank() }
+                    ?: entry.origin.takeIf {it.isNotBlank()}
+                    ?: NA,
+                destination     = live?.destination?.takeIf { it.isNotBlank() }
+                    ?: entry.destination.takeIf {it.isNotBlank()}
+                    ?: NA,
                 type            = live?.type?.takeIf { it.isNotBlank() }
                     ?: entry.planeType.takeIf { it.isNotBlank() }
                     ?: NA,
                 altitudeRawFt   = live?.altitudeSeaLevel ?: NA_DOUBLE,
-                speedRawKts     = live?.groundSpeed?.toInt() ?: entry.airspeed,
+                speedRawKts     = live?.groundSpeed?.toInt() ?: NA_INT,
                 headingDeg      = formatHeading(live?.headingDegrees),
                 verticalRateFpm = live?.verticalRate ?: NA_INT,
                 date            = entry.date,
