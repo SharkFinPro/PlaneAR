@@ -35,7 +35,7 @@ export const navigation = {
     { label: "Meet The Team", href: "#team", active: false },
   ],
   footer: [
-    { label: "Download APK", href: links.download },
+    { label: "Download APK", href: links.download, external: true },
     { label: "GitHub Source", href: links.github, external: true },
     { label: "Contact Team", href: links.contact, external: true },
   ],
@@ -51,6 +51,7 @@ export const hero = {
     label: "Download APK",
     icon: "download",
     href: links.download,
+    external: true
   },
   secondaryButton: {
     label: "View Source on GitHub",
@@ -194,7 +195,7 @@ export const resources = {
       icon: "download",
       label: "Download APK",
       href: links.download,
-      external: false,
+      external: true,
     },
     {
       icon: "terminal",
