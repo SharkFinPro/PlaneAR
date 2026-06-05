@@ -23,7 +23,7 @@ export const siteConfig = {
 // --- Shared Links (used across multiple sections) ----------------------------
 export const links = {
   github: "https://github.com/SharkFinPro/PlaneAR",
-  download: "#download",
+  download: "https://github.com/SharkFinPro/PlaneAR/releases/latest/download/planear.apk",
   contact: "https://github.com/SharkFinPro/PlaneAR/issues",
 };
 
