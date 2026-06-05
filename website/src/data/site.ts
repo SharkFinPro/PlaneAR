@@ -88,6 +88,7 @@ export const team = {
       name: "Douglas Sandford",
       role: "Engineering",
       headshot: "/headshots/douglas-headshot.png",
+      linkedin: "https://www.linkedin.com/in/douglas-sandford-575005274/",
       email: "douglas.sandford@gmail.com",
       github: "https://github.com/eageroden"
     },
@@ -95,6 +96,7 @@ export const team = {
       name: "Johnny Vo",
       role: "Engineering",
       headshot: "/headshots/johnny-headshot.jpg",
+      linkedin: "https://www.linkedin.com/in/johnnyvo-/",
       email: "johnnyqvo@gmail.com",
       github: "https://github.com/vojoh"
     },
@@ -102,6 +104,7 @@ export const team = {
       name: "Kaden Allen",
       role: "Engineering",
       headshot: "/headshots/kaden-headshot.jpg",
+      linkedin: "https://www.linkedin.com/in/kaden-allen-0266a7265/",
       email: "klahawk03@gmail.com",
       github: "https://github.com/allekade"
     },
