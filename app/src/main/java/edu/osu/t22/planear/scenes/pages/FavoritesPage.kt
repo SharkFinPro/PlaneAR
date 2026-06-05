@@ -95,7 +95,7 @@ class FavoritesPage : Page {
         val listStartY = hl.headerBottom + 15f
         val listEndY   = screenH - 30f
         val cardH      = 150f
-        val cardGap    = 18f
+        val cardGap    = 40f
         val cardR      = 20f
         val thumbW     = cardH - 30f
         val thumbH     = cardH - 30f
@@ -188,7 +188,7 @@ class FavoritesPage : Page {
                 rect(imgX, imgY, thumbW, thumbH, thumbR)
                 
                 fill(c.textPrimary)
-                textFont("emoji", 40)
+                textFont("emoji", 32)
                 textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
                 text("✈️", imgX + thumbW / 2f, imgY + thumbH / 2f)
 
