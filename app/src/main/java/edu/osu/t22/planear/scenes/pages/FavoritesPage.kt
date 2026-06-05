@@ -15,8 +15,13 @@ class FavoritesPage : Page {
     override val sceneId = SceneId.Favorites
 
     companion object {
-        /** Set to true before navigating to Favorites to land directly on Overview */
-        var navigateToOverview = false
+        /**
+         * Set before navigating to Favorites to control which sub-view appears.
+         *   null  → keep whatever sub-view is currently showing (default)
+         *   false → force the favorites list
+         *   true  → force the overview
+         */
+        var requestedSubView: Boolean? = null
     }
 
     private var currentPage = 0
@@ -31,10 +36,10 @@ class FavoritesPage : Page {
     private var internalTransDirection = 1
 
     override fun render(sceneInfo: SceneInfo, sceneSwitcher: SceneSwitcher) {
-        // Consume the external navigation flag
-        if (navigateToOverview) {
-            showingOverview = true
-            navigateToOverview = false
+        // Consume the external navigation request
+        requestedSubView?.let {
+            showingOverview = it
+            requestedSubView = null
         }
 
         if (showingOverview) {

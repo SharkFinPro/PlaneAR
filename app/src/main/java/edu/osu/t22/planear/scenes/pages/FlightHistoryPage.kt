@@ -270,12 +270,13 @@ class FlightHistoryPage : Page {
                                 0 -> { /* Already on History */ }
                                 1 -> {
                                     TabTransition.start(slideFromRight = true)
+                                    FavoritesPage.requestedSubView = false
                                     sceneSwitcher.setCurrentScene(SceneId.Favorites.id)
                                     tapConsumed = true
                                 }
                                 2 -> {
                                     TabTransition.start(slideFromRight = true)
-                                    FavoritesPage.navigateToOverview = true
+                                    FavoritesPage.requestedSubView = true
                                     sceneSwitcher.setCurrentScene(SceneId.Favorites.id)
                                     tapConsumed = true
                                 }
