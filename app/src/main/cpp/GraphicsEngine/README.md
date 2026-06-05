@@ -1,105 +1,66 @@
-# Graphics Engine
+# PlaneAR Graphics Engine
 
-A high-performance, Vulkan-based graphics library for the PlaneAR Android App. Provides a complete rendering pipeline with support for 2D graphics, text rendering, and modern graphics APIs.
+A high-performance, Vulkan-based graphics library specifically engineered for the PlaneAR augmented reality system. The engine provides a complete, low-overhead rendering pipeline optimized for mobile hardware, supporting spatial 3D overlays, 2D UI elements, and high-fidelity text rendering.
 
 ## Key Features
 
-- **Vulkan-based Rendering** - Modern, low-overhead graphics API for optimal performance
-- **Modular Architecture** - Clean separation of concerns with well-defined component boundaries
-- **2D Graphics Support** - Efficient rendering of rectangles, ellipses, and triangles
-- **Text Rendering** - High-quality font rendering via FreeType integration
-- **Native Android Integration** - Seamless integration with Android Game Activity lifecycle
+- **Vulkan-Native Rendering**: Leverages a modern, low-overhead graphics API to maximize frame rates and minimize CPU overhead on Android devices.
+- **Modular Architecture**: A strictly decoupled design with clear boundaries between instance management, pipeline configuration, and resource handling.
+- **Spatial 2D Graphics**: Optimized primitives for rendering aircraft markers, HUD elements, and interactive billboard cards.
+- **Advanced Text Pipeline**: High-quality font rendering integrated via FreeType for clear, legible aircraft callsigns and data.
+- **Android Game Activity Integration**: Seamlessly integrated with the Android Game Activity lifecycle for low-latency input and display.
 
-## Architecture
+## System Architecture
 
-GraphicsEngine follows a layered architecture that separates concerns across distinct functional areas:
+The `GraphicsEngine` utilizes a layered architecture to ensure maintainability and hardware abstraction:
 
-**Foundation Layer**
-- Vulkan instance and device management
-- Surface creation and presentation
-- Debug and validation tooling
+### Foundation Layer
+- **Vulkan Instance & Device**: Manages the physical GPU selection, logical device creation, and queue family management.
+- **Surface & Swapchain**: Handles window surface creation and the double/triple buffering mechanism for smooth frame presentation.
+- **Debug Tooling**: Integrated Vulkan validation layers and custom logging for rapid development and debugging.
 
-**Pipeline Layer**
-- Graphics pipeline configuration and state management
-- Shader module compilation and loading
-- Render pass and framebuffer management
+### Pipeline Layer
+- **Pipeline State**: Manages graphics pipeline states, including vertex input, rasterization, and color blending.
+- **Shader Management**: Handles the compilation and loading of GLSL shaders (compiled to SPIR-V).
+- **Render Pass Logic**: Defines the render pass structure, attachments, and image layout transitions.
 
-**Resource Layer**
-- Command buffer recording and submission
-- Descriptor set management for shader resources
-- Asset loading and caching (fonts, textures)
+### Resource Layer
+- **Command Orchestration**: Efficient recording and submission of command buffers to GPU queues.
+- **Descriptor Management**: Handles the binding of shader resources, such as uniforms and textures.
+- **Asset Pipeline**: A centralized system for loading and caching fonts and image assets.
 
-**Application Layer**
-- High-level rendering API
-- 2D rendering utilities
-- Draw call orchestration
+### Application Layer
+- **High-Level API**: Provides a simplified interface for the Kotlin layer to issue draw calls.
+- **2D Utility Suite**: Optimized functions for rendering the AR markers and the aviation HUD.
 
 ## Library Structure
 
-### Entry Point & Core
-
-| Directory/File | Purpose |
-|----------------|---------|
-| `GraphicsEngine.cpp/h` | Main library interface and initialization |
-| `main.cpp` | Entry point for testing/standalone execution |
-| `Logger.h` | Logging utilities and debug output |
-
-### Shaders
-
-| Directory | Purpose |
-|-----------|---------|
-| `shaders/` | GLSL shader source files (`.vert`, `.frag`) compiled to SPIR-V for Vulkan |
-
-**Included Shaders:**
-- `ellipse` - Ellipse/circle rendering
-- `font` - Text glyph rendering
-- `rect` - Rectangle rendering
-- `triangle` - Triangle primitive rendering
-
-### Utilities
-
-| Directory | Purpose |
-|-----------|---------|
-| `utilities/` | Helper functions for buffers, images, and common operations |
-
-## Component Overview
-
-### Core Vulkan Setup
-
-| Component | Directory | Responsibilities |
-|-----------|-----------|------------------|
-| **Instance** | `instance/` | Vulkan instance initialization, validation layers, and debug messaging |
-| **Physical Device** | `physicalDevice/` | GPU detection, capability queries, and device selection |
-| **Logical Device** | `logicalDevice/` | Device interface creation and queue family management |
-| **Surface** | `surface/` | Window surface creation, swapchain management, and presentation |
+### Core Entry Points
+| Component | Path | Responsibility |
+|-----------|------|-----------------|
+| **Engine Interface** | `GraphicsEngine.cpp/h` | Primary library API and system initialization |
+| **Test Entry** | `main.cpp` | Standalone entry point for engine verification |
+| **Logging** | `Logger.h` | System-wide debug and error reporting |
 
 ### Rendering Pipeline
+| Component | Directory | Responsibility |
+|-----------|-----------|-----------------|
+| **Instance** | `instance/` | Vulkan initialization and debug messenger setup |
+| **Surface** | `surface/` | Swapchain management and window surface handling |
+| **Pipelines** | `pipelines/` | Pipeline state objects and configuration |
+| **Shader Module** | `shaderModule/` | SPIR-V module creation and loading |
+| **Render Pass** | `renderPass/` | Definition of render targets and layout transitions |
 
-| Component | Directory | Responsibilities |
-|-----------|-----------|------------------|
-| **Pipelines** | `pipelines/` | Graphics pipeline configuration, state management, and pipeline caching |
-| **Shader Module** | `shaderModule/` | Shader compilation and Vulkan module creation |
-| **Render Pass** | `renderPass/` | Render pass definitions, attachments, and layout transitions |
-| **Framebuffers** | `framebuffers/` | Render target creation and swapchain framebuffer management |
+### Asset & Resource Management
+| Component | Directory | Responsibility |
+|-----------|-----------|-----------------|
+| **Asset Manager** | `assets/` | Lifecycle management for textures and fonts |
+| **Fonts** | `assets/fonts/` | FreeType glyph generation and caching |
+| **Textures** | `assets/textures/` | Image loading and Vulkan image view creation |
+| **Buffers** | `utilities/` | Helper classes for vertex and index buffer management |
 
-### Command & Resource Binding
-
-| Component | Directory | Responsibilities |
-|-----------|-----------|------------------|
-| **Command Buffer** | `commandBuffer/` | Command recording, allocation, and submission to GPU queues |
-| **Descriptor Set** | `descriptorSet/` | Shader resource binding and descriptor pool management |
-
-### Asset Management
-
-| Component | Directory | Responsibilities |
-|-----------|-----------|------------------|
-| **Asset Manager** | `assets/` | Centralized loading, caching, and lifecycle management for all resources |
-| **Fonts** | `assets/fonts/` | Font loading and glyph management via FreeType |
-| **Textures** | `assets/textures/` | Image loading, texture creation, and glyph texture handling |
-
-### High-Level Rendering
-
-| Component | Directory | Responsibilities |
-|-----------|-----------|------------------|
-| **Rendering Manager** | `renderingManager/` | Primary rendering API and draw call orchestration |
-| **Renderer 2D** | `renderingManager/renderer2D/` | 2D graphics rendering and utilities |
+### High-Level API
+| Component | Directory | Responsibility |
+|-----------|-----------|-----------------|
+| **Rendering Manager** | `renderingManager/` | Orchestration of the frame rendering loop |
+| **Renderer 2D** | `renderingManager/renderer2D/` | 2D primitive and text rendering utilities |
