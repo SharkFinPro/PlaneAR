@@ -40,6 +40,7 @@ object AppColors {
         val danger:          Color,  // destructive actions (remove)
         val overlay:         Color,  // backdrop behind bottom sheets (use with alpha)
         val skyBackground:   Color,  // camera-unavailable AR background
+        val compassCardinal: Color,  // N/E/S/W labels on the compass tape
     )
 
     private val light = Palette(
@@ -59,7 +60,8 @@ object AppColors {
         trackBackground = Color(220, 220, 220),
         danger          = Color(220, 60,  60),
         overlay         = Color(0,   0,   0),
-        skyBackground   = Color(90,  160, 255),
+        skyBackground   = Color(135, 195, 235),
+        compassCardinal = Color(200, 40,  40),
     )
 
     private val dark = Palette(
@@ -80,6 +82,7 @@ object AppColors {
         danger          = Color(200, 50,  50),
         overlay         = Color(0,   0,   0),
         skyBackground   = Color(20,  35,  55),
+        compassCardinal = Color(235, 80,  80),
     )
 
     val current: Palette

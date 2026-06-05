@@ -593,7 +593,7 @@ class ArPage : Page {
 
             // ── Compass tape ──────────────────────────────────────────────────
             // tapeY clears punch-hole / notch cameras that sit inside the top ~80 px.
-            val tapeH     = 55f
+            val tapeH     = 60f
             val tapeY     = 148f + tapeH / 2f
             val tapeW     = width * 0.86f
             val tapeLeft  = (width - tapeW) / 2f
@@ -650,7 +650,8 @@ class ArPage : Page {
 
                 if (tickX >= tapeLeft + labelMargin && tickX <= tapeRight - labelMargin) {
                     cardinals[deg.toFloat()]?.let { label ->
-                        fill(hud.textPrimary, 230)
+                        val isMainCardinal = deg % 90 == 0
+                        fill(if (isMainCardinal) hud.compassCardinal else hud.textPrimary, 230)
                         textFont("roboto", 16)
                         text(label, tickX, tapeY)
                     }
