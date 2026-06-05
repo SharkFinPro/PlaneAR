@@ -119,7 +119,7 @@ object FlightDetailSheet {
                 if (entry != null) {
                     FlightSheetData.fromEntry(entry)
                 } else {
-                    flight.copy(isLive = false, altitudeFt = "N/A", headingDeg = "N/A", verticalRate = "N/A")
+                    flight.copy(isLive = false, altitudeRawFt = FlightSheetData.NA_DOUBLE, headingDeg = "N/A", verticalRateFpm = FlightSheetData.NA_INT)
                 }
             }
         }
@@ -253,9 +253,9 @@ object FlightDetailSheet {
                 }
                 if (flight.origin != "N/A")      add("ORIGIN"      to flight.origin)
                 if (flight.destination != "N/A") add("DESTINATION" to flight.destination)
-                add("ALTITUDE"  to flight.altitudeFt)
+                add("ALTITUDE"  to flight.altitude)
                 add("VERT RATE" to flight.verticalRate)
-                add("SPEED"     to flight.speedKts)
+                add("SPEED"     to flight.speed)
                 add("TYPE"      to flight.type)
                 add("HEADING"   to flight.headingDeg)
             }
