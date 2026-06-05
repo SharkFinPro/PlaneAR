@@ -81,6 +81,7 @@ const Hero: React.FC = () => {
           <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4 md:gap-6">
             <a
               href={hero.primaryButton.href}
+              target={hero.primaryButton.external ? "_blank" : undefined}
               className="btn-primary text-sm md:text-base px-6 py-3 md:px-8 md:py-4"
             >
               <MaterialIcon icon={hero.primaryButton.icon} />
