@@ -47,8 +47,11 @@ class FlightHistoryPage : Page {
         val tabR       = tabBarH / 2f
         val tabLabels  = arrayOf("History", "Favorites", "Overview")
 
+        // The header+tabs area that sits on top of everything
+        val headerBottom = tabBarY + tabBarH + 15f
+
         // ── Card list area ─────────────────────────────────────────────
-        val listStartY = tabBarY + tabBarH + 30f
+        val listStartY = headerBottom + 15f
         val listEndY   = screenH - 30f
         val cardH      = 150f
         val cardGap    = 18f
@@ -88,61 +91,27 @@ class FlightHistoryPage : Page {
 
         val widgetShown = FlightDetailSheet.isOpen
 
+        // ── Transition animation ───────────────────────────────────────
+        val transEased = TabTransition.advance()
+        val slideOffsetX = if (TabTransition.active)
+            screenW * (1f - transEased) * TabTransition.direction
+        else 0f
+
         with(GraphicsEngineWrapper(sceneInfo.enginePtr).getRenderer2D()) {
 
             rectMode(RectMode.CORNER)
             imageMode(ImageMode.CORNER)
 
-            // Background
+            // Full-screen background (drawn first, always static)
             fill(c.background)
             rect(0, 0, screenW, screenH)
 
-            // ── Title ──────────────────────────────────────────────────
-            fill(c.textPrimary)
-            textFont("roboto", 20)
-            textAlign(TextAlignH.CENTER, TextAlignV.BASELINE)
-            text("Flight History", screenW / 2.0f, titleY)
+            // ════════════════════════════════════════════════════════════
+            // LAYER 1 — Scrollable card content (slides with transition)
+            // ════════════════════════════════════════════════════════════
+            pushMatrix()
+            translate(slideOffsetX, 0)
 
-            // ── Tab bar ────────────────────────────────────────────────
-            for (ti in 0 until tabCount) {
-                val tabX = margin + ti * (tabW + tabGap)
-
-                if (ti == 0) {
-                    // Active tab (History) — filled accent
-                    fill(c.accent)
-                    rect(tabX, tabBarY, tabW, tabBarH, tabR)
-                    fill(c.textOnAccent)
-                } else {
-                    // Inactive tabs — outlined style
-                    fill(c.backgroundRow)
-                    rect(tabX, tabBarY, tabW, tabBarH, tabR)
-                    fill(c.textSecondary)
-                }
-
-                textFont("roboto", 13)
-                textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-                text(tabLabels[ti], tabX + tabW / 2f, tabBarY + tabBarH / 2f)
-            }
-
-            // Tab tap handling
-            if (tapPos != null && !widgetShown) {
-                val (tx, ty) = tapPos
-                if (ty >= tabBarY && ty <= tabBarY + tabBarH) {
-                    for (ti in 0 until tabCount) {
-                        val tabX = margin + ti * (tabW + tabGap)
-                        if (tx >= tabX && tx <= tabX + tabW) {
-                            when (ti) {
-                                0 -> { /* Already on History */ }
-                                1 -> { sceneSwitcher.setCurrentScene(SceneId.Favorites.id); tapConsumed = true }
-                                2 -> { FavoritesPage.navigateToOverview = true; sceneSwitcher.setCurrentScene(SceneId.Favorites.id); tapConsumed = true }
-                            }
-                            break
-                        }
-                    }
-                }
-            }
-
-            // ── Flight cards ───────────────────────────────────────────
             for (i in 0 until totalFlights) {
                 val rawY = listStartY + i * (cardH + cardGap) - scrollOffset
 
@@ -160,7 +129,6 @@ class FlightHistoryPage : Page {
                 val imgX = cardX + thumbPad
                 val imgY = cardY + (cardH - thumbH) / 2f
 
-                // Thumbnail background (rounded rect clipping approximation)
                 fill(c.backgroundRow)
                 rect(imgX, imgY, thumbW, thumbH, thumbR)
                 image("plane", imgX, imgY, thumbW, thumbH)
@@ -169,7 +137,7 @@ class FlightHistoryPage : Page {
                 val textX     = imgX + thumbW + 20f
                 val rightEdge = cardX + contentW - 20f
 
-                // Callsign (bold, primary)
+                // Callsign
                 fill(c.textPrimary)
                 textFont("roboto", 15)
                 textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
@@ -186,8 +154,7 @@ class FlightHistoryPage : Page {
                 textFont("roboto", 11)
                 text(flightData[i].date, textX, cardY + 95f)
 
-                // ── Right side: Favorite star + status badge ───────────
-                // Favorite star
+                // ── Favorite star ──────────────────────────────────────
                 val isFav = i < Page.flightFavorites.size && Page.flightFavorites[i]
                 val starX = rightEdge - 10f
                 if (isFav) fill(239, 191, 4) else fill(c.divider)
@@ -195,14 +162,13 @@ class FlightHistoryPage : Page {
                 textAlign(TextAlignH.RIGHT, TextAlignV.CENTER)
                 text("⭐", starX, cardY + 40f)
 
-                // Status badge
+                // ── Status badge ───────────────────────────────────────
                 val badgeW = 120f
                 val badgeH = 38f
                 val badgeX = rightEdge - badgeW
                 val badgeY = cardY + cardH - 55f
                 val badgeR = badgeH / 2f
 
-                // Determine status from live data
                 val isLive = edu.osu.t22.planear.scenes.SceneSwitcher.adsbManager
                     .getRepository()
                     .getAircraft()
@@ -225,11 +191,10 @@ class FlightHistoryPage : Page {
                 }
 
                 // ── Card tap handling ──────────────────────────────────
-                if (tapPos != null && !tapConsumed && !widgetShown) {
+                if (tapPos != null && !tapConsumed && !widgetShown && !TabTransition.active) {
                     val (tx, ty) = tapPos
 
                     if (ty >= cardY && ty <= cardY + cardH && tx >= cardX && tx <= cardX + contentW) {
-                        // Star tap zone
                         if (tx >= starX - 50f && tx <= starX + 10f && ty >= cardY + 15f && ty <= cardY + 65f) {
                             if (i < Page.flightFavorites.size) {
                                 Page.flightFavorites[i] = !Page.flightFavorites[i]
@@ -238,7 +203,6 @@ class FlightHistoryPage : Page {
                             tapConsumed = true
                         }
 
-                        // Row tap (open detail)
                         if (!tapConsumed && ty >= cardY && ty <= cardY + cardH) {
                             FlightDetailSheet.open(flightData[i])
                             tapConsumed = true
@@ -258,6 +222,68 @@ class FlightHistoryPage : Page {
                 rect(scrollBarX - 4f, listStartY, 8f, scrollBarTrackH, 4f)
                 fill(c.accent, 180)
                 rect(scrollBarX - 4f, scrollBarY, 8f, scrollBarH, 4f)
+            }
+
+            popMatrix()
+
+            // ════════════════════════════════════════════════════════════
+            // LAYER 2 — Fixed header + tab bar (always on top)
+            // ════════════════════════════════════════════════════════════
+
+            // Solid background behind header — covers any cards scrolling behind
+            fill(c.background)
+            rect(0, 0, screenW, headerBottom)
+
+            // Title
+            fill(c.textPrimary)
+            textFont("roboto", 20)
+            textAlign(TextAlignH.CENTER, TextAlignV.BASELINE)
+            text("Flight History", screenW / 2.0f, titleY)
+
+            // Tab pills
+            for (ti in 0 until tabCount) {
+                val tabX = margin + ti * (tabW + tabGap)
+
+                if (ti == 0) {
+                    fill(c.accent)
+                    rect(tabX, tabBarY, tabW, tabBarH, tabR)
+                    fill(c.textOnAccent)
+                } else {
+                    fill(c.backgroundRow)
+                    rect(tabX, tabBarY, tabW, tabBarH, tabR)
+                    fill(c.textSecondary)
+                }
+
+                textFont("roboto", 13)
+                textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+                text(tabLabels[ti], tabX + tabW / 2f, tabBarY + tabBarH / 2f)
+            }
+
+            // Tab tap handling (only when transition is not playing)
+            if (tapPos != null && !widgetShown && !TabTransition.active) {
+                val (tx, ty) = tapPos
+                if (ty >= tabBarY && ty <= tabBarY + tabBarH) {
+                    for (ti in 0 until tabCount) {
+                        val tabX = margin + ti * (tabW + tabGap)
+                        if (tx >= tabX && tx <= tabX + tabW) {
+                            when (ti) {
+                                0 -> { /* Already on History */ }
+                                1 -> {
+                                    TabTransition.start(slideFromRight = true)
+                                    sceneSwitcher.setCurrentScene(SceneId.Favorites.id)
+                                    tapConsumed = true
+                                }
+                                2 -> {
+                                    TabTransition.start(slideFromRight = true)
+                                    FavoritesPage.navigateToOverview = true
+                                    sceneSwitcher.setCurrentScene(SceneId.Favorites.id)
+                                    tapConsumed = true
+                                }
+                            }
+                            break
+                        }
+                    }
+                }
             }
         }
 
