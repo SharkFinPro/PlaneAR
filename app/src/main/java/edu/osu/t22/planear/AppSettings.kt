@@ -14,4 +14,6 @@ object AppSettings {
     var canEnableCamera: Boolean = true
 
     var hasCameraPermissions: Boolean = false
+
+    var useMetric: Boolean = false
 }

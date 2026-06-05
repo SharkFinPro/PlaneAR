@@ -2,6 +2,7 @@ package edu.osu.t22.planear.scenes.pages
 
 import android.hardware.HardwareBuffer
 import android.util.Log
+import edu.osu.t22.planear.Units
 import edu.osu.t22.planear.AppColors
 import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.achievements.ALL_ACHIEVEMENTS
@@ -266,9 +267,7 @@ class ArPage : Page {
                     Triple(0f, 0f, -displayRadius)
                 }
 
-                val distKm  = rawLen / 1000.0
-                val distStr = if (distKm < 1.0) "${"%.0f".format(rawLen)} m"
-                else "${"%.1f".format(distKm)} km"
+                val distStr = Units.formatDistance(rawLen.toDouble())
 
                 val dotFrontRadius = displayRadius - layerStep * 0.4f
 

@@ -8,6 +8,7 @@ import edu.osu.t22.planear.graphicsEngine.TextAlignH
 import edu.osu.t22.planear.graphicsEngine.TextAlignV
 import edu.osu.t22.planear.scenes.SceneInfo
 import edu.osu.t22.planear.scenes.SceneSwitcher
+import kotlin.math.roundToInt
 
 class SettingsPage : Page {
     override val sceneId = SceneId.Settings
@@ -57,19 +58,47 @@ class SettingsPage : Page {
                 enabled   = AppSettings.canEnableCamera
             )
 
-            // Radius slider
-            val newRadius = drawSlider(
-                sceneInfo   = sceneInfo,
-                cardX       = controlX,
-                cardY       = 460f,
-                cardW       = controlW,
-                title       = "Aircraft Search Radius",
-                min         = 1,
-                max         = 50,
-                current     = AppSettings.searchRadiusNm,
-                units       = "nm"
+            // Use Metric toggle
+            AppSettings.useMetric = drawToggleCard(
+                sceneInfo = sceneInfo,
+                cardX     = controlX,
+                cardY     = 460f,
+                cardW     = controlW,
+                title     = "Use Metric",
+                enabled   = AppSettings.useMetric
             )
-            AppSettings.searchRadiusNm = newRadius
+
+            // Radius slider
+            var displayMin: Int = 1
+            var displayMax: Int = 250
+            var displayCurrent: Int = AppSettings.searchRadiusNm
+            var units: String = "nm"
+
+            if (AppSettings.useMetric) {
+                displayMin     = (displayMin * 1.852).toInt()   // 1 nm -> km
+                displayMax     = (displayMax * 1.852).toInt()  // 50 nm -> km
+                displayCurrent = (displayCurrent * 1.852).roundToInt()
+                units          = "km"
+            }
+
+            val sliderValue = drawSlider(
+                sceneInfo = sceneInfo,
+                cardX     = controlX,
+                cardY     = 600f,
+                cardW     = controlW,
+                title     = "Aircraft Search Radius",
+                min       = displayMin,
+                max       = displayMax,
+                current   = displayCurrent,
+                units     = units
+            )
+
+            AppSettings.searchRadiusNm =
+                if (AppSettings.useMetric) {
+                    (sliderValue / 1.852).roundToInt()
+                } else {
+                    sliderValue
+                }
         }
 
         postRender(sceneInfo, sceneSwitcher)
