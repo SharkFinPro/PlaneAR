@@ -4,7 +4,7 @@
 module.exports = {
   siteMetadata: {
     title: `PlaneAR | Augmented Reality Flight Tracking`,
-    description: `A Senior Capstone Project bridging aerospace data with mobile ARCore technology to visualize real-time aircraft vectors in the physical world.`,
+    description: `A Senior Capstone Project bridging aerospace data with mobile AR technology to visualize real-time aircraft vectors in the physical world.`,
     author: `@planear`,
     siteUrl: `https://planear.dev`,
   },

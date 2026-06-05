@@ -6,7 +6,7 @@ export const siteConfig = {
   year: 2026,
   capstoneClass: "Senior Capstone 2026",
   description:
-    "A Senior Capstone Project bridging aerospace telemetry with a native mobile AR pipeline that integrates ARCore camera and sensor data to render real-time aircraft vectors in the physical world.",
+    "A Senior Capstone Project bridging aerospace telemetry with a native mobile AR pipeline that utilizes device sensors and camera data to render real-time aircraft vectors in the physical world.",
   theme: {
     defaultTheme: "light" as const,
     themeColor: "#006e1c",
@@ -14,7 +14,7 @@ export const siteConfig = {
   seo: {
     title: "PlaneAR | Augmented Reality Flight Tracking",
     description:
-      "A Senior Capstone Project bridging aerospace telemetry with a native mobile AR pipeline that integrates ARCore camera and sensor data to render real-time aircraft vectors in the physical world.",
+      "A Senior Capstone Project bridging aerospace telemetry with a native mobile AR pipeline that utilizes device sensors and camera data to render real-time aircraft vectors in the physical world.",
     ogType: "website" as const,
     twitterCard: "summary_large_image" as const,
   },
@@ -167,14 +167,14 @@ export const problemSolution = {
       icon: "verified_user",
       title: "Our Approach",
       description:
-        "We combine raw device sensor data with ARCore’s camera feed and spatial transforms to directly compute world-space positions for ADS-B telemetry. By avoiding filtering and high-level abstractions, our native C++ engine achieves precise, real-time AR alignment.",
+        "We combine raw device sensor data with the camera feed to directly compute world-space positions for ADS-B telemetry. Using a custom stabilization pipeline, our native C++ engine achieves precise, real-time AR alignment.",
       variant: "solution" as const,
     },
     {
       icon: "",
       title: "Engineering Methodology",
       description:
-      "We use a two-layer architecture: Kotlin handles application logic and UI, while a custom in-house Vulkan engine performs real-time geometric computation and rendering, driven by ARCore sensor and camera input. This design enables high-performance AR processing with a fully decoupled interface layer.",
+      "We use a two-layer architecture: Kotlin handles application logic and UI, while a custom in-house Vulkan engine performs real-time geometric computation and rendering, driven by device sensor and camera input. This design enables high-performance AR processing with a fully decoupled interface layer.",
       variant: "methodology" as const,
       image: {
         src: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&auto=format&fit=crop&q=80",
