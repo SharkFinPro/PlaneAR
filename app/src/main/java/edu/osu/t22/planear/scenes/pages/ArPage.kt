@@ -605,7 +605,7 @@ class ArPage : Page {
 
             // Degree-per-pixel ratio: full 360° across tapeW * 1.5 virtual span
             val degPerPx   = 360f / (tapeW * 1.5f)
-            val headingDeg = hudYaw
+            val headingDeg = ((hudYaw % 360f) + 360f) % 360f
             val screenCx   = width / 2f
 
             val cardinals = mapOf(
