@@ -35,7 +35,7 @@ jobs:
       - name: Rename APK
         run: |
           mv app/build/outputs/apk/release/app-release.apk \
-             app/build/outputs/apk/release/planear-${{ github.ref_name }}.apk
+             app/build/outputs/apk/release/planear.apk
 
       - name: Create GitHub Release and upload APK
         uses: softprops/action-gh-release@v2
@@ -43,4 +43,4 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: PlaneAR ${{ github.ref_name }}
           body: Release ${{ github.ref_name }}
-          files: app/build/outputs/apk/release/planear-${{ github.ref_name }}.apk
+          files: app/build/outputs/apk/release/planear.apk
