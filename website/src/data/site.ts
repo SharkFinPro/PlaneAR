@@ -78,6 +78,7 @@ export const team = {
     {
       name: "Alexander Martin",
       role: "Engineering",
+      headshot: "/headshots/alex-headshot.png",
       linkedin: "https://linkedin.com/in/iamalexmartin/",
       email: "alex.martin.cs@outlook.com",
       portfolio: "https://www.iamalexmartin.com/",
@@ -86,24 +87,28 @@ export const team = {
     {
       name: "Douglas Sandford",
       role: "Engineering",
+      headshot: "/headshots/douglas-headshot.png",
       email: "sandford@oregonstate.edu",
       github: "https://github.com/eageroden"
     },
     {
       name: "Johnny Vo",
       role: "Engineering",
+      headshot: "/headshots/johnny-headshot.jpg",
       email: "vojoh@oregonstate.edu",
       github: "https://github.com/vojoh"
     },
     {
       name: "Kaden Allen",
       role: "Engineering",
+      headshot: "/headshots/kaden-headshot.jpg",
       email: "allekade@oregonstate.edu",
       github: "https://github.com/allekade"
     },
     {
       name: "Owen Jones",
       role: "Engineering",
+      headshot: "/headshots/owen-headshot.png",
       linkedin: "https://www.linkedin.com/in/owen-jones-ojones28/",
       email: "owenmjones28@gmail.com",
       github: "https://github.com/ojones28"
