@@ -40,7 +40,7 @@ const Team: React.FC = () => {
                       <img
                         src={member.headshot}
                         alt={`${member.name}'s headshot`}
-                        className="w-20 h-20 md:w-32 md:h-32 rounded-xl group-hover:rounded-2xl object-cover shadow-sm border border-outline-variant/20 transition-all duration-300"
+                        className="w-20 h-20 md:w-32 md:h-32 rounded-2xl group-hover:rounded-lg object-cover shadow-sm border border-outline-variant/20 transition-all duration-300"
                       />
                     </div>
                     <div className="text-[10px] md:text-xs font-bold text-primary tracking-widest uppercase mb-1">
