@@ -119,7 +119,7 @@ object FlightDetailSheet {
                 if (entry != null) {
                     FlightSheetData.fromEntry(entry)
                 } else {
-                    flight.copy(isLive = false, altitudeRawFt = FlightSheetData.NA_DOUBLE, headingDeg = "N/A", verticalRateFpm = FlightSheetData.NA_INT)
+                    flight.copy(isLive = false, altitudeRawFt = -1.0, headingDeg = "N/A", verticalRateFpm = FlightSheetData.NA_INT)
                 }
             }
         }
@@ -244,6 +244,8 @@ object FlightDetailSheet {
             }
 
             // Build field list dynamically
+            // Only includes values that are relevant and available if the
+            // plane is no longer live
             val fields = buildList {
                 add(flight.callsignLabel to flight.callsign)
                 if (flight.callsignLabel != "REGISTRATION" &&
@@ -253,11 +255,11 @@ object FlightDetailSheet {
                 }
                 if (flight.origin != "N/A")      add("ORIGIN"      to flight.origin)
                 if (flight.destination != "N/A") add("DESTINATION" to flight.destination)
-                add("ALTITUDE"  to flight.altitude)
-                add("VERT RATE" to flight.verticalRate)
-                add("SPEED"     to flight.speed)
+                if(flight.altitude != "N/A") add("ALTITUDE"  to flight.altitude)
+                if(flight.verticalRate != "N/A") add("VERT RATE" to flight.verticalRate)
+                if(flight.speed != "N/A") add("SPEED"     to flight.speed)
                 add("TYPE"      to flight.type)
-                add("HEADING"   to flight.headingDeg)
+                if(flight.headingDeg != "N/A") add("HEADING"   to flight.headingDeg)
             }
 
             val totalContentH = fields.size * fieldRowH
