@@ -28,12 +28,6 @@ class SettingsPage : Page {
             fill(c.background)
             rect(0, 0, screenW, screenH)
 
-            // Title
-            fill(c.textPrimary)
-            textFont("roboto", 32)
-            textAlign(TextAlignH.CENTER, TextAlignV.BASELINE)
-            text("Settings", screenW / 2f, 150f)
-
             // Settings controls - positioned relatively
             val controlW = screenW * 0.90f
             val controlX = (screenW - controlW) / 2f
