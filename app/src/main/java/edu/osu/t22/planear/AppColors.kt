@@ -59,7 +59,7 @@ object AppColors {
         trackBackground = Color(220, 220, 220),
         danger          = Color(220, 60,  60),
         overlay         = Color(0,   0,   0),
-        skyBackground   = Color(135, 195, 235),
+        skyBackground   = Color(90,  160, 255),
     )
 
     private val dark = Palette(
