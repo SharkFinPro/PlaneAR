@@ -47,6 +47,10 @@ class ArPage : Page {
 
     private var filteredMatrix = FloatArray(9) { if (it % 4 == 0) 1f else 0f }
 
+    private var filteredYaw   = 0.0
+    private var filteredPitch = 0.0
+    private var filteredRoll  = 0.0
+
     private var orientationInitialized = false
     private var lastFrameTimeNs = 0L
 
@@ -74,11 +78,22 @@ class ArPage : Page {
 
         if (!orientationInitialized) {
             filteredMatrix = R.copyOf()
+            filteredYaw   = orientation.azimuthDeg
+            filteredPitch = orientation.pitchDeg
+            filteredRoll  = orientation.rollDeg
             orientationInitialized = true
         } else {
-            val tau = 0.20
+            val tau   = 0.20
             val alpha = (1.0 - kotlin.math.exp(-dt.toDouble() / tau)).toFloat()
             filteredMatrix = slerpMatrix(filteredMatrix, R, alpha)
+
+            val yawTarget   = applyAngleDeadband(filteredYaw,   orientation.azimuthDeg, 0.25)
+            val pitchTarget = applyDeadband(filteredPitch, orientation.pitchDeg,  0.20)
+            val rollTarget  = applyDeadband(filteredRoll,  orientation.rollDeg,   0.20)
+
+            filteredYaw   = lerpAngle(filteredYaw,   yawTarget,   alpha.toDouble())
+            filteredPitch += (pitchTarget - filteredPitch) * alpha
+            filteredRoll  += (rollTarget  - filteredRoll)  * alpha
         }
 
         val phoneLat: Double = orientation.x.toDouble()
@@ -154,7 +169,7 @@ class ArPage : Page {
                 camera(0, 0, width, height)
             } else {
                 rectMode(RectMode.CORNER)
-                fill(90, 160, 255)
+                fill(AppColors.current.skyBackground)
                 rect(0, 0, width, height)
             }
 
@@ -426,20 +441,7 @@ class ArPage : Page {
                 }
             }
 
-            fill(0)
-            textFont("roboto", 18)
-            textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
-            text("AR Scene", width / 2, 40)
-
-            val cardinal = orientation.getCardinalDirection()
-
-            textAlign(TextAlignH.LEFT, TextAlignV.TOP)
-            textFont("roboto", 30)
-
-            fill(0)
-            text("Yaw: ${orientation.azimuthDeg.toInt()}° ($cardinal)", 50, 300)
-            text("Pitch: ${orientation.pitchDeg.toInt()}°", 50, 400)
-            text("Roll: ${orientation.rollDeg.toInt()}°", 50, 500)
+            drawHud(sceneInfo.enginePtr, width, height)
         }
 
         // Check for new achievement notifications
@@ -577,6 +579,113 @@ class ArPage : Page {
             }
         }
     }
+
+    /**
+     * Draws the 2D aviation HUD overlay: compass tape.
+     * Uses smoothed Euler-angle fields to avoid the gimbal/axis issues present in the matrix path.
+     */
+    private fun drawHud(enginePtr: Long, width: Float, height: Float) {
+        val hudYaw = filteredYaw.toFloat()
+
+        with(GraphicsEngineWrapper(enginePtr).getRenderer2D()) {
+            val hud = AppColors.current
+
+            // ── Compass tape ──────────────────────────────────────────────────
+            // tapeY clears punch-hole / notch cameras that sit inside the top ~80 px.
+            val tapeH     = 60f
+            val tapeY     = 148f + tapeH / 2f
+            val tapeW     = width * 0.86f
+            val tapeLeft  = (width - tapeW) / 2f
+            val tapeRight = tapeLeft + tapeW
+
+            // Background pill
+            rectMode(RectMode.CORNER)
+            fill(hud.navBackground, 200)
+            rect(tapeLeft, tapeY - tapeH / 2f, tapeW, tapeH, tapeH / 2f)
+
+            // Degree-per-pixel ratio: full 360° across tapeW * 1.5 virtual span
+            val degPerPx   = 360f / (tapeW * 1.5f)
+            val headingDeg = hudYaw
+            val screenCx   = width / 2f
+
+            val cardinals = mapOf(
+                0f   to "N",
+                45f  to "NE",
+                90f  to "E",
+                135f to "SE",
+                180f to "S",
+                225f to "SW",
+                270f to "W",
+                315f to "NW"
+            )
+
+            // Cardinal labels are ~20 px wide at size 16; keep them fully inside the pill.
+            val labelMargin = 22f
+
+            // Draw tick marks and cardinal labels
+            textAlign(TextAlignH.CENTER, TextAlignV.CENTER)
+
+            for (deg in 0..359 step 5) {
+                val deltaAngle = ((deg.toFloat() - headingDeg + 540f) % 360f) - 180f
+                val tickX      = screenCx + deltaAngle / degPerPx
+
+                if (tickX < tapeLeft + 4f || tickX > tapeRight - 4f) continue
+
+                val isMajor  = deg % 45 == 0
+                val isMedium = deg % 15 == 0 && !isMajor
+                val tickHalf = when {
+                    isMajor  -> tapeH * 0.40f
+                    isMedium -> tapeH * 0.26f
+                    else     -> tapeH * 0.16f
+                }
+                val tickAlpha = when {
+                    isMajor  -> 220
+                    isMedium -> 160
+                    else     -> 100
+                }
+
+                fill(hud.textPrimary, tickAlpha)
+                rect(tickX - 0.75f, tapeY - tickHalf, 1.5f, tickHalf * 2f)
+
+                if (tickX >= tapeLeft + labelMargin && tickX <= tapeRight - labelMargin) {
+                    cardinals[deg.toFloat()]?.let { label ->
+                        val isMainCardinal = deg % 90 == 0
+                        fill(if (isMainCardinal) hud.compassCardinal else hud.textPrimary, 230)
+                        textFont("roboto", 16)
+                        text(label, tickX, tapeY)
+                    }
+                }
+            }
+
+            // Center heading cursor (inverted triangle notch at bottom of tape)
+            val cursorH = 12f
+            val cursorW = 13f
+
+            fill(hud.accent)
+            triangle(
+                screenCx,           tapeY + tapeH / 2f,
+                screenCx - cursorW, tapeY + tapeH / 2f - cursorH,
+                screenCx + cursorW, tapeY + tapeH / 2f - cursorH
+            )
+        }
+    }
+
+    private fun lerpAngle(current: Double, target: Double, alpha: Double): Double {
+        var delta = target - current
+        while (delta > 180.0)  delta -= 360.0
+        while (delta < -180.0) delta += 360.0
+        return current + delta * alpha
+    }
+
+    private fun applyAngleDeadband(current: Double, target: Double, thresholdDeg: Double): Double {
+        var delta = target - current
+        while (delta > 180.0)  delta -= 360.0
+        while (delta < -180.0) delta += 360.0
+        return if (kotlin.math.abs(delta) < thresholdDeg) current else target
+    }
+
+    private fun applyDeadband(current: Double, target: Double, threshold: Double): Double =
+        if (kotlin.math.abs(target - current) < threshold) current else target
 
     private fun slerpMatrix(a: FloatArray, b: FloatArray, t: Float): FloatArray {
         val result = FloatArray(9)
