@@ -48,7 +48,7 @@ class AchievementsPage : Page {
         val cornerR   = 20f
         val cols      = 2
 
-        val headerH   = 320f    // space for the header section
+        val headerH   = 370f    // space for the header section
         val rows      = (ALL_ACHIEVEMENTS.size + cols - 1) / cols
         val totalGridH = rows * (cardH + gap) - gap
         val totalContentH = headerH + totalGridH + 60f
@@ -104,28 +104,28 @@ class AchievementsPage : Page {
             fill(c.textPrimary)
             textFont("roboto", 22)
             textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
-            text("Achievements", margin, headerY + 100f)
+            text("Achievements", margin, headerY + 150f)
 
             // Progress badge: "X / 25"
             fill(c.accent)
             textFont("roboto", 13)
             textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
-            text("🏆  $unlocked / $total", margin, headerY + 145f)
+            text("🏆  $unlocked / $total", margin, headerY + 195f)
 
             // Streak display (right side of header)
             if (streak > 0) {
                 fill(c.textPrimary)
                 textFont("roboto", 13)
                 textAlign(TextAlignH.RIGHT, TextAlignV.BASELINE)
-                text("🔥 $streak day streak", screenW - margin, headerY + 145f)
+                text("🔥 $streak day streak", screenW - margin, headerY + 195f)
             }
 
             // Accent line under header
             fill(c.accent)
-            rect(margin, headerY + 170f, gridW, 3f, 1.5f)
+            rect(margin, headerY + 220f, gridW, 3f, 1.5f)
 
             // Tracking stats row
-            val statsY = headerY + 210f
+            val statsY = headerY + 260f
             fill(c.textSecondary)
             textFont("roboto", 11)
             textAlign(TextAlignH.LEFT, TextAlignV.BASELINE)
