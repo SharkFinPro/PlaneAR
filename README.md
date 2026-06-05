@@ -1,7 +1,7 @@
 <div align="center">
   <a href="https://github.com/SharkFinPro/PlaneAR">
     <picture>
-      <img alt="PlaneAR Logo" src="https://eecs.engineering.oregonstate.edu/capstone/submission/images/cWwiIg2eIZmatmcz" height="128">
+      <img alt="PlaneAR Logo" src="assets/planeAR-logo.png" height="128">
     </picture>
   </a>
 
