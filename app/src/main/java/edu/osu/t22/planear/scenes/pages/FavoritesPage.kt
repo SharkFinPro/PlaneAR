@@ -64,7 +64,7 @@ class FavoritesPage : Page {
         val margin   = screenW * 0.05f
         val contentW = screenW - 2f * margin
         val headerY  = screenH * 0.04f
-        val tabBarY  = headerY + 15.0f
+        val tabBarY  = headerY + 65.0f
         val tabBarH  = 65f
         val tabGap   = 16f
         val tabW     = (contentW - 2f * tabGap) / 3f

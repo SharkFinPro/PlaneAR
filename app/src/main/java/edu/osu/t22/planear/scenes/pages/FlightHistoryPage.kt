@@ -38,7 +38,7 @@ class FlightHistoryPage : Page {
         val headerY    = screenH * 0.04f
 
         // ── Tab bar (pill-style: History | Favorites | Overview) ──────
-        val tabBarY    = headerY + 15.0f
+        val tabBarY    = headerY + 65.0f
         val tabBarH    = 65f
         val tabCount   = 3
         val tabGap     = 16f
