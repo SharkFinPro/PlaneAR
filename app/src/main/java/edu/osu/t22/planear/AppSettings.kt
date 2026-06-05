@@ -16,4 +16,6 @@ object AppSettings {
     var hasCameraPermissions: Boolean = false
 
     var useMetric: Boolean = false
+
+    var useAltApi: Boolean = false
 }

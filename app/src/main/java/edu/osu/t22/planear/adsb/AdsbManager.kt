@@ -25,7 +25,12 @@ class AdsbManager(
     private val appLocationManager: AppLocationManager,
     private val scope: CoroutineScope
 ) {
-    private val repository: AdsbRepository = AdsbRepository(AdsbApi.create(), HexDbApi.create(), scope)
+    private var currentApi: AdsbApi = AdsbLolApi()
+
+    fun setApi(useAlt: Boolean) {
+        currentApi = if (useAlt) AdsbFiApi() else AdsbLolApi()
+    }
+    private val repository: AdsbRepository = AdsbRepository({ currentApi }, HexDbApi.create(), scope)
 
     companion object {
         const val H_FOV_DEG = 54.8

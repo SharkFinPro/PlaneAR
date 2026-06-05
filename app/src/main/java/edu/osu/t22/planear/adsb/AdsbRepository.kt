@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
 
 class AdsbRepository (
-    private val service: AdsbApi,
+    private val service: () -> AdsbApi,
     private val hexDbApi: HexDbApi,
     private val externalScope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
@@ -24,11 +24,11 @@ class AdsbRepository (
 
     suspend fun refreshAircraft(lat: Double, lon: Double, radius: Int) {
         withContext(ioDispatcher) {
-            val response = service.getNearbyAircraft(lat, lon, radius)
+            val api = service()
+            Log.d("ADSB", "Fetching aircraft using API: ${api::class.simpleName}")
+            val response = api.getNearbyAircraft(lat, lon, radius)
 
             val now = System.currentTimeMillis()
-
-            Log.d("ADSB", "Fetching aircraft...")
 
             response.ac.forEach { adsbAircraft ->
                 val id = adsbAircraft.hex?.removePrefix("~") ?: return@forEach
