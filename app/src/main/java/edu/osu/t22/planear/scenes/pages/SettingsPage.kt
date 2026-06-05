@@ -28,12 +28,6 @@ class SettingsPage : Page {
             fill(c.background)
             rect(0, 0, screenW, screenH)
 
-            // Title
-            fill(c.textPrimary)
-            textFont("roboto", 32)
-            textAlign(TextAlignH.CENTER, TextAlignV.BASELINE)
-            text("Settings", screenW / 2f, 100f)
-
             // Settings controls - positioned relatively
             val controlW = screenW * 0.90f
             val controlX = (screenW - controlW) / 2f
@@ -42,7 +36,7 @@ class SettingsPage : Page {
             AppSettings.darkMode = drawToggleCard(
                 sceneInfo = sceneInfo,
                 cardX     = controlX,
-                cardY     = 180f,
+                cardY     = 230f,
                 cardW     = controlW,
                 title     = "Dark Mode",
                 enabled   = AppSettings.darkMode
@@ -52,7 +46,7 @@ class SettingsPage : Page {
             AppSettings.canEnableCamera = drawToggleCard(
                 sceneInfo = sceneInfo,
                 cardX     = controlX,
-                cardY     = 320f,
+                cardY     = 370f,
                 cardW     = controlW,
                 title     = "Use Camera",
                 enabled   = AppSettings.canEnableCamera
@@ -62,7 +56,7 @@ class SettingsPage : Page {
             AppSettings.useMetric = drawToggleCard(
                 sceneInfo = sceneInfo,
                 cardX     = controlX,
-                cardY     = 460f,
+                cardY     = 510f,
                 cardW     = controlW,
                 title     = "Use Metric",
                 enabled   = AppSettings.useMetric
@@ -84,7 +78,7 @@ class SettingsPage : Page {
             val sliderValue = drawSlider(
                 sceneInfo = sceneInfo,
                 cardX     = controlX,
-                cardY     = 600f,
+                cardY     = 650f,
                 cardW     = controlW,
                 title     = "Aircraft Search Radius",
                 min       = displayMin,
