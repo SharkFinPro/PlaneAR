@@ -88,21 +88,21 @@ export const team = {
       name: "Douglas Sandford",
       role: "Engineering",
       headshot: "/headshots/douglas-headshot.png",
-      email: "sandford@oregonstate.edu",
+      email: "douglas.sandford@gmail.com",
       github: "https://github.com/eageroden"
     },
     {
       name: "Johnny Vo",
       role: "Engineering",
       headshot: "/headshots/johnny-headshot.jpg",
-      email: "vojoh@oregonstate.edu",
+      email: "johnnyqvo@gmail.com",
       github: "https://github.com/vojoh"
     },
     {
       name: "Kaden Allen",
       role: "Engineering",
       headshot: "/headshots/kaden-headshot.jpg",
-      email: "allekade@oregonstate.edu",
+      email: "klahawk03@gmail.com",
       github: "https://github.com/allekade"
     },
     {
