@@ -1,48 +1,54 @@
-# PlaneAR Gatsby Website
+# PlaneAR Website
 
-A static single-page website for the PlaneAR Senior Capstone Project, built with Gatsby, React, and Tailwind CSS.
+A high-performance, static single-page website for the PlaneAR project, built with Gatsby, React, and Tailwind CSS. This site serves as the primary landing page and informational hub for the PlaneAR augmented reality aircraft tracking system.
 
 ## Features
 
-- **Gatsby Framework**: Fast, static site generation with React
-- **Dark/Light Theme Toggle**: CSS-based theming with localStorage persistence
-- **Modular Architecture**: Components organized by feature/section
-- **Responsive Design**: Mobile-first approach with Tailwind CSS
-- **Material Design**: Material 3 color system with custom CSS variables
+- **Gatsby Framework**: Optimized static site generation for industry-leading load times and SEO.
+- **Adaptive Theming**: Built-in Dark/Light mode toggle with `localStorage` persistence for a personalized user experience.
+- **Modular Architecture**: Component-based design allowing for easy expansion and maintenance of site sections.
+- **Responsive Interface**: A mobile-first approach powered by Tailwind CSS, ensuring seamless viewing across all device sizes.
+- **Material Design**: Implementation of the Material 3 color system using custom CSS variables for a modern, cohesive look.
+
+## Development Setup
 
 ### Prerequisites
 
-- Node.js 24+ 
-- npm or yarn
+- **Node.js**: Version 24 or higher recommended.
+- **npm** or **yarn** package manager.
 
-### Installation
+### Local Installation
 
-1. Navigate to the project directory:
-```bash
-cd planear-gatsby
-```
+1. Navigate to the website directory:
+   ```bash
+   cd website
+   ```
 
 2. Install dependencies:
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
 3. Start the development server:
-```bash
-npm run develop
-```
+   ```bash
+   npm run develop
+   ```
 
-4. Open your browser at `http://localhost:8000`
+4. Access the site:
+   Open your browser and navigate to `http://localhost:8000`.
 
-### Building for Production
+## Build and Deployment
+
+### Production Build
+To generate the optimized static production files:
 
 ```bash
 npm run build
 ```
+The output will be located in the `public/` directory.
 
-The static files will be generated in the `public/` directory.
-
-### Serving Production Build
+### Production Preview
+To serve the production build locally for testing:
 
 ```bash
 npm run serve
