@@ -1,5 +1,6 @@
 package edu.osu.t22.planear.scenes.pages
 
+import android.util.Log
 import edu.osu.t22.planear.AppColors
 import edu.osu.t22.planear.AppSettings
 import edu.osu.t22.planear.graphicsEngine.GraphicsEngineWrapper
@@ -93,6 +94,21 @@ class SettingsPage : Page {
                 } else {
                     sliderValue
                 }
+
+            // Use Alternate Api toggle
+            val newUseAltApi = drawToggleCard(
+                sceneInfo = sceneInfo,
+                cardX     = controlX,
+                cardY     = 820f,
+                cardW     = controlW,
+                title     = "Use Alternate API",
+                enabled   = AppSettings.useAltApi
+            )
+            if (newUseAltApi != AppSettings.useAltApi) {
+                AppSettings.useAltApi = newUseAltApi
+                SceneSwitcher.adsbManager.setApi(newUseAltApi)
+                Log.d("ADSB", "Changing API to ${if (newUseAltApi) "adsb.fi" else "adsb.lol"}")
+            }
         }
 
         postRender(sceneInfo, sceneSwitcher)
